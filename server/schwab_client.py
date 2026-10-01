@@ -377,6 +377,37 @@ def _is_refresh_token_error(exc: Exception) -> bool:
     ))
 
 
+# Schwab's /transactions endpoint rejects any range longer than one year
+# (400 Bad Request). Our income/conversion windows start Oct 1 of the prior
+# year, so from Oct 1 onward they exceed a year — split into ≤ 360-day chunks.
+_TXN_MAX_SPAN = timedelta(days=360)
+
+
+def _get_transactions_chunked(client, account_hash, start_dt, end_dt,
+                              transaction_types, *, label: str = "") -> list:
+    """Fetch transactions over [start_dt, end_dt] in ≤ 360-day windows."""
+    out: list = []
+    s = start_dt
+    while s < end_dt:
+        e = min(s + _TXN_MAX_SPAN, end_dt)
+
+        def _fetch(_s=s, _e=e):
+            resp = client.get_transactions(
+                account_hash,
+                start_date=_s,
+                end_date=_e,
+                transaction_types=transaction_types,
+            )
+            resp.raise_for_status()
+            return resp.json()
+
+        result = _http_request(_fetch, label=label)
+        if isinstance(result, list):
+            out.extend(result)
+        s = e
+    return out
+
+
 def _http_request(fn, *, label: str = "", retries: int = 2, delay: float = 1.5):
     """
     Call fn() which must execute an httpx request AND call raise_for_status().
@@ -992,17 +1023,11 @@ def get_income_transactions(
         acct_txns: list = []
 
         try:
-            def _fetch_txns(_hv=hash_val, _ak=acct_key):
-                resp = client.get_transactions(
-                    _hv,
-                    start_date=start_dt,
-                    end_date=end_dt,
-                    transaction_types=sc.Client.Transactions.TransactionType.DIVIDEND_OR_INTEREST,
-                )
-                resp.raise_for_status()
-                return resp.json()
-
-            raw_list = _http_request(_fetch_txns, label=f"transactions/{acct_key}")
+            raw_list = _get_transactions_chunked(
+                client, hash_val, start_dt, end_dt,
+                sc.Client.Transactions.TransactionType.DIVIDEND_OR_INTEREST,
+                label=f"transactions/{acct_key}",
+            )
 
             for tx in raw_list:
                 # Dedup by Schwab transactionId (most reliable key).
@@ -1255,26 +1280,23 @@ def get_conversion_transactions(
     _fetch_start = _dt(_year - 1, 10, 1)
     _fetch_end   = _dt.now()
 
-    def _fetch_range(_hv):
-        resp = client.get_transactions(
-            _hv,
-            start_date=_fetch_start,
-            end_date=_fetch_end,
-            transaction_types=[
+    def _fetch_range(_hv, label):
+        return _get_transactions_chunked(
+            client, _hv, _fetch_start, _fetch_end,
+            [
                 sc.Client.Transactions.TransactionType.RECEIVE_AND_DELIVER,
                 sc.Client.Transactions.TransactionType.JOURNAL,
             ],
+            label=label,
         )
-        resp.raise_for_status()
-        return resp.json()
 
     try:
         from db_manager import upsert_schwab_transactions as _upsert
 
-        rollover_all = _http_request(lambda: _fetch_range(rollover_hash), label="tx/rollover")
+        rollover_all = _fetch_range(rollover_hash, "tx/rollover")
         _upsert("rollover_ira", rollover_all)
 
-        roth_all = _http_request(lambda: _fetch_range(roth_hash), label="tx/roth")
+        roth_all = _fetch_range(roth_hash, "tx/roth")
         _upsert("roth_ira", roth_all)
 
         if _VERBOSE:
