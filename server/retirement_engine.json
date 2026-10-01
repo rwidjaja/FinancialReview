@@ -1,0 +1,11 @@
+{
+  "_RETIREMENT_ENGINE": {
+    "_comment": "Rollover → Roth conversion draw plan (SignalsTab STATUS view). Review and update every year — annual_conversion target itself lives in personal.json _TARGET_ALLOC.annual_conversion, the single source of truth used by Tax/Drawdown/Forecast/AI. December IRS withholding is NOT here — it's computed live from tax_data.tax_conv_add/tax_conv_actual (tax on the remaining un-converted amount), not a manual dial.",
+    "plan_year": 2027,
+    "monthly_to_roth": 35650,
+    "monthly_to_pocket": 4100,
+    "breakeven_rate": 0.033,
+    "ahead_threshold": 49422,
+    "depleted_threshold": 50
+  }
+}

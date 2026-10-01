@@ -1,0 +1,27 @@
+# ── Financial Dashboard — Python server dependencies ───────────────────────────
+# Python 3.11+ required  (developed on 3.14)
+#
+# Setup on a new machine:
+#   python3 -m venv /path/to/your/venv
+#   source /path/to/your/venv/bin/activate
+#   pip install -r server/requirements.txt
+#
+# Then just run ./start.sh — it checks for a missing/expired Schwab token
+# and handles re-authentication interactively before starting the servers.
+
+# Web server
+Flask>=3.1.3
+Werkzeug>=3.1.8          # Flask dependency — pinned to avoid breaking changes
+
+# HTTP clients
+requests>=2.32.0          # used by ollama_client.py (Ollama AI calls)
+httpx>=0.28.1             # used by schwab-py under the hood
+
+# Schwab brokerage API
+schwab-py>=1.5.1
+
+# Market data & analytics
+yfinance>=0.2.54          # price fetching, benchmark comparisons, research tab
+pandas>=2.2.0             # data manipulation in data_fetcher, research, dash_tab_ai
+numpy>=2.0.0              # simulation engine (Monte Carlo, sequence risk, optimizer)
+pandas_market_calendars>=5.4.0   # NYSE holiday/early-close calendar (market_calendar.py)

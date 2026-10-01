@@ -1,0 +1,24 @@
+{
+  "SYMBOL1": {
+    "symbol": "SYMBOL1",
+    "account": "...####",
+    "asOfDate": "YYYY-MM-DDTHH:MM:SS-04:00",
+    "totalQuantity": 0,
+    "totalMarketValue": 0.00,
+    "totalCostBasis": 0.00,
+    "totalGainLoss": 0.00,
+    "totalGainLossPercent": 0.00,
+    "lots": []
+  },
+  "SYMBOL2": {
+    "symbol": "SYMBOL2",
+    "account": "...####",
+    "asOfDate": "YYYY-MM-DDTHH:MM:SS-04:00",
+    "totalQuantity": 0,
+    "totalMarketValue": 0.00,
+    "totalCostBasis": 0.00,
+    "totalGainLoss": 0.00,
+    "totalGainLossPercent": 0.00,
+    "lots": []
+  }
+}

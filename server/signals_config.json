@@ -1,0 +1,42 @@
+{
+  "targets": [
+    { "sym": "DRAM", "name": "DRAM ETF",          "layer": "dram"   },
+    { "sym": "SMH",  "name": "VanEck Semi ETF",   "layer": "target" },
+    { "sym": "SOXX", "name": "iShares Semi ETF",  "layer": "target" }
+  ],
+  "chain": {
+    "ai": [
+      { "sym": "NVDA", "name": "NVIDIA" },
+      { "sym": "AMD",  "name": "AMD"    }
+    ],
+    "networking": [
+      { "sym": "AVGO", "name": "Broadcom" }
+    ],
+    "foundry": [
+      { "sym": "TSM", "name": "TSMC" }
+    ],
+    "hbm": [
+      { "sym": "MU",     "name": "Micron",   "dram_direct": true },
+      { "sym": "000660.KS", "name": "SK Hynix"                  },
+      { "sym": "005930.KS", "name": "Samsung"                      }
+    ],
+    "equipment": [
+      { "sym": "AMAT", "name": "Applied Materials" },
+      { "sym": "LRCX", "name": "Lam Research"      },
+      { "sym": "KLAC", "name": "KLA Corp"           },
+      { "sym": "ASML", "name": "ASML"               }
+    ],
+    "legacy": [
+      { "sym": "INTC", "name": "Intel" }
+    ]
+  },
+  "earnings_watch": ["NVDA", "AVGO", "MU", "TSM", "ASML"],
+  "leadership_grid": [
+    { "sym": "NVDA", "role": "AI / GPU",   "weight": "~30%" },
+    { "sym": "AVGO", "role": "Networking", "weight": "~10%" },
+    { "sym": "AMD",  "role": "AI / CPU",   "weight": "~5%"  },
+    { "sym": "MU",   "role": "Memory",     "weight": "~5%"  },
+    { "sym": "AMAT", "role": "Equipment",  "weight": "~5%"  },
+    { "sym": "TSM",  "role": "Foundry",    "weight": "~10%" }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "_comment": "Map the last 3 digits of each Schwab account number to its type. Valid types: taxable | rollover_ira | roth_ira",
+  "_valid_types": ["taxable", "rollover_ira", "roth_ira"],
+  "_last_updated": "2026-01-01T00:00:00",
+  "_instructions": [
+    "1. Copy this file to account_mapping.json (gitignored — stays local)",
+    "2. Or run discover_accounts() from schwab_client.py to auto-populate it",
+    "3. Replace the example suffixes below with your own account's last 3 digits",
+    "4. Set each type to: taxable | rollover_ira | roth_ira",
+    "5. Restart the server — the mapping is read on startup"
+  ],
+  "XXX": "taxable",
+  "YYY": "rollover_ira",
+  "ZZZ": "roth_ira"
+}

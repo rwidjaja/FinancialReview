@@ -1,0 +1,7 @@
+{
+  "_comment": "Copy this file to target_taxable.json. Weights represent your target allocation for the taxable brokerage account at your Social Security start age. Values must sum to 1.0. Never commit the real file — it is gitignored.",
+  "TICKER1": 0.30,
+  "TICKER2": 0.30,
+  "TICKER3": 0.20,
+  "TICKER4": 0.20
+}

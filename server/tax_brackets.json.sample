@@ -1,0 +1,27 @@
+{
+  "_comment": "Copy to tax_brackets.json. Update annually from IRS Rev. Proc. Never commit — gitignored.",
+
+  "_TAX_BRACKETS": {
+    "year": 2026,
+    "standard_deduction_single": 15000,
+    "standard_deduction_mfj":    30000,
+    "brackets_single": [
+      { "rate": 0.10, "min": 0,      "max": 12220  },
+      { "rate": 0.12, "min": 12220,  "max": 49765  },
+      { "rate": 0.22, "min": 49765,  "max": 105975 },
+      { "rate": 0.24, "min": 105975, "max": 199475 },
+      { "rate": 0.32, "min": 199475, "max": 252900 },
+      { "rate": 0.35, "min": 252900, "max": 640600 },
+      { "rate": 0.37, "min": 640600, "max": null   }
+    ],
+    "brackets_mfj": [
+      { "rate": 0.10, "min": 0,      "max": 24440  },
+      { "rate": 0.12, "min": 24440,  "max": 99530  },
+      { "rate": 0.22, "min": 99530,  "max": 211950 },
+      { "rate": 0.24, "min": 211950, "max": 398950 },
+      { "rate": 0.32, "min": 398950, "max": 505800 },
+      { "rate": 0.35, "min": 505800, "max": 768700 },
+      { "rate": 0.37, "min": 768700, "max": null   }
+    ]
+  }
+}

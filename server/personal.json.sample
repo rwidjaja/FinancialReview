@@ -1,0 +1,57 @@
+{
+  "_comment": "Copy to personal.json and fill in your details. Never commit the real file — it is gitignored.",
+
+  "_PERSONAL": {
+    "name": "Your Name",
+    "dob": "1970-01-01",
+    "filing_status": "MFJ",
+    "ss_start_age": 70,
+    "estimated_spending": 120000,
+    "collect_medicare": false,
+    "medicare_people": 1,
+    "spouse": {
+      "name": "Spouse Name",
+      "dob": "1975-01-01",
+      "ss_start_age": 70
+    },
+    "social_security": {
+      "age_62": { "label": "Age 62 (Early)",   "date": "2032-01", "monthly": 2500, "annual": 30000 },
+      "age_65": { "label": "Age 65 (Custom)",  "date": "2035-01", "monthly": 3200, "annual": 38400 },
+      "age_67": { "label": "Age 67 (Full)",    "date": "2037-01", "monthly": 3800, "annual": 45600 },
+      "age_70": { "label": "Age 70 (Delayed)", "date": "2040-01", "monthly": 4800, "annual": 57600 }
+    }
+  },
+
+  "_INCOME_TARGET": {
+    "monthly_min": 10000,
+    "monthly_max": 15000,
+    "annual_min": 120000,
+    "annual_max": 180000
+  },
+
+  "_SCHWAB_ACCOUNTS": {
+    "_comment": "Maps last 3 digits of each Schwab account number to its type. Valid: taxable | rollover_ira | roth_ira",
+    "XXX": "taxable",
+    "YYY": "rollover_ira",
+    "ZZZ": "roth_ira"
+  },
+
+  "_DRAWDOWN_DEFAULTS": {
+    "_comment": "Fallback values used by the drawdown engine when live spending data is unavailable.",
+    "annual_spending_fallback": 130000,
+    "expected_return":          0.07,
+    "inflation":                0.025,
+    "qualified_pct_fallback":   0.60,
+    "dividend_yield_cap":       0.20
+  },
+
+  "_TARGET_ALLOC": {
+    "annual_conversion": 50000,
+    "conversion_month": 12,
+    "external_accounts": {
+      "_comment": "Accounts outside Schwab — balances entered manually for projection modeling only",
+      "k401_roth": 0,
+      "k401": 0
+    }
+  }
+}

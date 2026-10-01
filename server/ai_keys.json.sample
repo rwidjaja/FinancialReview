@@ -1,0 +1,4 @@
+{
+  "_comment": "Copy this file to ai_keys.json and add your OpenRouter API keys (one per account/email). Never commit the real file — it is gitignored.",
+  "your_username": "your-openrouter-api-key-here"
+}

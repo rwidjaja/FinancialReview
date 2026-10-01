@@ -1,0 +1,197 @@
+{
+  "_comment": "Copy to rules.json. Strategy rules and fund-type thresholds — rarely changes. Never commit — gitignored.",
+
+  "_TAX_RULE_ENGINE": {
+    "_comment": "Dynamic income target derived from _TAX_BRACKETS. target_bracket_rate is the highest bracket you want to stay within.",
+    "target_bracket_rate": 24,
+    "ltcg_rate": 0.15,
+    "use_irmaa": false,
+    "ltcg_brackets_mfj": [
+      { "rate": 0.0,  "min": 0,      "max": 96700  },
+      { "rate": 0.15, "min": 96700,  "max": 583750 },
+      { "rate": 0.2,  "min": 583750, "max": null   }
+    ],
+    "ltcg_brackets_single": [
+      { "rate": 0.0,  "min": 0,      "max": 48350  },
+      { "rate": 0.15, "min": 48350,  "max": 518900 },
+      { "rate": 0.2,  "min": 518900, "max": null   }
+    ]
+  },
+
+  "_WITHDRAWAL_STRATEGY": {
+    "_comment": "Ratio-based thresholds: gain_ratio = unrealized_gain / total_market_value. Scales at any portfolio size. Engine multiplies ratio × portfolio MV to compute effective dollar threshold.",
+    "state_ab_gain_ratio":  0.30,
+    "state_bc_gain_ratio":  0.45,
+    "dividend_load_alert":  160000,
+    "milestones": [
+      { "gain_value": 2000000, "label": "Full Harvest Mode",    "color": "#ff9500" },
+      { "gain_value": 3000000, "label": "Estate Planning Zone", "color": "#ff1744" }
+    ],
+    "transition_logic": {
+      "A_to_B": {
+        "gain_ratio":          0.30,
+        "forced_income_ratio": 1.20,
+        "logic":               "ANY_TWO"
+      },
+      "B_to_C": {
+        "gain_ratio":            0.45,
+        "forced_income_ratio":   1.60,
+        "controlled_sale_ratio": 0.50,
+        "logic":                 "ANY_TWO"
+      }
+    },
+    "states": {
+      "A": {
+        "name": "INCOME_DOMINANT",
+        "description": "Live on dividends; no controlled sales; maximize Roth conversions.",
+        "rules": {
+          "allow_controlled_sale":    false,
+          "allow_trimming_income_etfs": false,
+          "required_bucket_years":    0,
+          "maximize_roth":            true
+        }
+      },
+      "B": {
+        "name": "HYBRID",
+        "description": "Begin controlled sale; trim income ETFs if dividends exceed bracket ceiling; build 1-year buffer.",
+        "rules": {
+          "allow_controlled_sale":      true,
+          "controlled_sale_target_min": 60000,
+          "controlled_sale_target_max": 200000,
+          "allow_trimming_income_etfs": true,
+          "required_bucket_years":      1,
+          "maximize_roth":              true
+        }
+      },
+      "C": {
+        "name": "CAPITAL_GAIN_DOMINANT",
+        "description": "Full controlled sale; reduce income ETFs gradually to target ratio; build 2-year SWVXX bucket; dampen forced income.",
+        "rules": {
+          "allow_controlled_sale":        true,
+          "controlled_sale_target_min":   80000,
+          "controlled_sale_target_max":   400000,
+          "allow_trimming_income_etfs":   true,
+          "reduce_income_etfs_gradually": true,
+          "target_income_ratio":          0.50,
+          "required_bucket_years":        1,
+          "maximize_roth":                true
+        }
+      }
+    }
+  },
+
+  "_CONCENTRATION_RULES": {
+    "_comment": "Concentration risk thresholds by position cluster. watch/action/critical are portfolio-weight fractions.",
+    "single_theme": {
+      "watch":    0.35,
+      "action":   0.50,
+      "critical": 0.60
+    },
+    "growth_cluster": {
+      "watch":    0.50,
+      "action":   0.65,
+      "critical": 0.75
+    },
+    "rules": {
+      "freeze_new_buys_at_action":      true,
+      "mandatory_trim_at_critical":     true,
+      "redirect_dividends_when_action": true
+    }
+  },
+
+  "_GAIN_MATURITY": {
+    "_comment": "Short-term vs long-term gain mix thresholds. stcg_ratio = stcg_unrealized / total_unrealized. Prevents premature rebalancing into a taxable event.",
+    "stcg_ratio_watch":              0.20,
+    "stcg_ratio_alert":              0.35,
+    "freeze_rebalance_if_stcg_above": 0.40,
+    "prefer_dividend_rebalancing":   true
+  },
+
+  "_FORCED_INCOME": {
+    "_comment": "forced_income_ratio = (dividends + interest + RMD + SS) / desired_spending. Signals when passive income creates AGI drag.",
+    "watch_ratio":    0.80,
+    "action_ratio":   1.20,
+    "critical_ratio": 1.60
+  },
+
+  "_MARGINAL_RATE_MODEL": {
+    "_comment": "Controls which components are summed into the effective marginal rate calculation.",
+    "include_federal":   true,
+    "include_niit":      true,
+    "include_irmaa":     false,
+    "include_state_tax": false
+  },
+
+  "_CASH_FLOW_ROUTING": {
+    "_comment": "Dividend/distribution cash routing. When a theme's weight exceeds redirect_if_theme_above, dividends are redirected to default_destination instead of reinvesting — passive de-concentration without taxable selling.",
+    "drip_enabled":        false,
+    "default_destination": "SWVXX",
+    "concentration_override": {
+      "enabled":                  true,
+      "redirect_if_theme_above":  0.40
+    }
+  },
+
+  "_MARKET_REGIME": {
+    "_comment": "Optional multipliers applied to trim/cash targets based on market regime. Reserved for future adaptive logic.",
+    "risk_on":  { "trim_threshold_multiplier": 1.2 },
+    "risk_off": { "cash_target_multiplier":    1.5 }
+  },
+
+  "_FUND_TYPE_RULES": {
+    "_comment": "Alert/watch thresholds by detected fund type. Override specific symbols in _SYMBOL_OVERRIDES.",
+    "OPTION_INCOME": {
+      "YIELD":    { "WATCH": 0.08,  "ALERT": 0.06 },
+      "PREMIUM":  { "WATCH": 0.01,  "ALERT": 0.03 },
+      "NAV_DROP": { "WATCH": 0.05,  "ALERT": 0.10 },
+      "TREND":    { "WATCH": -0.08, "ALERT": -0.16 },
+      "MOMENTUM": { "WATCH": -0.02, "ALERT": -0.05 },
+      "AUM":      { "GREEN_MIN": 1000000000, "YELLOW_MIN": 500000000, "RED_MIN": 150000000 },
+      "EXPENSE":  { "GREEN_MAX": 0.009, "YELLOW_MAX": 0.012, "RED_MAX": 0.015 },
+      "COVERAGE": { "WATCH": 0.85, "ALERT": 0.75 },
+      "TAX_CHARACTER": { "ordinary": 0.15, "qualified": 0.20, "roc": 0.65 }
+    },
+    "CEF": {
+      "YIELD":    { "WATCH": 0.07,  "ALERT": 0.05 },
+      "PREMIUM":  { "WATCH": 0.05,  "ALERT": 0.08 },
+      "NAV_DROP": { "WATCH": 0.06,  "ALERT": 0.12 },
+      "TREND":    { "WATCH": -0.09, "ALERT": -0.18 },
+      "MOMENTUM": { "WATCH": -0.025,"ALERT": -0.06 },
+      "AUM":      { "GREEN_MIN": 1000000000, "YELLOW_MIN": 500000000, "RED_MIN": 200000000 },
+      "EXPENSE":  { "GREEN_MAX": 0.015, "YELLOW_MAX": 0.018, "RED_MAX": 0.022 },
+      "COVERAGE": { "WATCH": 0.85, "ALERT": 0.70 },
+      "TAX_CHARACTER": { "ordinary": 0.40, "qualified": 0.45, "roc": 0.15 }
+    },
+    "DIVIDEND": {
+      "YIELD":    { "WATCH": 0.04,  "ALERT": 0.03 },
+      "PREMIUM":  { "WATCH": 0.01,  "ALERT": 0.03 },
+      "NAV_DROP": { "WATCH": 0.04,  "ALERT": 0.08 },
+      "TREND":    { "WATCH": -0.06, "ALERT": -0.12 },
+      "MOMENTUM": { "WATCH": -0.015,"ALERT": -0.04 },
+      "AUM":      { "GREEN_MIN": 1000000000, "YELLOW_MIN": 500000000, "RED_MIN": 200000000 },
+      "EXPENSE":  { "GREEN_MAX": 0.007, "YELLOW_MAX": 0.009, "RED_MAX": 0.011 },
+      "COVERAGE": { "WATCH": 0.90, "ALERT": 0.80 },
+      "TAX_CHARACTER": { "ordinary": 0.05, "qualified": 0.90, "roc": 0.05 }
+    },
+    "GROWTH": {
+      "YIELD":    { "WATCH": 0.003, "ALERT": 0.001 },
+      "PREMIUM":  { "WATCH": 0.005, "ALERT": 0.015 },
+      "NAV_DROP": { "WATCH": 0.07,  "ALERT": 0.14 },
+      "TREND":    { "WATCH": -0.08, "ALERT": -0.15 },
+      "MOMENTUM": { "WATCH": -0.02, "ALERT": -0.05 },
+      "AUM":      { "GREEN_MIN": 10000000000, "YELLOW_MIN": 5000000000, "RED_MIN": 1000000000 },
+      "EXPENSE":  { "GREEN_MAX": 0.003, "YELLOW_MAX": 0.005, "RED_MAX": 0.007 },
+      "TAX_CHARACTER": { "ordinary": 0.03, "qualified": 0.97, "roc": 0.00 }
+    }
+  },
+
+  "_DESC_OVERRIDES": {
+    "_comment": "Maps Schwab transaction description (partial, case-insensitive) → ticker. Add when a sold fund has no ticker in Schwab data.",
+    "EXAMPLE FUND NAME": "TICK"
+  },
+
+  "_SYMBOL_OVERRIDES": {
+    "_comment": "Per-symbol overrides on top of auto-detected fund type rules. Only set what differs from generic type defaults.",
+    "EXAMPLE": { "BENCHMARK": "SPY", "TAX_CHARACTER": { "ordinary": 0.05, "qualified": 0.95, "roc": 0.00 } }
+  }
+}

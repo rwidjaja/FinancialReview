@@ -1,0 +1,7 @@
+{
+  "_comment": "Copy this file to target_roth.json. Weights represent your target allocation for the Roth IRA account. Values must sum to 1.0. Never commit the real file — it is gitignored.",
+  "TICKER1": 0.25,
+  "TICKER2": 0.25,
+  "TICKER3": 0.25,
+  "TICKER4": 0.25
+}

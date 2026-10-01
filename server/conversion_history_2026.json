@@ -1,0 +1,26 @@
+[
+  {
+    "date": "2026-03-09",
+    "symbol": "SMH",
+    "description": "Journaled Shares SMH VANECK SEMICONDUCTOR ETF",
+    "shares": 176,
+    "price": 380.11,
+    "value": 66899.36,
+    "from_account": "rollover_ira",
+    "to_account": "roth_ira",
+    "source_tx_id": "",
+    "matched": true
+  },
+  {
+    "date": "2026-03-09",
+    "symbol": "SMH",
+    "description": "Journaled Shares SMH VANECK SEMICONDUCTOR ETF",
+    "shares": 130,
+    "price": 379.2183,
+    "value": 49298.38,
+    "from_account": "rollover_ira",
+    "to_account": "roth_ira",
+    "source_tx_id": "",
+    "matched": true
+  }
+]

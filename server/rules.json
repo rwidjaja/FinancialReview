@@ -1,0 +1,560 @@
+{
+  "_TAX_RULE_ENGINE": {
+    "_comment": "IRS tax rules and rates. target_bracket_rate has moved to personal.json → _TAX_SETTINGS (user-configurable). Only IRS-defined rates/thresholds remain here.",
+    "ltcg_rate": 0.15,
+    "ltcg_brackets_mfj": [
+      {
+        "rate": 0.0,
+        "min": 0,
+        "max": 98900
+      },
+      {
+        "rate": 0.15,
+        "min": 98900,
+        "max": 613700
+      },
+      {
+        "rate": 0.2,
+        "min": 613700,
+        "max": null
+      }
+    ],
+    "ltcg_brackets_single": [
+      {
+        "rate": 0.0,
+        "min": 0,
+        "max": 49450
+      },
+      {
+        "rate": 0.15,
+        "min": 49450,
+        "max": 545500
+      },
+      {
+        "rate": 0.2,
+        "min": 545500,
+        "max": null
+      }
+    ],
+    "use_irmaa": true,
+    "base_part_b_monthly": 202.90,
+    "niit_rate": 0.038,
+    "niit_threshold_mfj": 250000,
+    "niit_threshold_single": 200000,
+    "niit_threshold_mfs": 125000,
+    "soft_limit": 160000,
+    "rmd_start_age": 75,
+    "rollover_pressure_tiers": [
+      { "min": 600000, "points": 1.00 },
+      { "min": 400000, "points": 0.75 },
+      { "min": 200000, "points": 0.50 },
+      { "min": 100000, "points": 0.25 },
+      { "min": 0,      "points": 0.00 }
+    ],
+    "income_target_slider_buffer": 150000,
+    "status_thresholds": {
+      "CRITICAL": 1.0,
+      "ACTION": 0.9,
+      "WATCH": 0.75
+    },
+    "irmaa_brackets_mfj": [
+      {
+        "max": 218000,
+        "part_b_monthly": 0.0,
+        "part_d_monthly": 0.0
+      },
+      {
+        "max": 274000,
+        "part_b_monthly": 81.2,
+        "part_d_monthly": 13.7
+      },
+      {
+        "max": 342000,
+        "part_b_monthly": 202.9,
+        "part_d_monthly": 35.3
+      },
+      {
+        "max": 410000,
+        "part_b_monthly": 324.6,
+        "part_d_monthly": 57.0
+      },
+      {
+        "max": 750000,
+        "part_b_monthly": 446.3,
+        "part_d_monthly": 78.6
+      },
+      {
+        "max": null,
+        "part_b_monthly": 487.0,
+        "part_d_monthly": 85.8
+      }
+    ],
+    "irmaa_brackets_single": [
+      {
+        "max": 109000,
+        "part_b_monthly": 0.0,
+        "part_d_monthly": 0.0
+      },
+      {
+        "max": 137000,
+        "part_b_monthly": 81.2,
+        "part_d_monthly": 13.7
+      },
+      {
+        "max": 171000,
+        "part_b_monthly": 202.9,
+        "part_d_monthly": 35.3
+      },
+      {
+        "max": 205000,
+        "part_b_monthly": 324.6,
+        "part_d_monthly": 57.0
+      },
+      {
+        "max": 500000,
+        "part_b_monthly": 446.3,
+        "part_d_monthly": 78.6
+      },
+      {
+        "max": null,
+        "part_b_monthly": 487.0,
+        "part_d_monthly": 85.8
+      }
+    ]
+  },
+  "_IRMAA_TIERS": {
+    "_comment": "Full Medicare premium amounts (base + IRMAA surcharge) per person per month. 2026 values: base Part B $202.90 (CMS Nov 2025). Part D surcharges are 2025 estimates — verify from CMS Part D announcement. Income thresholds based on 2024 MAGI (2-year lookback).",
+    "mfj": [
+      { "label": "Tier 0 — No Surcharge", "magi_from": 0,       "magi_to": 218000,   "part_b_monthly": 202.90, "part_d_monthly": 0.00  },
+      { "label": "Tier 1 — +$81/mo",      "magi_from": 218001,  "magi_to": 274000,   "part_b_monthly": 284.10, "part_d_monthly": 12.90 },
+      { "label": "Tier 2 — +$203/mo",     "magi_from": 274001,  "magi_to": 342000,   "part_b_monthly": 405.80, "part_d_monthly": 33.30 },
+      { "label": "Tier 3 — +$325/mo",     "magi_from": 342001,  "magi_to": 410000,   "part_b_monthly": 527.50, "part_d_monthly": 53.80 },
+      { "label": "Tier 4 — +$446/mo",     "magi_from": 410001,  "magi_to": 750000,   "part_b_monthly": 649.20, "part_d_monthly": 74.20 },
+      { "label": "Tier 5 — +$487/mo",     "magi_from": 750001,  "magi_to": null,     "part_b_monthly": 689.90, "part_d_monthly": 81.00 }
+    ],
+    "single": [
+      { "label": "Tier 0 — No Surcharge", "magi_from": 0,       "magi_to": 109000,   "part_b_monthly": 202.90, "part_d_monthly": 0.00  },
+      { "label": "Tier 1 — +$81/mo",      "magi_from": 109001,  "magi_to": 137000,   "part_b_monthly": 284.10, "part_d_monthly": 12.90 },
+      { "label": "Tier 2 — +$203/mo",     "magi_from": 137001,  "magi_to": 171000,   "part_b_monthly": 405.80, "part_d_monthly": 33.30 },
+      { "label": "Tier 3 — +$325/mo",     "magi_from": 171001,  "magi_to": 205000,   "part_b_monthly": 527.50, "part_d_monthly": 53.80 },
+      { "label": "Tier 4 — +$446/mo",     "magi_from": 205001,  "magi_to": 500000,   "part_b_monthly": 649.20, "part_d_monthly": 74.20 },
+      { "label": "Tier 5 — +$487/mo",     "magi_from": 500001,  "magi_to": null,     "part_b_monthly": 689.90, "part_d_monthly": 81.00 }
+    ]
+  },
+  "_RMD_FACTORS": {
+    "_comment": "IRS Uniform Lifetime Table (Publication 590-B). RMD starts at age 75 (SECURE 2.0, born 1960+). Factor for age 99 is reused for all ages above 99.",
+    "72": 27.4, "73": 26.5, "74": 25.5, "75": 24.6, "76": 23.7, "77": 22.9, "78": 22.0,
+    "79": 21.1, "80": 20.2, "81": 19.4, "82": 18.5, "83": 17.7, "84": 16.8, "85": 16.0,
+    "86": 15.2, "87": 14.4, "88": 13.7, "89": 12.9, "90": 12.2, "91": 11.5, "92": 10.8,
+    "93": 10.1, "94": 9.5,  "95": 8.9,  "96": 8.4,  "97": 7.8,  "98": 7.3,  "99": 6.8
+  },
+  "_WITHDRAWAL_STRATEGY": {
+    "_comment": "Ratio-based thresholds controlling withdrawal state transitions (State A → B → C). gain_ratio = unrealized_gain / total_market_value. Scales correctly at any portfolio size.",
+    "state_ab_gain_ratio": 0.30,
+    "state_bc_gain_ratio": 0.45,
+    "dividend_load_alert": 160000,
+    "milestones": [
+      { "gain_value": 2000000, "label": "Full Harvest Mode",    "color": "#ff9500" },
+      { "gain_value": 3000000, "label": "Estate Planning Zone", "color": "#ff1744" }
+    ],
+    "transition_logic": {
+      "A_to_B": {
+        "gain_ratio": 0.30,
+        "forced_income_ratio": 1.20,
+        "logic": "ANY_TWO"
+      },
+      "B_to_C": {
+        "gain_ratio": 0.45,
+        "forced_income_ratio": 1.60,
+        "controlled_sale_ratio": 0.50,
+        "logic": "ANY_TWO"
+      }
+    },
+    "states": {
+      "A": {
+        "name": "INCOME_DOMINANT",
+        "description": "Live on dividends; no controlled sales; maximize Roth conversions; no bucket required.",
+        "rules": {
+          "allow_controlled_sale": false,
+          "allow_trimming_income_etfs": false,
+          "required_bucket_years": 0
+        }
+      },
+      "B": {
+        "name": "HYBRID",
+        "description": "Begin controlled sale; trim income ETFs only if dividends exceed bracket ceiling; build 1-year buffer.",
+        "rules": {
+          "allow_controlled_sale": true,
+          "controlled_sale_target_min": 60000,
+          "controlled_sale_target_max": 200000,
+          "allow_trimming_income_etfs": true,
+          "required_bucket_years": 1
+        }
+      },
+      "C": {
+        "name": "CAPITAL_GAIN_DOMINANT",
+        "description": "Full controlled sale; reduce income ETFs gradually to target ratio; build 1-year SWVXX bucket; dampen forced income.",
+        "rules": {
+          "allow_controlled_sale": true,
+          "controlled_sale_target_min": 80000,
+          "controlled_sale_target_max": 400000,
+          "allow_trimming_income_etfs": true,
+          "reduce_income_etfs_gradually": true,
+          "target_income_ratio": 0.50,
+          "required_bucket_years": 1
+        }
+      }
+    }
+  },
+  "_CONCENTRATION_RULES": {
+    "_comment": "Concentration risk thresholds by position cluster. watch/action/critical are portfolio-weight fractions.",
+    "single_theme": {
+      "watch": 0.35,
+      "action": 0.50,
+      "critical": 0.60
+    },
+    "growth_cluster": {
+      "watch": 0.50,
+      "action": 0.65,
+      "critical": 0.75
+    },
+    "rules": {
+      "freeze_new_buys_at_action": true,
+      "mandatory_trim_at_critical": true,
+      "redirect_dividends_when_action": true
+    }
+  },
+  "_GAIN_MATURITY": {
+    "_comment": "Short-term vs long-term gain mix thresholds. stcg_ratio = stcg_unrealized / total_unrealized.",
+    "stcg_ratio_watch": 0.20,
+    "stcg_ratio_alert": 0.35,
+    "freeze_rebalance_if_stcg_above": 0.40,
+    "prefer_dividend_rebalancing": true
+  },
+  "_FORCED_INCOME": {
+    "_comment": "forced_income_ratio = (dividends + interest + RMD + SS) / desired_spending. Signals when passive income becomes AGI drag.",
+    "watch_ratio": 0.80,
+    "action_ratio": 1.20,
+    "critical_ratio": 1.60
+  },
+  "_MARGINAL_RATE_MODEL": {
+    "_comment": "Controls which components are included in effective marginal rate calculation.",
+    "include_federal": true,
+    "include_niit": true,
+    "include_irmaa": false,
+    "include_state_tax": false
+  },
+  "_MONEY_MARKET_SYMBOLS": {
+    "_comment": "Authoritative list of money-market fund tickers. NAV is always $1.00 — excluded from price fetches, chart history, and realized-gain calculations. Add any new MMF ticker here.",
+    "symbols": ["SWVXX", "SNSXX", "SWRXX", "SWYXX", "SNVXX", "SPRXX", "SNOXX", "FDRXX"]
+  },
+  "_PERFORMANCE_BENCHMARKS": {
+    "_comment": "Symbols fetched alongside portfolio for benchmark comparison in performance charts.",
+    "symbols": ["SPY", "QQQ"]
+  },
+  "_CASH_FLOW_ROUTING": {
+    "_comment": "Controls dividend/distribution cash routing. When concentration exceeds redirect_if_theme_above, dividends are redirected to default_destination instead of reinvesting.",
+    "drip_enabled": false,
+    "default_destination": "SWVXX",
+    "concentration_override": {
+      "enabled": true,
+      "redirect_if_theme_above": 0.40
+    }
+  },
+  "_MARKET_REGIME": {
+    "_comment": "Optional multipliers applied to trim/cash targets based on market regime. Not used in base engine; reserved for future adaptive logic.",
+    "risk_on": {
+      "trim_threshold_multiplier": 1.2
+    },
+    "risk_off": {
+      "cash_target_multiplier": 1.5
+    }
+  },
+  "_FUND_TYPE_RULES": {
+    "_comment": "Auto-applied based on detected fund type. Override specific symbols in _SYMBOL_OVERRIDES.",
+    "OPTION_INCOME": {
+      "YIELD": {
+        "WATCH": 0.08,
+        "ALERT": 0.06
+      },
+      "PREMIUM": {
+        "WATCH": 0.01,
+        "ALERT": 0.03
+      },
+      "NAV_DROP": {
+        "WATCH": 0.05,
+        "ALERT": 0.1
+      },
+      "TREND": {
+        "WATCH": -0.08,
+        "ALERT": -0.16
+      },
+      "MOMENTUM": {
+        "WATCH": -0.02,
+        "ALERT": -0.05
+      },
+      "AUM": {
+        "GREEN_MIN": 1000000000,
+        "YELLOW_MIN": 500000000,
+        "RED_MIN": 150000000
+      },
+      "EXPENSE": {
+        "GREEN_MAX": 0.009,
+        "YELLOW_MAX": 0.012,
+        "RED_MAX": 0.015
+      },
+      "COVERAGE": {
+        "WATCH": 0.85,
+        "ALERT": 0.75
+      },
+      "TAX_CHARACTER": {
+        "ordinary": 0.15,
+        "qualified": 0.2,
+        "roc": 0.65
+      }
+    },
+    "CEF": {
+      "YIELD": {
+        "WATCH": 0.07,
+        "ALERT": 0.05
+      },
+      "PREMIUM": {
+        "WATCH": 0.05,
+        "ALERT": 0.08
+      },
+      "NAV_DROP": {
+        "WATCH": 0.06,
+        "ALERT": 0.12
+      },
+      "TREND": {
+        "WATCH": -0.09,
+        "ALERT": -0.18
+      },
+      "MOMENTUM": {
+        "WATCH": -0.025,
+        "ALERT": -0.06
+      },
+      "AUM": {
+        "GREEN_MIN": 1000000000,
+        "YELLOW_MIN": 500000000,
+        "RED_MIN": 200000000
+      },
+      "EXPENSE": {
+        "GREEN_MAX": 0.015,
+        "YELLOW_MAX": 0.018,
+        "RED_MAX": 0.022
+      },
+      "COVERAGE": {
+        "WATCH": 0.85,
+        "ALERT": 0.7
+      },
+      "TAX_CHARACTER": {
+        "ordinary": 0.4,
+        "qualified": 0.45,
+        "roc": 0.15
+      }
+    },
+    "DIVIDEND": {
+      "YIELD": {
+        "WATCH": 0.04,
+        "ALERT": 0.03
+      },
+      "PREMIUM": {
+        "WATCH": 0.01,
+        "ALERT": 0.03
+      },
+      "NAV_DROP": {
+        "WATCH": 0.04,
+        "ALERT": 0.08
+      },
+      "TREND": {
+        "WATCH": -0.06,
+        "ALERT": -0.12
+      },
+      "MOMENTUM": {
+        "WATCH": -0.015,
+        "ALERT": -0.04
+      },
+      "AUM": {
+        "GREEN_MIN": 1000000000,
+        "YELLOW_MIN": 500000000,
+        "RED_MIN": 200000000
+      },
+      "EXPENSE": {
+        "GREEN_MAX": 0.007,
+        "YELLOW_MAX": 0.009,
+        "RED_MAX": 0.011
+      },
+      "COVERAGE": {
+        "WATCH": 0.9,
+        "ALERT": 0.8
+      },
+      "TAX_CHARACTER": {
+        "ordinary": 0.05,
+        "qualified": 0.9,
+        "roc": 0.05
+      }
+    },
+    "GROWTH": {
+      "YIELD": {
+        "WATCH": 0.003,
+        "ALERT": 0.001
+      },
+      "PREMIUM": {
+        "WATCH": 0.005,
+        "ALERT": 0.015
+      },
+      "NAV_DROP": {
+        "WATCH": 0.07,
+        "ALERT": 0.14
+      },
+      "TREND": {
+        "WATCH": -0.08,
+        "ALERT": -0.15
+      },
+      "MOMENTUM": {
+        "WATCH": -0.02,
+        "ALERT": -0.05
+      },
+      "AUM": {
+        "GREEN_MIN": 10000000000,
+        "YELLOW_MIN": 5000000000,
+        "RED_MIN": 1000000000
+      },
+      "EXPENSE": {
+        "GREEN_MAX": 0.003,
+        "YELLOW_MAX": 0.005,
+        "RED_MAX": 0.007
+      },
+      "TAX_CHARACTER": {
+        "ordinary": 0.03,
+        "qualified": 0.97,
+        "roc": 0.0
+      }
+    }
+  },
+  "_SYMBOL_OVERRIDES": {
+    "_comment": "Per-symbol overrides applied on top of auto-detected fund type rules.",
+    "SMH": {
+      "BENCHMARK": "SOXX",
+      "TAX_CHARACTER": {
+        "ordinary": 0.05,
+        "qualified": 0.95,
+        "roc": 0.0
+      }
+    },
+    "QQQM": {
+      "BENCHMARK": "QQQ",
+      "TAX_CHARACTER": {
+        "ordinary": 0.03,
+        "qualified": 0.97,
+        "roc": 0.0
+      }
+    },
+    "BTCI": {
+      "BENCHMARK": "IBIT"
+    },
+    "ADX": {
+      "DISTRIBUTION_FREQUENCY": "QUARTERLY",
+      "_tax_character_note": "Schwab API does not expose sub-type (ROC/Div/LTCG) — update from Schwab statements each quarter. LTCG distributions map to qualified (same tax rate). May 2026: ROC $2688 / CashDiv $430 / LTCG $2043 of $5161 total.",
+      "TAX_CHARACTER": {
+        "ordinary": 0.083,
+        "qualified": 0.396,
+        "roc": 0.521
+      }
+    },
+    "SPYI": {
+      "TAX_CHARACTER": {
+        "ordinary": 0.13,
+        "qualified": 0.2,
+        "roc": 0.67
+      }
+    },
+    "QDVO": {
+      "TAX_CHARACTER": {
+        "ordinary": 0.2,
+        "qualified": 0.25,
+        "roc": 0.55
+      }
+    },
+    "IDVO": {
+      "BENCHMARK": "VXUS"
+    },
+    "IYRI": {
+      "BENCHMARK": "VXUS"
+    }
+  },
+  "_VOLUME_RULES": {
+    "_comment": "Mechanical volume signals for swing engine. No interpretation — only quantitative thresholds. All values are RVOL multiples (current volume / 20-bar average).",
+    "relative_volume": {
+      "pullback_max":      1.00,
+      "breakout_min":      1.50,
+      "capitulation_min":  2.00,
+      "panic_exit_min":    3.00,
+      "low_liquidity_max": 0.50
+    },
+    "volume_trend": {
+      "up_threshold":   1.10,
+      "down_threshold": 0.90
+    },
+    "spike_definition": {
+      "rvol_min":      2.00,
+      "lookback_bars": 10
+    },
+    "entry_gate": {
+      "disable_if_rvol_above":        1.50,
+      "disable_requires_below_ma20":  true,
+      "strong_pullback_min_pct":      7.0,
+      "strong_pullback_max_pct":     12.0
+    }
+  },
+  "_VOLUME_SCORING": {
+    "_comment": "Point values applied to setup_score and quality criterion. Positive = bonus, negative = penalty.",
+    "setup_score": {
+      "rvol_normal_min":      0.80,
+      "rvol_normal_max":      1.50,
+      "rvol_normal_points":     15,
+      "rvol_thin_points":        8,
+      "rvol_elevated_points":    5,
+      "rvol_climactic_points":   0,
+      "pullback_trend_bonus":    5
+    },
+    "confidence_delta": {
+      "rvol_below_1_delta":     5,
+      "rvol_1_to_1_5_delta":    0,
+      "rvol_above_1_5_delta":  -5,
+      "rvol_above_2_delta":   -10
+    }
+  },
+  "_ATR_PRICE_RULES": {
+    "_comment": "ATR-scaled entry/exit price levels. Multipliers apply to ATR-14 (dollar volatility per symbol), not a fixed % of price, so a low-ATR name and a high-ATR name each get an offset sized to how far they actually move.",
+    "entry": {
+      "buy_atr_mult":         1.0,
+      "strong_buy_atr_mult":  2.0,
+      "limit_below_atr_mult": 0.25,
+      "_anchor_blend_comment": "The entry anchor blends smoothly from the 20d high toward MA50 as ATR-14 (% of price) rises from low_vol_atr_pct to high_vol_atr_pct — not a hard cutoff. A high-ATR name that's fallen hard often has a 20d high that was itself a blow-off top with no reversion value, so MA50 (trend-following) becomes the better reference; a binary switch only fixed the most extreme names (SOXX-level ~6%+ ATR) and left moderate ones (~2-3% ATR, e.g. AAPL/QQQM) with zero adjustment. Below low_vol_atr_pct, weight is 0 (pure 20d-high anchor, unchanged for calm names like ADX). At/above high_vol_atr_pct, weight is 1 (pure MA50 anchor).",
+      "anchor_blend_low_vol_atr_pct":  1.5,
+      "anchor_blend_high_vol_atr_pct": 5.0
+    },
+    "exit": {
+      "stop_atr_mult":       2.0,
+      "target_rr_multiple":  2.0
+    },
+    "swing": {
+      "entry_pullback_atr_mult": 0.5,
+      "stop_atr_mult":            1.5,
+      "target_rr_multiple":       2.0
+    },
+    "swing_calendar_regime_atr_mult": {
+      "EXPANSION":     { "watch": 0.5, "buy": 1.0, "strong": 2.0, "panic": 3.0 },
+      "CONSOLIDATION": { "watch": 0.5, "buy": 1.5, "strong": 2.5, "panic": 3.5 },
+      "RISK-OFF":      { "watch": 0.5, "buy": 2.0, "strong": 3.0, "panic": 5.0 }
+    }
+  },
+  "_DESC_OVERRIDES": {
+    "_comment": "Maps Schwab transaction description (partial, case-insensitive) → ticker symbol.",
+    "VIRTUS DIVERSIFIED INCOM": "ACV",
+    "NEOS BITCOIN HIGH INCOMEETF": "BTCI",
+    "NEOS NASDAQ-100(R)": "QQQI"
+  }
+}
