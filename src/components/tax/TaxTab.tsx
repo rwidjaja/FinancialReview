@@ -325,7 +325,7 @@ export function TaxTab({ data }: Props) {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
                     <div className="v2-display" style={{ color: bktColor }}>{tx.bracket_pressure_pct.toFixed(1)}%</div>
-                    <span className="v2-pill" style={{ background: bktPillBg, color: bktColor, border: `1px solid ${bktColor}33` }}>{bktLabel}</span>
+                    <span className="v2-pill" style={{ background: bktPillBg, color: bktColor, border: `1px solid ${bktColor}` }}>{bktLabel}</span>
                   </div>
                   <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--fs2-small)', color: 'var(--text3)' }}>
                     taxable income (actual) ÷ {tx.target_bracket_rate ?? DEFAULT_BRACKET_RATE}% taxable ceiling
@@ -459,7 +459,7 @@ export function TaxTab({ data }: Props) {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
                     <div className="v2-display" style={{ color: rollBkt > 0 ? A : G }}>{fmtFull(rollBkt)}</div>
-                    <span className="v2-pill" style={{ background: rollBkt > 0 ? 'var(--tint-amber)' : 'var(--tint-green)', color: rollBkt > 0 ? A : G, border: `1px solid ${(rollBkt > 0 ? A : G)}33` }}>
+                    <span className="v2-pill" style={{ background: rollBkt > 0 ? 'var(--tint-amber)' : 'var(--tint-green)', color: rollBkt > 0 ? A : G, border: `1px solid ${(rollBkt > 0 ? A : G)}` }}>
                       {rollBkt > 0 ? 'TAX EXPOSURE' : 'CLEAR'}
                     </span>
                   </div>
@@ -715,7 +715,7 @@ export function TaxTab({ data }: Props) {
             return (
               <div style={{
                 background: 'var(--surface)',
-                border: `1px solid ${cmdStatusColor}44`,
+                border: `1px solid ${cmdStatusColor}`,
                 borderLeft: `4px solid ${cmdStatusColor}`,
                 borderRadius: 'var(--r-lg)',
                 padding: '16px 20px',
@@ -730,14 +730,14 @@ export function TaxTab({ data }: Props) {
                       textTransform: 'uppercase', letterSpacing: '1px',
                       padding: '3px 10px', borderRadius: 0,
                       background: `${cmdStatusColor}22`, color: cmdStatusColor,
-                      border: `1px solid ${cmdStatusColor}55`,
+                      border: `1px solid ${cmdStatusColor}`,
                     }}>STATUS: {cmdStatus}</span>
                     <span style={{
                       fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 500,
                       textTransform: 'uppercase', letterSpacing: '1px',
                       padding: '3px 10px', borderRadius: 0,
                       background: `${cmdWinColor}22`, color: cmdWinColor,
-                      border: `1px solid ${cmdWinColor}55`,
+                      border: `1px solid ${cmdWinColor}`,
                     }}>WINDOW: {convWin}</span>
                   </div>
                 </div>
@@ -821,7 +821,7 @@ export function TaxTab({ data }: Props) {
                       ))}
                     </div>
                   </div>
-                  <span className="v2-pill" style={{ flexShrink: 0, background: beforeRmd ? 'var(--tint-green)' : 'var(--tint-amber)', color: beforeRmd ? G : Y, border: `1px solid ${beforeRmd ? G : Y}33` }}>
+                  <span className="v2-pill" style={{ flexShrink: 0, background: beforeRmd ? 'var(--tint-green)' : 'var(--tint-amber)', color: beforeRmd ? G : Y, border: `1px solid ${beforeRmd ? G : Y}` }}>
                     {beforeRmd ? 'BEFORE RMD ✓' : 'WATCH'}
                   </span>
                 </div>
@@ -1094,7 +1094,7 @@ export function TaxTab({ data }: Props) {
           {/* ── STOP verdict info block — shown instead of execution checklist when verdict is STOP ── */}
           {(isConversionMonth || (tx?.conversion_imminent ?? false)) && verdict?.status === 'STOP' && verdict && (
             <div style={{
-              border: `1px solid ${R}60`, borderLeft: `4px solid ${R}`,
+              border: `1px solid ${R}`, borderLeft: `4px solid ${R}`,
               borderRadius: 0, background: `${R}08`, padding: '14px 16px',
               display: 'flex', flexDirection: 'column', gap: 10,
             }}>
@@ -1154,7 +1154,7 @@ export function TaxTab({ data }: Props) {
 
             return (
               <div style={{
-                border: `1px solid ${urgencyColor}60`,
+                border: `1px solid ${urgencyColor}`,
                 borderLeft: `4px solid ${urgencyColor}`,
                 borderRadius: 0,
                 background: `${urgencyColor}0a`,
@@ -1182,7 +1182,7 @@ export function TaxTab({ data }: Props) {
                   <div style={{
                     flexShrink: 0, marginLeft: 16,
                     background: daysToDec31 <= 7 ? `${R}20` : 'var(--fd-card)',
-                    border: `1px solid ${urgencyColor}40`,
+                    border: `1px solid ${urgencyColor}`,
                     borderRadius: 0,
                     padding: '6px 12px',
                     textAlign: 'center',
@@ -1306,7 +1306,7 @@ export function TaxTab({ data }: Props) {
           </div>
 
           {bannerVisible && (
-            <div style={{ padding: '10px 14px', background: `${bannerColor}14`, border: `1px solid ${bannerColor}40`, borderRadius: 0, fontSize: 12, color: bannerColor, fontWeight: 500 }}>
+            <div style={{ padding: '10px 14px', background: `${bannerColor}14`, border: `1px solid ${bannerColor}`, borderRadius: 0, fontSize: 12, color: bannerColor, fontWeight: 500 }}>
               {bannerText}
             </div>
           )}

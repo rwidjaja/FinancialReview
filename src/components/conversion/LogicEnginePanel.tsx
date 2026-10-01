@@ -89,7 +89,7 @@ export function AgiEnginePanel({ fullYrAgiEst, actualYtdAgi, bindingAgi, ceiling
       {showGapBanner && (
         <div style={{
           margin: '0 0 10px', padding: '8px 10px',
-          background: 'var(--fd-card)', border: '1px solid var(--as-lilac)',
+          background: 'var(--fd-card)', border: '1px solid var(--fd-lilac-ink)',
           borderLeft: `4px solid ${A}`, borderRadius: 0,
         }}>
           <div style={{ fontSize: 12, fontWeight: 500, color: A, textTransform: 'uppercase', letterSpacing: '0.5px' }}>

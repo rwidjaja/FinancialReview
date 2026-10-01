@@ -49,7 +49,7 @@ export function QualityEnginePanel({ qe, yieldPct }: { qe?: ResearchApiData['qua
                     />
                     <Bar dataKey="pct" radius={0} label={{ position: 'right', fontSize: 12, fill: 'var(--text2)', formatter: (v: unknown) => `${v}%` }}>
                       {chartData.map((d, i) => (
-                        <Cell key={i} fill={d.pct >= 70 ? 'var(--fd-accent)' : d.pct >= 50 ? '#ffd600' : 'var(--fd-negative)'} fillOpacity={0.85} />
+                        <Cell key={i} fill={d.pct >= 70 ? 'var(--fd-accent)' : d.pct >= 50 ? 'var(--fd-ink)' : 'var(--fd-negative)'} fillOpacity={0.85} />
                       ))}
                     </Bar>
                   </BarChart>

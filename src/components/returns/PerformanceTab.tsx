@@ -347,7 +347,7 @@ export function PerformanceTab({ data }: Props) {
         {chartSeries.length > 1 && (
           <Section title="Portfolio vs S&P 500" meta={
             <span style={{ display: 'flex', gap: 20, fontSize: 13 }}>
-              <Legend color="var(--fd-accent)" label="Portfolio" /><Legend color="var(--as-lilac)" label="S&P 500" />
+              <Legend color="var(--fd-accent)" label="Portfolio" /><Legend color="var(--fd-lilac-ink)" label="S&P 500" />
             </span>}>
             <div style={{ height: 260, borderTop: '1px solid var(--fd-hairline)', borderBottom: '1px solid var(--fd-hairline)' }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -357,7 +357,7 @@ export function PerformanceTab({ data }: Props) {
                   <ReferenceLine y={100} stroke="var(--fd-hairline)" strokeDasharray="4 4" />
                   <Tooltip contentStyle={TOOLTIP_CONTENT_STYLE} labelStyle={TOOLTIP_LABEL_RECHARTS} itemStyle={TOOLTIP_ITEM_RECHARTS}
                     formatter={(v: unknown, name: unknown) => [`${((v as number) - 100 >= 0 ? '+' : '−')}${Math.abs((v as number) - 100).toFixed(2)}%`, name === 'port' ? 'Portfolio' : 'S&P 500']} />
-                  <Line dataKey="spy" stroke="var(--as-lilac)" {...LINE_PROPS} connectNulls isAnimationActive={false} />
+                  <Line dataKey="spy" stroke="var(--fd-lilac-ink)" {...LINE_PROPS} connectNulls isAnimationActive={false} />
                   <Line dataKey="port" stroke="var(--fd-accent)" {...LINE_PROPS} connectNulls isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>

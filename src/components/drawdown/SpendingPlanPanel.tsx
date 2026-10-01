@@ -184,7 +184,7 @@ function SpendingRangePanel({ result, inputs, mode, selectedTier, onSelectTier }
 
       {/* ── Two concepts: Lifestyle Spending vs Income Target ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${G}30`, padding: '12px 14px' }}>
+        <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${G}`, padding: '12px 14px' }}>
           <div style={{ fontSize: 12, color: M, textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 6 }}>Lifestyle Spending</div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: 'var(--text1)' }}>
             {fmtMoney(inputs.annual_spending)}
@@ -195,7 +195,7 @@ function SpendingRangePanel({ result, inputs, mode, selectedTier, onSelectTier }
             The three Safe Spending Range tiers are built entirely from this number — Conservative, Moderate, and Maximum all scale from here.
           </div>
         </div>
-        <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${BL}30`, padding: '12px 14px' }}>
+        <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${BL}`, padding: '12px 14px' }}>
           <div style={{ fontSize: 12, color: M, textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 6 }}>Income Target (Drawdown)</div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: BL }}>
             {fmtMoney(inputs.income_target)}
@@ -210,7 +210,7 @@ function SpendingRangePanel({ result, inputs, mode, selectedTier, onSelectTier }
 
       {/* ── Key insights ── */}
       <div style={{ padding: '8px 12px', borderRadius: 0, background: 'var(--surface)',
-        border: `1px solid ${isUnderspendingSP ? `${Y}30` : `${G}25`}` }}>
+        border: `1px solid ${isUnderspendingSP ? `${Y}` : `${G}25`}` }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {[
             ...(isUnderspendingSP ? [

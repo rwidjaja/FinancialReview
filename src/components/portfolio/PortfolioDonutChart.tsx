@@ -23,9 +23,9 @@ export function PortfolioDonutChart({ holdings, totalValue, data, accountLabel }
   }))
 
   const colors = [
-    'var(--fd-accent)', 'var(--as-lilac)', 'var(--as-lime)', 'var(--fd-muted)', 'var(--fd-ink)', 'var(--fd-negative)', 'var(--fd-accent)', 'var(--as-lilac)',
-    'var(--as-lime)', 'var(--fd-muted)', 'var(--fd-ink)', 'var(--fd-negative)', 'var(--fd-accent)', 'var(--as-lilac)', 'var(--as-lime)', 'var(--fd-muted)',
-    'var(--fd-ink)', 'var(--fd-negative)', 'var(--fd-accent)', 'var(--as-lilac)'
+    'var(--fd-accent)', 'var(--fd-lilac-ink)', 'var(--fd-lime-ink)', 'var(--fd-muted)', 'var(--fd-ink)', 'var(--fd-negative)', 'var(--fd-accent)', 'var(--fd-lilac-ink)',
+    'var(--fd-lime-ink)', 'var(--fd-muted)', 'var(--fd-ink)', 'var(--fd-negative)', 'var(--fd-accent)', 'var(--fd-lilac-ink)', 'var(--fd-lime-ink)', 'var(--fd-muted)',
+    'var(--fd-ink)', 'var(--fd-negative)', 'var(--fd-accent)', 'var(--fd-lilac-ink)'
   ]
 
   const topHolding = holdings[0]

@@ -12,9 +12,9 @@ export function ETFComponentEngine({ ece, onSymbolClick }: { ece: EtfComponentDa
 
   const labelColor =
     label.startsWith('STRONG UP')   ? G :
-    label.startsWith('WEAK UP')     ? 'var(--as-lilac)' :
+    label.startsWith('WEAK UP')     ? 'var(--fd-lilac-ink)' :
     label.startsWith('STRONG DOWN') ? R :
-    label.startsWith('WEAK DOWN')   ? 'var(--as-lilac)' : M
+    label.startsWith('WEAK DOWN')   ? 'var(--fd-lilac-ink)' : M
 
   const maxContrib = Math.max(...components.map(c => Math.abs(c.contribution)), 0.01)
 
@@ -24,7 +24,7 @@ export function ETFComponentEngine({ ece, onSymbolClick }: { ece: EtfComponentDa
   const allUp    = laggards.length === 0 && leaders.length >= 3
   const allDown  = leaders.length === 0 && laggards.length >= 3
   const alignLabel = allUp ? 'Aligned Up' : allDown ? 'Aligned Down' : leaders.length > laggards.length ? 'Mostly Up' : laggards.length > leaders.length ? 'Mostly Down' : 'Mixed'
-  const alignColor = allUp ? G : allDown ? R : leaders.length > laggards.length ? 'var(--as-lilac)' : laggards.length > leaders.length ? 'var(--as-lilac)' : M
+  const alignColor = allUp ? G : allDown ? R : leaders.length > laggards.length ? 'var(--fd-lilac-ink)' : laggards.length > leaders.length ? 'var(--fd-lilac-ink)' : M
   const clusterStr = allUp || allDown ? 'High' : Math.abs(leaders.length - laggards.length) >= 2 ? 'Moderate' : 'Low'
 
   return (
@@ -48,7 +48,7 @@ export function ETFComponentEngine({ ece, onSymbolClick }: { ece: EtfComponentDa
           )}
           {ece.etf_growth_score != null && (
             <span style={{ fontSize: 12, color: M }}>
-              GROWTH: <strong style={{ color: ece.etf_growth_regime === 'HIGH-GROWTH' ? G : ece.etf_growth_regime === 'MODERATE' ? 'var(--as-lilac)' : M }}>
+              GROWTH: <strong style={{ color: ece.etf_growth_regime === 'HIGH-GROWTH' ? G : ece.etf_growth_regime === 'MODERATE' ? 'var(--fd-lilac-ink)' : M }}>
                 {ece.etf_growth_score.toFixed(0)}/100
               </strong>
             </span>
@@ -79,7 +79,7 @@ export function ETFComponentEngine({ ece, onSymbolClick }: { ece: EtfComponentDa
         <div style={{ padding: '14px 16px', borderRight: '1px solid var(--fd-hairline)' }}>
           <div style={{ fontSize: 12, color: M, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>Strength</div>
           <div style={{ fontSize: 26, fontWeight: 500, fontFamily: 'var(--font-mono)', lineHeight: 1,
-            color: str >= 0.40 ? (dir >= 0 ? G : R) : 'var(--as-lilac)' }}>
+            color: str >= 0.40 ? (dir >= 0 ? G : R) : 'var(--fd-lilac-ink)' }}>
             {str.toFixed(3)}
           </div>
           <div style={{ fontSize: 12, color: M, marginTop: 4 }}>{ece.strength_label ?? (str >= 0.40 ? 'Strong' : str >= 0.20 ? 'Moderate' : 'Weak')}</div>
@@ -88,7 +88,7 @@ export function ETFComponentEngine({ ece, onSymbolClick }: { ece: EtfComponentDa
             {[0.20, 0.40, 0.60, 1.0].map((threshold, i) => {
               const prev = [0, 0.20, 0.40, 0.60][i]
               const fill = Math.max(0, Math.min(threshold, str) - prev) / (threshold - prev) * 100
-              const c = [M, 'var(--as-lilac)', G, G][i]
+              const c = [M, 'var(--fd-lilac-ink)', G, G][i]
               return (
                 <div key={i} style={{ flex: 1, background: 'var(--bg)' }}>
                   <div style={{ height: '100%', width: `${fill}%`, background: c, opacity: 0.85 }} />
@@ -108,13 +108,13 @@ export function ETFComponentEngine({ ece, onSymbolClick }: { ece: EtfComponentDa
             {leaders.slice(0, 3).map(c => (
               <span key={c.symbol} onClick={() => onSymbolClick?.(c.symbol)}
                 style={{ fontSize: 12, fontFamily: 'var(--font-mono)', fontWeight: 500,
-                  color: G, padding: '1px 4px', background: `${G}15`, border: `1px solid ${G}40`,
+                  color: G, padding: '1px 4px', background: `${G}15`, border: `1px solid ${G}`,
                   cursor: onSymbolClick ? 'pointer' : 'default' }}>{c.symbol}</span>
             ))}
             {laggards.slice(0, 3).map(c => (
               <span key={c.symbol} onClick={() => onSymbolClick?.(c.symbol)}
                 style={{ fontSize: 12, fontFamily: 'var(--font-mono)', fontWeight: 500,
-                  color: R, padding: '1px 4px', background: `${R}15`, border: `1px solid ${R}40`,
+                  color: R, padding: '1px 4px', background: `${R}15`, border: `1px solid ${R}`,
                   cursor: onSymbolClick ? 'pointer' : 'default' }}>{c.symbol}</span>
             ))}
           </div>
@@ -125,7 +125,7 @@ export function ETFComponentEngine({ ece, onSymbolClick }: { ece: EtfComponentDa
       <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border2)',
         display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{ padding: '6px 12px', background: `${labelColor}10`,
-          border: `1px solid ${labelColor}55`, borderRadius: 0, flexShrink: 0 }}>
+          border: `1px solid ${labelColor}`, borderRadius: 0, flexShrink: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: labelColor,
             fontFamily: 'var(--font-mono)' }}>{label}</div>
         </div>

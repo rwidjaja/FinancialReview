@@ -1,7 +1,7 @@
 // ─── Color system ──────────────────────────────────────────────────────────────
 // Consistent across all tabs — green / amber / red traffic-light palette
 export const BASE_C   = 'var(--fd-accent)'    // base scenario — accent (Cobalt light / Lime dark)
-export const BULL_C   = 'var(--as-lilac)'     // bull — comparison series
+export const BULL_C   = 'var(--fd-lilac-ink)'     // bull — comparison series
 export const BEAR_C   = 'var(--fd-negative)'  // bear — Vermillion
 export const TARGET_C = 'var(--fd-muted)'     // target allocation reference
 export const EXP_C    = 'var(--text2)'   // muted gray  — expenses (neutral cost line)

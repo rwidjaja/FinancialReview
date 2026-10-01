@@ -318,7 +318,7 @@ export function TaxablePortfolioValueChart({ data, perfData, period }: Props) {
       <div style={{
         padding: '10px 16px', marginBottom: 12, borderRadius: 0,
         background: isAhead ? 'var(--fd-card)' : 'var(--fd-card)',
-        border: `1px solid ${gainColor}33`,
+        border: `1px solid ${gainColor}`,
         display: 'flex', alignItems: 'center', gap: 10,
       }}>
         <div>

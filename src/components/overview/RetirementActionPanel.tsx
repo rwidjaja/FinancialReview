@@ -80,7 +80,7 @@ export function RetirementActionPanel({ decision, onNavigate }: {
       {activeOverrides.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 24 }}>
           {activeOverrides.map(ov => (
-            <div key={ov.id} style={{ ...card, borderLeft: '8px solid var(--as-lilac)' }}>
+            <div key={ov.id} style={{ ...card, borderLeft: '8px solid var(--fd-lilac-ink)' }}>
               <span style={mono}>Override · {ov.label}</span>
               <span style={{ fontSize: 14, lineHeight: 1.4 }}>{ov.reason}</span>
               <span style={{ fontSize: 13, ...muted }}>

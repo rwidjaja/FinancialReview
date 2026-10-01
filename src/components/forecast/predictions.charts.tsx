@@ -121,7 +121,7 @@ export function TaxBracketChart({ baseProj }: { baseProj: ProjYear[] }) {
           <YAxis yAxisId="pct" orientation="right" tick={{ fill: M, fontSize: 12 }} tickFormatter={v => `${v}%`} axisLine={false} tickLine={false} width={40} domain={[0, 40]} />
           <Tooltip content={<MoneyTooltip />} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          <Bar  yAxisId="money" dataKey="agi"     name="AGI"           fill={`${BASE_C}33`} radius={[2,2,0,0]} />
+          <Bar  yAxisId="money" dataKey="agi"     name="AGI"           fill={BASE_C} fillOpacity={0.2} radius={[2,2,0,0]} />
           <Line yAxisId="money" dataKey="tax"     name="Fed Tax"       stroke={TAX_C}   strokeWidth={2}   dot={false} type="monotone" />
           <Line yAxisId="pct"   dataKey="bracket" name="Top Bracket %" stroke={EXP_C}   strokeWidth={1.5} strokeDasharray="4 3" dot={false} type="stepAfter" />
         </ComposedChart>
@@ -312,7 +312,7 @@ export function SummaryStatusBar({ baseProj, data }: { baseProj: ProjYear[]; dat
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 500, color: regimeColor, letterSpacing: '1px', whiteSpace: 'nowrap' }}>
              MARKET STATE
           </div>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 500, color: regimeColor, background: `${regimeColor}18`, padding: '1px 7px', border: `1px solid ${regimeColor}40`, borderRadius: 0 }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 500, color: regimeColor, background: `${regimeColor}18`, padding: '1px 7px', border: `1px solid ${regimeColor}`, borderRadius: 0 }}>
             {regime}
           </span>
           {volRegime && (

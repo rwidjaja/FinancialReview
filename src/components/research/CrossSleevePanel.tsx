@@ -83,10 +83,10 @@ function Legend() {
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
       {([
-        { label: 'High ≥0.75', color: R, bg: 'var(--fd-accent)' },
-        { label: 'Moderate 0.40–0.74', color: A, bg: 'var(--as-lilac)' },
-        { label: 'Low <0.40', color: G, bg: 'var(--as-lime)' },
-        { label: 'Hedge <0', color: BL, bg: 'var(--fd-muted)' },
+        { label: 'High ≥0.75', color: 'var(--as-warm-white)', bg: 'var(--fd-negative)' },
+        { label: 'Moderate 0.40–0.74', color: 'var(--as-washed-black)', bg: 'var(--as-lilac)' },
+        { label: 'Low <0.40', color: 'var(--as-washed-black)', bg: 'var(--as-lime)' },
+        { label: 'Hedge <0', color: 'var(--fd-page)', bg: 'var(--fd-muted)' },
       ] as const).map(({ label, color, bg }) => (
         <span key={label} style={{ fontSize: 12, color, background: bg, padding: '1px 5px', borderRadius: 0, fontWeight: 500 }}>
           {label}

@@ -27,10 +27,10 @@ export const SLEEVE_LABEL: Record<string, string> = {
   '401k': '401k',
 }
 export const SLEEVE_COLOR: Record<string, string> = {
-  taxable: 'var(--as-lilac)', 
-  rollover: '#2dd4bf', 
-  roth_ira: 'var(--as-lilac)', 
-  roth: 'var(--as-lilac)', 
-  ira: '#7dd3fc', 
-  '401k': 'var(--as-lilac)',
+  taxable: 'var(--fd-lilac-ink)', 
+  rollover: 'var(--fd-lime-ink)', 
+  roth_ira: 'var(--fd-lilac-ink)', 
+  roth: 'var(--fd-lilac-ink)', 
+  ira: 'var(--fd-accent)', 
+  '401k': 'var(--fd-lilac-ink)',
 }

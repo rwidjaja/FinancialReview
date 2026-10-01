@@ -142,7 +142,7 @@ function SwingPanel({ symbol, onUsePrice }: {
               </span>
               <button onClick={() => onUsePrice(price, label)} style={{
                 fontSize: 12, padding: '2px 7px', cursor: 'pointer', borderRadius: 0,
-                background: `${color}18`, border: `1px solid ${color}50`,
+                background: `${color}18`, border: `1px solid ${color}`,
                 color, fontWeight: 500,
               }}>← Use</button>
             </div>
@@ -374,7 +374,7 @@ export function OrderModal({
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
       <div style={{
-        background: '#0d1829', border: '1px solid var(--fd-hairline)',
+        background: 'var(--fd-page)', border: '1px solid var(--fd-hairline)',
         width: 440, maxHeight: '90vh', overflowY: 'auto',
         display: 'flex', flexDirection: 'column',
         boxShadow: 'none',
@@ -592,7 +592,7 @@ export function OrderModal({
                   style={{
                     background: showCalc ? 'var(--fd-card)' : 'none',
                     border: `1px solid ${showCalc ? 'var(--fd-accent)' : 'var(--border2)'}`,
-                    color: showCalc ? '#a5b4fc' : M,
+                    color: showCalc ? 'var(--fd-lilac-ink)' : M,
                     cursor: 'pointer', padding: '2px 8px', fontSize: 13,
                   }}>⊞</button>
               </div>
@@ -758,7 +758,7 @@ export function OrderModal({
               <div style={{ padding: '10px 12px',
                 background: 'var(--fd-card)',
                 border: '1px solid var(--fd-hairline)' }}>
-                <div style={{ fontSize: 12, fontWeight: 500, color: '#a5b4fc',
+                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--fd-lilac-ink)',
                   textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8 }}>
                   ⊞ Share Calculator
                   {symUpper && <span style={{ fontWeight: 400, color: M }}> — {symUpper} @ ${calcRef.toFixed(2)}</span>}
@@ -791,7 +791,7 @@ export function OrderModal({
                     {calcDerivedShares !== null && (
                       <div>
                         <span style={{ fontSize: 12, color: M, textTransform: 'uppercase' }}>You can buy </span>
-                        <span style={{ fontSize: 15, fontWeight: 500, color: '#a5b4fc',
+                        <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--fd-lilac-ink)',
                           fontFamily: 'var(--font-mono)' }}>{calcDerivedShares.toLocaleString()}</span>
                         <span style={{ fontSize: 12, color: M }}> sh</span>
                       </div>

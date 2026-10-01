@@ -4,7 +4,7 @@ export const R = 'var(--red)'
 export const A = 'var(--amber)'
 export const M = 'var(--text2)'
 export const B = 'var(--fd-accent)'
-export const COLORS = ['var(--fd-accent)','var(--as-lilac)','var(--as-lime)','var(--fd-muted)','var(--fd-ink)','var(--fd-negative)','var(--fd-accent)','var(--as-lilac)']
+export const COLORS = ['var(--fd-accent)','var(--fd-lilac-ink)','var(--fd-lime-ink)','var(--fd-muted)','var(--fd-ink)','var(--fd-negative)','var(--fd-accent)','var(--fd-lilac-ink)']
 
 // ── API helpers ───────────────────────────────────────────────────────────────
 export const BASE = '/api/sim'

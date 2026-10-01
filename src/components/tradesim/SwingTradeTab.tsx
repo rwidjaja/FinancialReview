@@ -171,23 +171,23 @@ function MiniChart({ bars, entry, stop, target, current }: {
         })}
         {maPoints(ma20) && (
           <polyline points={maPoints(ma20)} fill="none"
-            stroke="#f9e2af" strokeWidth={1.2} strokeOpacity={0.8}
+            stroke="var(--fd-ink)" strokeWidth={1.2} strokeOpacity={0.8}
             strokeLinejoin="round" strokeLinecap="round" />
         )}
         {maPoints(ma50) && (
           <polyline points={maPoints(ma50)} fill="none"
-            stroke="#f38ba8" strokeWidth={1.2} strokeOpacity={0.8}
+            stroke="var(--fd-negative)" strokeWidth={1.2} strokeOpacity={0.8}
             strokeLinejoin="round" strokeLinecap="round" />
         )}
         <HLine price={target}  color="var(--fd-accent)" label=" Target" bold />
-        <HLine price={current} color="#f9e2af" label="◆ Now" dash="2,2" />
+        <HLine price={current} color="var(--fd-ink)" label="◆ Now" dash="2,2" />
         <HLine price={entry}   color="var(--fd-accent)" label="⬇ Entry" bold />
         <HLine price={stop}    color="var(--fd-negative)" label=" Stop" />
       </svg>
       <div style={{ marginTop: 4, fontSize: 12, color: 'var(--fd-muted)',
         display: 'flex', gap: 14, flexWrap: 'wrap' }}>
         <span><span style={{ color: 'var(--fd-accent)' }}>━</span> Target</span>
-        <span><span style={{ color: '#f9e2af' }}>╌</span> Current</span>
+        <span><span style={{ color: 'var(--fd-ink)' }}>╌</span> Current</span>
         <span><span style={{ color: 'var(--fd-accent)' }}>━</span> Suggested entry</span>
         <span><span style={{ color: 'var(--fd-negative)' }}>━</span> Stop-loss</span>
       </div>
@@ -296,7 +296,7 @@ export function SwingTradeTab({ port, regime = 'CONSOLIDATION', vix = 0, onOpenO
 
         {err && (
           <div style={{ padding: '8px 12px', background: `${R}15`, borderRadius: 0,
-            border: `1px solid ${R}30`, color: R, fontSize: 12, marginBottom: 10 }}>
+            border: `1px solid ${R}`, color: R, fontSize: 12, marginBottom: 10 }}>
              {err}
           </div>
         )}
@@ -449,7 +449,7 @@ export function SwingTradeTab({ port, regime = 'CONSOLIDATION', vix = 0, onOpenO
                   { label: ' Target', price: result.take_profit, color: G         },
                 ].map(({ label, price, color }) => (
                   <div key={label} style={{
-                    background: `${color}15`, border: `1px solid ${color}40`,
+                    background: `${color}15`, border: `1px solid ${color}`,
                     borderRadius: 0, padding: '7px 10px', textAlign: 'center',
                   }}>
                     <div style={{ fontSize: 12, color: M, marginBottom: 2 }}>{label}</div>
@@ -473,7 +473,7 @@ export function SwingTradeTab({ port, regime = 'CONSOLIDATION', vix = 0, onOpenO
             </div>
 
             {/* ── THE ACTION: opens the standard OrderModal ───────────────── */}
-            <div style={{ ...PANEL, border: `1px solid ${B}50`,
+            <div style={{ ...PANEL, border: `1px solid ${B}`,
               background: 'var(--fd-card)' }}>
               <SL>Place Order</SL>
               <div style={{ fontSize: 12, color: M, marginBottom: 10, lineHeight: 1.7 }}>
@@ -609,7 +609,7 @@ export function SwingTradeTab({ port, regime = 'CONSOLIDATION', vix = 0, onOpenO
             )}
 
             {/* ── Buying Calendar ─────────────────────────────────────────── */}
-            <div style={{ ...PANEL, border: `1px solid ${A}30` }}>
+            <div style={{ ...PANEL, border: `1px solid ${A}` }}>
               <SL> Buying Calendar</SL>
               <div style={{ fontSize: 12, color: M, marginBottom: 8, lineHeight: 1.6 }}>
                 Detects rally → pause → pullback cycles and projects the

@@ -59,7 +59,7 @@ export function PortfolioHeatmap({ data }: { data: DashboardData }) {
   const pi = data.portfolio_intel
   if (!pi) return null
   const segments = [
-    { label: 'Growth',    value: pi.tech_growth_pct ?? 0, color: '#2979ff' },
+    { label: 'Growth',    value: pi.tech_growth_pct ?? 0, color: 'var(--fd-accent)' },
     { label: 'Income',    value: pi.income_pct ?? 0,      color: 'var(--fd-accent)' },
     { label: 'Defensive', value: pi.defensive_pct ?? 0,   color: 'var(--fd-ink)' },
   ].filter(s => s.value > 0)
@@ -181,9 +181,9 @@ export function SleeveMap({ label, color, acctValue, positions, targetVsActual, 
   const deltaMap: Record<string, number> = {}
   for (const t of targetVsActual) deltaMap[t.symbol] = t.delta_pct
 
-  const onC  = isRoth ? '#00b8a9' : 'var(--fd-accent)'
-  const overC = isRoth ? '#e67e22' : 'var(--as-lilac)'
-  const undC  = isRoth ? '#9b59b6' : '#2979ff'
+  const onC  = isRoth ? 'var(--fd-lime-ink)' : 'var(--fd-accent)'
+  const overC = isRoth ? 'var(--fd-ink)' : 'var(--fd-lilac-ink)'
+  const undC  = isRoth ? 'var(--fd-lilac-ink)' : 'var(--fd-accent)'
 
   const currentData = positions
     .filter(p => p.value > 0)
@@ -191,7 +191,7 @@ export function SleeveMap({ label, color, acctValue, positions, targetVsActual, 
     .map((p, idx) => {
       const pct = acctValue > 0 ? p.value / acctValue * 100 : 0
       const delta = deltaMap[p.symbol]
-      const fill = delta == null ? '#546e7a' : Math.abs(delta) < 2 ? onC : delta > 0 ? overC : undC
+      const fill = delta == null ? 'var(--fd-muted)' : Math.abs(delta) < 2 ? onC : delta > 0 ? overC : undC
       return {
         name: p.symbol,
         uniqueKey: `cur-${label}-${p.symbol}-${idx}`,
@@ -268,13 +268,13 @@ export function CrossSleeveMismatch({ data }: { data: DashboardData }) {
 
   return (
     <div style={{ padding: '6px 12px', background: 'var(--fd-card)', border: '1px solid var(--fd-hairline)', fontSize: 12, fontFamily: 'var(--font-mono)' }}>
-      <div style={{ color: '#ff6b35', fontWeight: 500, letterSpacing: '0.8px', marginBottom: 4 }}> CROSS-SLEEVE MISMATCH — held in Taxable, targeted in Roth</div>
+      <div style={{ color: 'var(--fd-ink)', fontWeight: 500, letterSpacing: '0.8px', marginBottom: 4 }}> CROSS-SLEEVE MISMATCH — held in Taxable, targeted in Roth</div>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
         {crossSleeveRows.map(r => (
           <div key={r.symbol} style={{ display: 'flex', gap: 8, color: 'var(--text2)' }}>
             <span style={{ color: 'var(--text)', fontWeight: 500 }}>{r.symbol}</span>
             <span>Tax: <span style={{ color: 'var(--fd-ink)' }}>{r.taxActual.toFixed(1)}%</span></span>
-            <span>Roth: <span style={{ color: '#9b59b6' }}>{r.rothActual.toFixed(1)}%</span> / tgt <span style={{ color: '#00b8a9' }}>{r.rothTarget.toFixed(1)}%</span></span>
+            <span>Roth: <span style={{ color: 'var(--fd-lilac-ink)' }}>{r.rothActual.toFixed(1)}%</span> / tgt <span style={{ color: 'var(--fd-lime-ink)' }}>{r.rothTarget.toFixed(1)}%</span></span>
           </div>
         ))}
       </div>

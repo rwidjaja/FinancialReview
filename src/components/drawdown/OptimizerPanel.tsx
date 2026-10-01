@@ -116,10 +116,10 @@ export function OptimizerPanel({ result, inputs, data, incomeTarget, mode }: {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
       {/* ── THIS YEAR ACTION PLAN — powered by live portfolio state ── */}
-      <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${A}40`, overflow: 'hidden' }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${A}`, overflow: 'hidden' }}>
 
         {/* Header */}
-        <div style={{ background: `${A}14`, borderBottom: `1px solid ${A}30`,
+        <div style={{ background: `${A}14`, borderBottom: `1px solid ${A}`,
           padding: '8px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <span style={{ fontSize: 12, fontWeight: 500, color: A }}>
@@ -141,7 +141,7 @@ export function OptimizerPanel({ result, inputs, data, incomeTarget, mode }: {
           return (
             <div style={{ padding: '8px 12px', borderRadius: 0,
               background: bucketShortfall > 0 ? `${Y}08` : `${G}06`,
-              border: `1px solid ${bucketShortfall > 0 ? `${Y}30` : `${G}25`}` }}>
+              border: `1px solid ${bucketShortfall > 0 ? `${Y}` : `${G}25`}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
                 <span style={{ fontSize: 12, fontWeight: 500, color: bucketShortfall > 0 ? Y : G }}>
                   {bucketShortfall > 0 ? '' : '✓'} SWVXX Cash Bucket — {bucketYears}-yr reserve
@@ -438,7 +438,7 @@ export function OptimizerPanel({ result, inputs, data, incomeTarget, mode }: {
                       : milestone ? `${milestone.color}08`
                       : i % 2 === 0 ? 'transparent' : 'var(--fd-card)',
                     opacity: depleted ? 0.4 : 1,
-                    outline: isCurrentYear ? `1px solid ${A}40` : undefined,
+                    outline: isCurrentYear ? `1px solid ${A}` : undefined,
                   }}>
                     <td style={{ padding: '3px 8px', textAlign: 'left', whiteSpace: 'nowrap' }}>
                       {isCurrentYear && (

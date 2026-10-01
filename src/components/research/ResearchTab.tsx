@@ -445,9 +445,9 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                             {pf.positions.map((pos, i) => {
                               const ak = (pos.acct_key ?? '').toLowerCase()
-                              const tc = ak.includes('roth') ? '#a29bfe' : ak.includes('rollover') ? '#fdcb6e' : '#74b9ff'
+                              const tc = ak.includes('roth') ? 'var(--fd-lilac-ink)' : ak.includes('rollover') ? 'var(--fd-ink)' : 'var(--fd-accent)'
                               return (
-                                <div key={i} style={{ padding: '5px 10px', background: `${tc}15`, border: `1px solid ${tc}44`, fontSize: 12 }}>
+                                <div key={i} style={{ padding: '5px 10px', background: `${tc}15`, border: `1px solid ${tc}`, fontSize: 12 }}>
                                   <strong style={{ color: tc }}>{pos.account ?? pos.acct_type ?? '—'}</strong>
                                   {pos.shares && <> · {pos.shares.toFixed(2)} sh</>}
                                   {pos.value && <> · {fmtMoneyFull(pos.value)}</>}
@@ -498,20 +498,20 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                               padding: '3px 10px', background: 'var(--as-cobalt)', color: 'var(--as-warm-white)', border: 'none', cursor: 'pointer',
                             }}>ADD</button>
                             <span style={{
-                              fontSize: 12, fontWeight: 500, color: '#636e72',
+                              fontSize: 12, fontWeight: 500, color: 'var(--fd-muted)',
                               background: 'var(--fd-card)', border: '1px solid var(--fd-hairline)',
                               padding: '2px 8px', borderRadius: 12, fontFamily: 'var(--font-mono)',
                             }}>
                               ● {benchmark} (benchmark)
                             </span>
                             {compareSymbols.map((sym, i) => {
-                              const COLORS = ['var(--fd-accent)', 'var(--as-lilac)', 'var(--as-lime)', 'var(--fd-muted)', 'var(--fd-ink)', 'var(--fd-negative)']
+                              const COLORS = ['var(--fd-accent)', 'var(--fd-lilac-ink)', 'var(--fd-lime-ink)', 'var(--fd-muted)', 'var(--fd-ink)', 'var(--fd-negative)']
                               const color = COLORS[i % COLORS.length]
                               return (
                                 <span key={sym} onClick={() => handleRemoveCompare(sym)} style={{
                                   fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)',
                                   padding: '2px 8px', borderRadius: 12, cursor: 'pointer',
-                                  background: `${color}18`, border: `1px solid ${color}55`, color,
+                                  background: `${color}18`, border: `1px solid ${color}`, color,
                                 }}>
                                   ● {sym} <span style={{ marginLeft: 2, opacity: 0.6 }}>×</span>
                                 </span>

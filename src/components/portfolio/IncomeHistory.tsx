@@ -533,13 +533,13 @@ export function IncomeHistory({ data, months, ia }: { data: DashboardData; month
           <div style={{ display: 'flex', height: 7, borderRadius: 0, overflow: 'hidden', marginBottom: 12 }}>
             <div style={{ width: `${ordPct}%`,  background: R,        opacity: 0.8 }} />
             <div style={{ width: `${qualPct}%`, background: G,        opacity: 0.8 }} />
-            <div style={{ width: `${rocPct}%`,  background: '#007aff', opacity: 0.8 }} />
+            <div style={{ width: `${rocPct}%`,  background: 'var(--fd-accent)', opacity: 0.8 }} />
           </div>
           {/* Rows */}
           {([
             { label: 'ORDINARY',       amount: fwdOrd,  pct: ordPct,  color: R        },
             { label: 'QUALIFIED DIV',  amount: fwdQual, pct: qualPct, color: G        },
-            { label: 'ROC / TAX-FREE', amount: fwdRoc,  pct: rocPct,  color: '#007aff'},
+            { label: 'ROC / TAX-FREE', amount: fwdRoc,  pct: rocPct,  color: 'var(--fd-accent)'},
           ] as { label: string; amount: number; pct: number; color: string }[]).map(row => (
             <div key={row.label} style={{ marginBottom: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>

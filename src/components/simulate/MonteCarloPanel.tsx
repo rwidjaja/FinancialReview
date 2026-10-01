@@ -165,7 +165,7 @@ export function MonteCarloPanel({ defaults }: { defaults: SimDefaults }) {
                           <Tooltip contentStyle={TOOLTIP_CONTENT_STYLE} labelStyle={TOOLTIP_LABEL_RECHARTS} itemStyle={TOOLTIP_ITEM_RECHARTS} cursor={TOOLTIP_CURSOR} formatter={(v: unknown) => [`$${v}K`]} />
                           <ReferenceLine y={0} stroke="var(--red)" strokeDasharray="3 3" />
                           <Line type="monotone" dataKey="p90" stroke="var(--fd-accent)" strokeWidth={1} dot={false} strokeOpacity={0.6} />
-                          <Line type="monotone" dataKey="med" stroke="var(--as-lilac)" strokeWidth={2} dot={false} />
+                          <Line type="monotone" dataKey="med" stroke="var(--fd-lilac-ink)" strokeWidth={2} dot={false} />
                           <Line type="monotone" dataKey="p10" stroke="var(--fd-negative)" strokeWidth={1} dot={false} strokeOpacity={0.6} />
                         </LineChart>
                       </ResponsiveContainer>

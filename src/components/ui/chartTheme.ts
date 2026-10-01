@@ -1,9 +1,10 @@
+import { useEffect, useState } from 'react'
 /**
  * Recharts theme — replaces ui/chartTooltip.ts and the per-chart axis props
  * in DESIGN_GUIDE.md. No gradients (brand rule): areas use flat fills.
  */
 export const CHART = {
-  series: ['var(--fd-accent)', 'var(--as-lilac)', 'var(--as-lime)', 'var(--fd-muted)'], // primary, comparison, third, neutral
+  series: ['var(--fd-accent)', 'var(--fd-lilac-ink)', 'var(--fd-lime-ink)', 'var(--fd-muted)'], // primary, comparison, third, neutral
   positive: 'var(--fd-accent)',
   negative: 'var(--fd-negative)',
   grid: 'var(--fd-hairline)',
@@ -29,3 +30,23 @@ export const AXIS = { tick: CHART.axisTick, axisLine: false, tickLine: false } a
 /** Bars: square tops (radius 0), opacity 1. Lines: strokeWidth 3, no dots. */
 export const BAR_PROPS = { radius: [0, 0, 0, 0] as [number, number, number, number] }
 export const LINE_PROPS = { strokeWidth: 3, dot: false, type: 'monotone' as const }
+
+/**
+ * Canvas renderers (ECharts) can't resolve CSS custom properties — read the
+ * computed token value instead. Pair with useGround() so charts redraw when
+ * the light/dark ground flips.
+ */
+export function cssVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
+
+export function useGround(): string {
+  const [ground, setGround] = useState(() => document.documentElement.dataset.ground ?? 'light')
+  useEffect(() => {
+    const el = document.documentElement
+    const obs = new MutationObserver(() => setGround(el.dataset.ground ?? 'light'))
+    obs.observe(el, { attributes: true, attributeFilter: ['data-ground'] })
+    return () => obs.disconnect()
+  }, [])
+  return ground
+}

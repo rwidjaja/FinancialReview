@@ -110,7 +110,7 @@ export function RiskPanelAdvanced({ r }: { r: ResearchApiData }) {
 export function DrawdownPanel({ beta, maxDD }: { beta: number; maxDD?: number }) {
   const scenarios = [
     { label: 'Mild', market: -10, color: Y },
-    { label: 'Moderate', market: -20, color: '#e17055' },
+    { label: 'Moderate', market: -20, color: 'var(--fd-ink)' },
     { label: 'Severe', market: -30, color: R },
   ]
   return (
@@ -124,7 +124,7 @@ export function DrawdownPanel({ beta, maxDD }: { beta: number; maxDD?: number })
           const exp = (beta * sc.market).toFixed(1)
           const wst = (beta * 1.25 * sc.market).toFixed(1)
           return (
-            <div key={sc.label} style={{ textAlign: 'center', padding: '10px 8px', background: 'var(--fd-card)', border: `1px solid ${sc.color}44` }}>
+            <div key={sc.label} style={{ textAlign: 'center', padding: '10px 8px', background: 'var(--fd-card)', border: `1px solid ${sc.color}` }}>
               <div style={{ fontSize: 12, color: M, textTransform: 'uppercase', fontWeight: 500, marginBottom: 4 }}>{sc.label}</div>
               <div style={{ fontSize: 12, color: M }}>SPY {sc.market}%</div>
               <div style={{ fontSize: 28, fontWeight: 500, color: sc.color, margin: '4px 0', fontFamily: 'var(--font-mono)' }}>{exp}%</div>

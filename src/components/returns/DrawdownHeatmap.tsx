@@ -29,7 +29,7 @@ export function DrawdownHeatmap({ data, perfData, period }: {
   )
 
   const ddLabel = (dd: number) => dd > -10 ? 'MINIMAL' : dd > -20 ? 'MODERATE' : dd > -30 ? 'ELEVATED' : 'SEVERE'
-  const ddColor = (dd: number) => dd > -10 ? 'var(--fd-accent)' : dd > -20 ? '#ffd600' : dd > -30 ? 'var(--as-lilac)' : 'var(--fd-negative)'
+  const ddColor = (dd: number) => dd > -10 ? 'var(--fd-accent)' : dd > -20 ? 'var(--fd-ink)' : dd > -30 ? 'var(--fd-lilac-ink)' : 'var(--fd-negative)'
   const ddBg   = (dd: number) => dd > -10 ? 'var(--fd-card)' : dd > -20 ? 'var(--fd-card)' : dd > -30 ? 'var(--fd-card)' : 'var(--fd-card)'
 
   // Sort worst → best for the bar chart too
@@ -70,7 +70,7 @@ export function DrawdownHeatmap({ data, perfData, period }: {
               <div style={{ fontSize: 12, color: c, fontWeight: 500, letterSpacing: '0.5px' }}>{ddLabel(dd)}</div>
               <div style={{ fontSize: 12, color: M, marginTop: 2 }}>{(w * 100).toFixed(1)}% port</div>
               {pd?.sharpe != null && (
-                <div style={{ fontSize: 12, color: pd.sharpe >= 1 ? 'var(--fd-accent)' : pd.sharpe >= 0.5 ? '#ffd600' : 'var(--fd-negative)', marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: pd.sharpe >= 1 ? 'var(--fd-accent)' : pd.sharpe >= 0.5 ? 'var(--fd-ink)' : 'var(--fd-negative)', marginTop: 2 }}>
                   SR {pd.sharpe.toFixed(2)}
                 </div>
               )}

@@ -159,7 +159,7 @@ function MiniChart({ bars, entry, stop, target, current }: {
   return (
     <div ref={containerRef} style={{ width: '100%' }}>
       <svg width={W} height={H + 4} style={{ display: 'block', width: '100%' }}>
-        <rect width={W} height={H} fill="#0d1117" rx={4} />
+        <rect width={W} height={H} fill="var(--fd-card)" rx={4} />
         {[0.25, 0.5, 0.75].map(f => (
           <line key={f} x1={0} y1={H * f} x2={W} y2={H * f}
             stroke="var(--fd-hairline)" strokeWidth={0.5} />
@@ -183,28 +183,28 @@ function MiniChart({ bars, entry, stop, target, current }: {
         {/* MA lines — drawn on top of candles */}
         {maPoints(ma20) && (
           <polyline points={maPoints(ma20)} fill="none"
-            stroke="#f9e2af" strokeWidth={1.5} strokeOpacity={0.85}
+            stroke="var(--fd-ink)" strokeWidth={1.5} strokeOpacity={0.85}
             strokeLinejoin="round" strokeLinecap="round" />
         )}
         {maPoints(ma50) && (
           <polyline points={maPoints(ma50)} fill="none"
-            stroke="#f38ba8" strokeWidth={1.5} strokeOpacity={0.85}
+            stroke="var(--fd-negative)" strokeWidth={1.5} strokeOpacity={0.85}
             strokeLinejoin="round" strokeLinecap="round" />
         )}
 
         {/* Price level overlays */}
         <HLine price={target}  color="var(--fd-accent)" label="Target" bold />
-        <HLine price={current} color="#f9e2af" label="Current" dash="2,2" />
+        <HLine price={current} color="var(--fd-ink)" label="Current" dash="2,2" />
         <HLine price={entry}   color="var(--fd-accent)" label="Entry"   bold />
         <HLine price={stop}    color="var(--fd-negative)" label="Stop" />
       </svg>
       <div style={{ marginTop: 6, fontSize: 12, color: 'var(--fd-muted)',
         display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        <span><span style={{ color: '#f9e2af' }}>━━</span> MA 20</span>
-        <span><span style={{ color: '#f38ba8' }}>━━</span> MA 50</span>
+        <span><span style={{ color: 'var(--fd-ink)' }}>━━</span> MA 20</span>
+        <span><span style={{ color: 'var(--fd-negative)' }}>━━</span> MA 50</span>
         <span style={{ marginLeft: 4 }}>|</span>
         <span><span style={{ color: 'var(--fd-accent)' }}>━━</span> Target</span>
-        <span><span style={{ color: '#f9e2af', opacity: 0.6 }}>╌╌</span> Current</span>
+        <span><span style={{ color: 'var(--fd-ink)', opacity: 0.6 }}>╌╌</span> Current</span>
         <span><span style={{ color: 'var(--fd-accent)' }}>━━</span> Entry</span>
         <span><span style={{ color: 'var(--fd-negative)' }}>━━</span> Stop</span>
       </div>
@@ -493,7 +493,7 @@ export function SwingSignalPanel({ symbol, price: livePrice, limitPrice, portfol
                 value={<span style={{ color: M, fontFamily: 'var(--font-mono)' }}>{cal.price_bands.current_pct_from_high.toFixed(1)}% from high</span>} />
               <Divider />
               {cal.price_bands.entry_ladder.map((row, i) => {
-                const priceColor = row.zone === 'buy' ? 'var(--fd-accent)' : row.zone === 'strong_buy' ? G : row.zone === 'panic_buy' ? 'var(--as-lilac)' : A
+                const priceColor = row.zone === 'buy' ? 'var(--fd-accent)' : row.zone === 'strong_buy' ? G : row.zone === 'panic_buy' ? 'var(--fd-lilac-ink)' : A
                 return (
                   <div key={i} style={{
                     display: 'grid', gridTemplateColumns: '1fr auto auto',
@@ -572,7 +572,7 @@ export function SwingSignalPanel({ symbol, price: livePrice, limitPrice, portfol
 
         {/* D. SWING VERDICT — calendar master action + confidence */}
         <div style={{ background: 'var(--surface)',
-          border: `1px solid ${cal ? A : decisionColor}55`, borderRadius: 0, padding: '12px 14px' }}>
+          border: `1px solid ${cal ? A : decisionColor}`, borderRadius: 0, padding: '12px 14px' }}>
           <PanelHeader>D. SWING VERDICT</PanelHeader>
           <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
             {cal ? (<>

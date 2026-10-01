@@ -23,6 +23,7 @@ import { gainColor } from '../../utils/formatters'
 import { G, R, M } from './researchTypes'
 import type { ResearchApiData, ChartPeriod } from './researchTypes'
 import { TOOLTIP_STYLE, TOOLTIP_LABEL_STYLE } from '../ui/chartTooltip'
+import { cssVar, useGround } from '../ui/chartTheme'
 
 export function ChartPanelCompare({ r, period, onPeriod, chgColor, benchmark, compareSymbols, compareChartData, active }: {
   r: ResearchApiData
@@ -38,7 +39,7 @@ export function ChartPanelCompare({ r, period, onPeriod, chgColor, benchmark, co
   // Full period object — includes both prices and dates for date-alignment
   const benchmarkData = compareChartData[benchmark]?.[period] as { prices: number[]; dates?: string[] } | undefined
   const periods: ChartPeriod[] = ['1d', '5d', '1m', '3m', '6m', 'ytd', '1y', '3y', '5y']
-  const COLORS = ['var(--fd-accent)', 'var(--as-lilac)', 'var(--as-lime)', 'var(--fd-muted)', 'var(--fd-ink)', 'var(--fd-negative)']
+  const COLORS = ['var(--fd-accent)', 'var(--fd-lilac-ink)', 'var(--fd-lime-ink)', 'var(--fd-muted)', 'var(--fd-ink)', 'var(--fd-negative)']
 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: '10px 14px' }}>
@@ -125,7 +126,7 @@ export function MultiLineChartWithBenchmark({ mainSymbol, mainData, mainDates, m
     }
     const bLast = benchmarkData.prices[benchmarkData.prices.length - 1]
     const benchEnd = bLast != null ? ((bLast / benchBase) - 1) * 100 : null
-    allSeries.push({ symbol: benchmark, color: '#636e72', dashed: true, endPct: benchEnd, dateMap: benchMap })
+    allSeries.push({ symbol: benchmark, color: 'var(--fd-muted)', dashed: true, endPct: benchEnd, dateMap: benchMap })
   }
 
   // Compare symbols — same date-keyed approach
@@ -277,7 +278,7 @@ export function AnnualizedReturnsCompare({ ar, symbol, benchmark, compareSymbols
     staleTime: 5 * 60 * 1000,
   })
 
-  const COLORS = ['var(--fd-accent)', 'var(--as-lilac)', 'var(--as-lime)', 'var(--fd-muted)', 'var(--fd-ink)', 'var(--fd-negative)']
+  const COLORS = ['var(--fd-accent)', 'var(--fd-lilac-ink)', 'var(--fd-lime-ink)', 'var(--fd-muted)', 'var(--fd-ink)', 'var(--fd-negative)']
 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: '10px 14px' }}>
@@ -288,7 +289,7 @@ export function AnnualizedReturnsCompare({ ar, symbol, benchmark, compareSymbols
             <tr>
               <th style={{ textAlign: 'left', padding: '4px 8px', fontSize: 12, color: M, borderBottom: '1px solid var(--border2)' }}>PERIOD</th>
               <th style={{ textAlign: 'right', padding: '4px 8px', fontSize: 12, color: 'var(--amber)', borderBottom: '1px solid var(--border2)' }}>{symbol}</th>
-              <th style={{ textAlign: 'right', padding: '4px 8px', fontSize: 12, color: '#636e72', borderBottom: '1px solid var(--border2)' }}>{benchmark}</th>
+              <th style={{ textAlign: 'right', padding: '4px 8px', fontSize: 12, color: 'var(--fd-muted)', borderBottom: '1px solid var(--border2)' }}>{benchmark}</th>
               {compareSymbols.map((cs, i) => (
                 <th key={cs} style={{ textAlign: 'right', padding: '4px 8px', fontSize: 12, color: COLORS[i % COLORS.length], borderBottom: '1px solid var(--border2)' }}>
                   {cs}
@@ -325,6 +326,7 @@ export function AnnualizedReturnsCompare({ ar, symbol, benchmark, compareSymbols
 
 export function CandlestickChart({ symbol }: { symbol: string }) {
   const chartRef = useRef<HTMLDivElement>(null)
+  const ground = useGround()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<any>(null)
@@ -357,13 +359,16 @@ export function CandlestickChart({ symbol }: { symbol: string }) {
     if (!chartRef.current || !data) return
 
     const chart = echarts.init(chartRef.current)
+    const ink = cssVar('--fd-ink'), muted = cssVar('--fd-muted'), hair = cssVar('--fd-hairline')
+    const up = cssVar('--fd-accent'), down = cssVar('--fd-negative')
+    const ma20 = cssVar('--fd-lilac-ink'), ma50 = cssVar('--fd-lime-ink')
 
     const option = {
-      backgroundColor: '#1e1e2e',
+      backgroundColor: 'transparent',
       title: {
         text: `${symbol} — Candlestick (Last 60 days)`,
         left: 'center',
-        textStyle: { color: 'var(--fd-ink)', fontSize: 12 }
+        textStyle: { color: ink, fontSize: 12 }
       },
       tooltip: {
         trigger: 'axis',
@@ -378,14 +383,14 @@ export function CandlestickChart({ symbol }: { symbol: string }) {
       xAxis: {
         type: 'category',
         data: data.dates,
-        axisLabel: { rotate: 45, color: '#a0a0a0', fontSize: 12 },
-        axisLine: { lineStyle: { color: '#333' } }
+        axisLabel: { rotate: 45, color: muted, fontSize: 12 },
+        axisLine: { lineStyle: { color: hair } }
       },
       yAxis: {
         type: 'value',
         scale: true,
-        axisLabel: { color: '#a0a0a0', fontSize: 12 },
-        splitLine: { lineStyle: { color: 'var(--fd-ink)' } }
+        axisLabel: { color: muted, fontSize: 12 },
+        splitLine: { lineStyle: { color: hair } }
       },
       series: [
         {
@@ -393,31 +398,31 @@ export function CandlestickChart({ symbol }: { symbol: string }) {
           type: 'candlestick',
           data: data.ohlc.map((d: any) => [d[1], d[2], d[3], d[4]]),
           itemStyle: {
-            color: '#a6e3a1',
-            color0: '#f38ba8',
-            borderColor: '#a6e3a1',
-            borderColor0: '#f38ba8'
+            color: up,
+            color0: down,
+            borderColor: up,
+            borderColor0: down
           }
         },
         {
           name: 'MA20',
           type: 'line',
           data: data.ma20,
-          lineStyle: { color: '#f9e2af', width: 1 },
+          lineStyle: { color: ma20, width: 2 },
           symbol: 'none'
         },
         {
           name: 'MA50',
           type: 'line',
           data: data.ma50,
-          lineStyle: { color: '#f38ba8', width: 1 },
+          lineStyle: { color: ma50, width: 2 },
           symbol: 'none'
         },
         {
           name: 'Current Price',
           type: 'line',
           data: Array(data.dates.length).fill(data.currentPrice),
-          lineStyle: { color: '#f9e2af', width: 1, type: 'dashed' },
+          lineStyle: { color: ink, width: 1, type: 'dashed' },
           symbol: 'none'
         }
       ],
@@ -426,7 +431,7 @@ export function CandlestickChart({ symbol }: { symbol: string }) {
         orient: 'horizontal',
         left: 'left',
         top: 0,
-        textStyle: { color: '#a0a0a0', fontSize: 12 }
+        textStyle: { color: muted, fontSize: 12 }
       },
       dataZoom: [
         { type: 'inside', start: 0, end: 100 },
@@ -443,11 +448,11 @@ export function CandlestickChart({ symbol }: { symbol: string }) {
       window.removeEventListener('resize', handleResize)
       chart.dispose()
     }
-  }, [data, symbol])
+  }, [data, symbol, ground])
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#a0a0a0' }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--fd-muted)' }}>
         Loading candlestick chart...
       </div>
     )
@@ -455,7 +460,7 @@ export function CandlestickChart({ symbol }: { symbol: string }) {
 
   if (error) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#f38ba8', fontSize: 12 }}>
+      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--fd-negative)', fontSize: 12 }}>
         Error: {error}
       </div>
     )

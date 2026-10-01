@@ -277,7 +277,7 @@ export function SimPerformanceTab({ port, history }: { port: Portfolio; history:
                     <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)',
                       letterSpacing: '0.5px' }}>{h.symbol}</div>
                     <div style={{ fontSize: 12, fontWeight: 500,
-                      color: h.unrealized_pnl_pct >= 0 ? 'var(--fd-accent)' : 'var(--as-lilac)' }}>
+                      color: h.unrealized_pnl_pct >= 0 ? 'var(--fd-accent)' : 'var(--fd-lilac-ink)' }}>
                       {fmtPct(h.unrealized_pnl_pct, 1)}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--fd-muted)' }}>

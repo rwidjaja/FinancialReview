@@ -111,7 +111,7 @@ function zoneColor(zone: string) {
   if (zone === 'watch')      return A
   if (zone === 'buy')        return 'var(--fd-accent)'
   if (zone === 'strong_buy') return G
-  if (zone === 'panic_buy')  return 'var(--as-lilac)'
+  if (zone === 'panic_buy')  return 'var(--fd-lilac-ink)'
   return M
 }
 
@@ -120,7 +120,7 @@ function actionColor(action: string) {
   if (action === 'WATCH') return A
   if (action === 'BUY')   return 'var(--fd-accent)'
   if (action === 'STRONG BUY') return G
-  if (action === 'PANIC BUY')  return 'var(--as-lilac)'
+  if (action === 'PANIC BUY')  return 'var(--fd-lilac-ink)'
   return M
 }
 
@@ -265,7 +265,7 @@ export function SwingCalendarPanel({
         </div>
         <button onClick={() => fetchCalendar()} disabled={loading || !symbol} style={{
           padding: '4px 16px', cursor: 'pointer', borderRadius: 0,
-          border: `1px solid ${A}60`, background: `${A}18`, color: A,
+          border: `1px solid ${A}`, background: `${A}18`, color: A,
           fontSize: 12, fontWeight: 500, opacity: loading || !symbol ? 0.5 : 1,
         }}>
           {loading ? '⟳ Analyzing…' : ' Generate Calendar'}
@@ -287,7 +287,7 @@ export function SwingCalendarPanel({
           {/* ── 1. ENGINE SUMMARY CARD ─────────────────────────────────────── */}
           <div style={{
             background: 'var(--surface)',
-            border: `1px solid ${actionColor(data.master_action)}40`,
+            border: `1px solid ${actionColor(data.master_action)}`,
             borderLeft: `4px solid ${actionColor(data.master_action)}`,
             borderRadius: 0, padding: '14px 16px',
           }}>
@@ -318,7 +318,7 @@ export function SwingCalendarPanel({
                     <div key={e.zone} style={{
                       padding: '4px 10px', borderRadius: 0,
                       background: `${zoneColor(e.zone)}15`,
-                      border: `1px solid ${zoneColor(e.zone)}40`,
+                      border: `1px solid ${zoneColor(e.zone)}`,
                     }}>
                       <div style={{ fontSize: 12, color: M }}>{e.action} {e.desc}</div>
                       <div style={{ fontSize: 13, fontWeight: 500,
@@ -345,7 +345,7 @@ export function SwingCalendarPanel({
                     color: trendStatusColor,
                     padding: '1px 6px', borderRadius: 0,
                     background: `${trendStatusColor}18`,
-                    border: `1px solid ${trendStatusColor}40` }}>
+                    border: `1px solid ${trendStatusColor}` }}>
                     {data.trend_age.status}
                   </div>
                 </div>
@@ -368,7 +368,7 @@ export function SwingCalendarPanel({
           {/* ── 1b. Opportunity ranking — right after summary ─────────────────── */}
           {portfolioSymbols.length >= 2 && portfolioSymbols.includes(symbol.toUpperCase()) && (
             <div style={{ background: 'var(--surface)',
-              border: `1px solid ${A}30`,
+              border: `1px solid ${A}`,
               borderLeft: `3px solid ${A}`,
               borderRadius: 0, padding: '10px 12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
@@ -382,7 +382,7 @@ export function SwingCalendarPanel({
                 <button onClick={fetchRanking} disabled={rankLoading} style={{
                   marginLeft: 'auto', padding: '3px 12px', fontSize: 12,
                   cursor: 'pointer', borderRadius: 0, fontWeight: 500,
-                  border: `1px solid ${A}50`, background: `${A}12`, color: A,
+                  border: `1px solid ${A}`, background: `${A}12`, color: A,
                   opacity: rankLoading ? 0.5 : 1,
                 }}>
                   {rankLoading ? '⟳ Scoring…' : '↻ Rank All'}
@@ -462,7 +462,7 @@ export function SwingCalendarPanel({
 
             {/* Phase card — with next event */}
             <div style={{ background: 'var(--surface)',
-              border: `1px solid ${phaseColor(data.current_phase)}55`,
+              border: `1px solid ${phaseColor(data.current_phase)}`,
               borderLeft: `3px solid ${phaseColor(data.current_phase)}`,
               borderRadius: 0, padding: '10px 12px' }}>
               <div style={{ fontSize: 12, color: A, fontWeight: 500,
@@ -502,7 +502,7 @@ export function SwingCalendarPanel({
 
             {/* Trend Age — visual progress bar */}
             <div style={{ background: 'var(--surface)',
-              border: `1px solid ${trendStatusColor}55`,
+              border: `1px solid ${trendStatusColor}`,
               borderLeft: `3px solid ${trendStatusColor}`,
               borderRadius: 0, padding: '10px 12px' }}>
               <div style={{ fontSize: 12, color: A, fontWeight: 500,
@@ -544,7 +544,7 @@ export function SwingCalendarPanel({
                 fontSize: 12, fontWeight: 500, color: trendStatusColor,
                 padding: '2px 8px', borderRadius: 0,
                 background: `${trendStatusColor}18`,
-                border: `1px solid ${trendStatusColor}40` }}>
+                border: `1px solid ${trendStatusColor}` }}>
                 {data.trend_age.status}
               </div>
             </div>
@@ -726,7 +726,7 @@ export function SwingCalendarPanel({
                     padding: '7px 10px', borderRadius: 0, marginBottom: 5,
                     background: active ? `${zoneColor(row.zone)}18` : `${zoneColor(row.zone)}08`,
                     border: `1px solid ${zoneColor(row.zone)}${active ? '60' : '25'}`,
-                    outline: active ? `1px solid ${zoneColor(row.zone)}30` : 'none',
+                    outline: active ? `1px solid ${zoneColor(row.zone)}` : 'none',
                   }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 12, fontWeight: 500,

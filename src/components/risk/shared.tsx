@@ -12,7 +12,7 @@ export const R    = 'var(--red)'
 export const A    = 'var(--amber)'
 export const M    = 'var(--text2)'
 export const DIM  = 'var(--text3)'
-export const TAX_C  = 'var(--as-lilac)'
+export const TAX_C  = 'var(--fd-lilac-ink)'
 export const TECH_C = 'var(--fd-accent)'
 
 // ─── Formatters ───────────────────────────────────────────────────────────────

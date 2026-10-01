@@ -33,7 +33,7 @@ export function PositionBlock({ snap, pf: _pf, advanced, positions }: { snap: an
   return (
     <div style={{
       background: 'var(--surface)',
-      border: `1px solid ${A}55`,
+      border: `1px solid ${A}`,
       borderLeft: `3px solid ${A}`,
       borderRadius: 0,
       padding: '10px 14px',
@@ -116,7 +116,7 @@ export function FundDecision({ data, symbol, r }: { data: DashboardData; symbol:
             {Object.entries(metrics).map(([key, m]) => {
               const mc = m.level === 'GREEN' ? G : m.level === 'RED' ? R : 'var(--yellow)'
               return (
-                <div key={key} style={{ fontSize: 12, display: 'flex', gap: 4, padding: '3px 8px', background: 'var(--surface)', border: `1px solid ${mc}30` }}>
+                <div key={key} style={{ fontSize: 12, display: 'flex', gap: 4, padding: '3px 8px', background: 'var(--surface)', border: `1px solid ${mc}` }}>
                   <span style={{ color: mc }}>●</span>
                   <span style={{ color: M, textTransform: 'uppercase' }}>{key.replace(/_/g, ' ')}:</span>
                   <span style={{ color: mc }}>{m.message}</span>

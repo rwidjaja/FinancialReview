@@ -67,7 +67,7 @@ export function IncomeSection({ data, stateIdx }: { data: DashboardData; stateId
   const mixSegments: { label: string; value: number; color: string }[] = []
   if (is) {
     if (fwd12m > 0)                  mixSegments.push({ label: 'Dividends', value: fwd12m, color: 'var(--fd-accent)' })
-    if (is.full_year_conversion > 0) mixSegments.push({ label: 'Roth conversion', value: is.full_year_conversion, color: 'var(--as-lilac)' })
+    if (is.full_year_conversion > 0) mixSegments.push({ label: 'Roth conversion', value: is.full_year_conversion, color: 'var(--fd-lilac-ink)' })
     if (is.full_year_w2 > 0)         mixSegments.push({ label: 'Salary', value: is.full_year_w2, color: 'var(--fd-muted)' })
   }
   const mixTotal = mixSegments.reduce((a, b) => a + b.value, 0) || 1
@@ -178,7 +178,7 @@ export function IncomeSection({ data, stateIdx }: { data: DashboardData; stateId
               </div>
               <div style={barTrack}>
                 {/* lilac = coverage vs the low end of the range, accent = vs the high end */}
-                <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${Math.min(Math.max(lsProgMin!, lsProgMax!), 100)}%`, background: 'var(--as-lilac)' }} />
+                <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${Math.min(Math.max(lsProgMin!, lsProgMax!), 100)}%`, background: 'var(--fd-lilac-ink)' }} />
                 <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${Math.min(Math.min(lsProgMin!, lsProgMax!), 100)}%`, background: 'var(--fd-accent)' }} />
               </div>
               <span style={{ fontSize: 13, ...muted }}>{lsGapMax! > 0 ? `Gap to lifestyle ${fmtFull(lsGapMin!)}–${fmtFull(lsGapMax!)}/yr` : 'Lifestyle range fully covered'}</span>

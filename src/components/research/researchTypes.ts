@@ -11,9 +11,9 @@ export type ViewMode = 'simple' | 'advanced'
 export type ChartPeriod = '1d' | '5d' | '1m' | '3m' | '6m' | 'ytd' | '1y' | '3y' | '5y'
 
 export const TYPE_COLORS: Record<string, string> = {
-  STOCK: '#0984e3', ETF: '#6c5ce7', CEF: '#e17055', BOND_ETF: '#00b894',
-  MMF: '#636e72', CRYPTO_ETP: '#fdcb6e', INDEX: '#b2bec3', BDC: '#6c5ce7',
-  REIT: '#00b894', PREFERRED: '#e17055',
+  STOCK: 'var(--fd-accent)', ETF: 'var(--fd-lilac-ink)', CEF: 'var(--fd-ink)', BOND_ETF: 'var(--fd-lime-ink)',
+  MMF: 'var(--fd-muted)', CRYPTO_ETP: 'var(--fd-ink)', INDEX: 'var(--fd-muted)', BDC: 'var(--fd-lilac-ink)',
+  REIT: 'var(--fd-lime-ink)', PREFERRED: 'var(--fd-ink)',
 }
 
 export interface HealthDecision {

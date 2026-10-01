@@ -23,7 +23,7 @@ interface Props {
 
 const DEFAULT_ZONES: Zone[] = [
   { max: 80, color: 'var(--fd-accent)' },
-  { max: 120, color: '#ffd600' },
+  { max: 120, color: 'var(--fd-ink)' },
   { max: 150, color: 'var(--fd-ink)' },
   { max: 200, color: 'var(--fd-negative)' },
 ]

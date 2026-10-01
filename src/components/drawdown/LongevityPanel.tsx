@@ -122,7 +122,7 @@ function DepletionScheduleSection({ result, data, inputs }: { result: DrawdownRe
           onClick={solveMaxWithdrawal}
           style={{
             padding: '4px 10px', fontSize: 12, fontWeight: 500, cursor: 'pointer',
-            background: `${R}22`, color: R, border: `1px solid ${R}55`, borderRadius: 0,
+            background: `${R}22`, color: R, border: `1px solid ${R}`, borderRadius: 0,
             textTransform: 'uppercase', letterSpacing: '0.05em',
           }}
         >
@@ -272,7 +272,7 @@ export function LongevityPanel({ result, data, inputs, mode }: { result: Drawdow
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
               {/* Q1: Will I run out? */}
               <div style={{ background: 'var(--surface)', borderRadius: 0,
-                border: `1px solid ${runsOutColor}35`, borderTop: `3px solid ${runsOutColor}`,
+                border: `1px solid ${runsOutColor}`, borderTop: `3px solid ${runsOutColor}`,
                 padding: '12px 14px' }}>
                 <div style={{ fontSize: 12, color: M, lineHeight: 1.4, marginBottom: 8 }}>
                   Will I run out of money?
@@ -289,7 +289,7 @@ export function LongevityPanel({ result, data, inputs, mode }: { result: Drawdow
 
               {/* Q2: When does IRA disappear? */}
               <div style={{ background: 'var(--surface)', borderRadius: 0,
-                border: `1px solid ${BL}35`, borderTop: `3px solid ${BL}`,
+                border: `1px solid ${BL}`, borderTop: `3px solid ${BL}`,
                 padding: '12px 14px' }}>
                 <div style={{ fontSize: 12, color: M, lineHeight: 1.4, marginBottom: 8 }}>
                   When does IRA disappear?
@@ -306,7 +306,7 @@ export function LongevityPanel({ result, data, inputs, mode }: { result: Drawdow
 
               {/* Q3: What remains at target age? */}
               <div style={{ background: 'var(--surface)', borderRadius: 0,
-                border: `1px solid ${G}35`, borderTop: `3px solid ${G}`,
+                border: `1px solid ${G}`, borderTop: `3px solid ${G}`,
                 padding: '12px 14px' }}>
                 <div style={{ fontSize: 12, color: M, lineHeight: 1.4, marginBottom: 8 }}>
                   What remains at age {inputs.target_age}?
@@ -322,7 +322,7 @@ export function LongevityPanel({ result, data, inputs, mode }: { result: Drawdow
 
             {/* Supporting bullets */}
             <div style={{ padding: '8px 12px', borderRadius: 0, background: 'var(--surface)',
-              border: `1px solid ${BL}25` }}>
+              border: `1px solid ${BL}` }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 {[
                   ...(dynRolloverDeplete != null

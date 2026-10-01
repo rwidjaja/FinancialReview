@@ -185,7 +185,7 @@ export function SimpleActionSummary({ ae, qe, tl, ece, price, r }: {
                 <span>Suggested size: <strong style={{ color: sizeGuidance === 0 ? R : vColor }}>{sizeGuidance}%</strong> of position</span>
               )}
               {tl?.signal_score != null && (
-                <span>Momentum: <strong style={{ color: sigScore >= 4 ? G : sigScore >= 2 ? 'var(--as-lilac)' : M }}>{sigScore}/5</strong></span>
+                <span>Momentum: <strong style={{ color: sigScore >= 4 ? G : sigScore >= 2 ? 'var(--fd-lilac-ink)' : M }}>{sigScore}/5</strong></span>
               )}
             </div>
             {sizedDownForVolume && (

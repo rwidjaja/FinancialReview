@@ -17,13 +17,13 @@ const A = 'var(--amber)'
 
 const BUCKET_COLOR: Record<string, string> = {
   w2:         'var(--fd-accent)',
-  taxable:    'var(--as-lilac)',
+  taxable:    'var(--fd-lilac-ink)',
   roth:       'var(--fd-accent)',
-  roth_ira:   'var(--as-lilac)',
-  rollover:   '#2dd4bf',
-  ira:        '#7dd3fc',
-  '401k':     'var(--as-lilac)',
-  conversion: 'var(--as-lilac)',
+  roth_ira:   'var(--fd-lilac-ink)',
+  rollover:   'var(--fd-lime-ink)',
+  ira:        'var(--fd-accent)',
+  '401k':     'var(--fd-lilac-ink)',
+  conversion: 'var(--fd-lilac-ink)',
 }
 const bucketColor = (k: string) => BUCKET_COLOR[k] ?? 'var(--fd-hairline)'
 

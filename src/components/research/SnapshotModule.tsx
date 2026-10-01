@@ -24,7 +24,7 @@ export function SnapshotModule({ r, data, symbol, price, change, changePct, chgC
   const fv = (pi?.fund_valuation ?? {})[symbol]
   const fvColor = valuationColor(fv ?? '—')
   const badgeType = sc?.type ?? ''
-  const badgeColor = TYPE_COLORS[badgeType] ?? '#636e72'
+  const badgeColor = TYPE_COLORS[badgeType] ?? 'var(--fd-muted)'
   const q = r.quote
   const prem = q?.premium_discount
   const aeAction = (ae?.action ?? '').toUpperCase()
@@ -66,12 +66,12 @@ export function SnapshotModule({ r, data, symbol, price, change, changePct, chgC
             {dec && <span style={{ fontSize: 18 }}>{STRUCTURAL_ICON[dec.structural_status]}</span>}
             <span style={{ fontSize: 28, fontWeight: 500, fontFamily: 'var(--font-mono)' }}>{symbol}</span>
             {badgeType && (
-              <span style={{ fontSize: 12, fontWeight: 500, padding: '2px 7px', border: `1px solid ${badgeColor}55`, color: badgeColor, background: `${badgeColor}22` }}>
+              <span style={{ fontSize: 12, fontWeight: 500, padding: '2px 7px', border: `1px solid ${badgeColor}`, color: badgeColor, background: `${badgeColor}22` }}>
                 {sc?.display_label ?? r.profile?.asset_type ?? badgeType}
                 {sc?.subtype_label ? ` · ${sc.subtype_label}` : ''}
               </span>
             )}
-            {fv && <span style={{ fontSize: 12, fontWeight: 500, color: fvColor, padding: '2px 6px', border: `1px solid ${fvColor}40` }}>{fv}</span>}
+            {fv && <span style={{ fontSize: 12, fontWeight: 500, color: fvColor, padding: '2px 6px', border: `1px solid ${fvColor}` }}>{fv}</span>}
           </div>
           {r.profile?.name && <div style={{ fontSize: 12, color: M, marginBottom: 2 }}>{r.profile.name}</div>}
           {r.profile?.fund_company && <div style={{ fontSize: 12, color: 'var(--text3)' }}>{r.profile.fund_company}{r.profile.exchange ? ` · ${r.profile.exchange}` : ''}</div>}
@@ -189,7 +189,7 @@ export function SnapshotModule({ r, data, symbol, price, change, changePct, chgC
       {/* Entry/exit price levels live in the hero card's Unified Price Stack —
           this card sticks to valuation + status, not a second price display. */}
       {isExitTrim && showTech && (
-        <div style={{ padding: '8px 12px', background: `${R}0d`, border: `1px solid ${R}40`,
+        <div style={{ padding: '8px 12px', background: `${R}0d`, border: `1px solid ${R}`,
           fontSize: 12, color: R, fontWeight: 500, letterSpacing: '0.5px' }}>
           ⊘ ENTRY DISABLED — exit/trim signal active. Wait for price to pull back before re-entry.
         </div>
@@ -235,7 +235,7 @@ export function FairValueSection({ ks, price, analystTarget, ece, eceLoading, is
     const isBubble = overPct != null && overPct >= 100
     const valColor = isBubble ? 'var(--fd-negative)' : isOver ? R : isUnder ? 'var(--fd-accent)' : G
     const valLabel = isBubble ? 'VERY EXPENSIVE' : isOver ? 'OVERVALUED' : isUnder ? 'UNDERVALUED' : isFair ? 'FAIRLY VALUED' : '—'
-    const regimeColor = growthRegime === 'HIGH-GROWTH' ? G : growthRegime === 'MODERATE' ? 'var(--as-lilac)' : M
+    const regimeColor = growthRegime === 'HIGH-GROWTH' ? G : growthRegime === 'MODERATE' ? 'var(--fd-lilac-ink)' : M
 
     // ── CEF fallback: use NAV as fair value when component FV is unavailable ──
     const navPremPct = (isCef && nav && nav > 0 && price > 0)
@@ -306,7 +306,7 @@ export function FairValueSection({ ks, price, analystTarget, ece, eceLoading, is
                   </span>
                   {growthRegime && (
                     <span style={{ fontSize: 12, color: regimeColor, background: `${regimeColor}18`,
-                      padding: '0 4px', border: `1px solid ${regimeColor}40` }}>
+                      padding: '0 4px', border: `1px solid ${regimeColor}` }}>
                       {growthRegime}
                     </span>
                   )}

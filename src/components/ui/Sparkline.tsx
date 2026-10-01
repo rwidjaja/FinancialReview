@@ -50,7 +50,7 @@ interface MiniBarProps {
   height?: number
 }
 
-export function MiniBar({ value, color = 'var(--as-lilac)', width = 60, height = 8 }: MiniBarProps) {
+export function MiniBar({ value, color = 'var(--fd-lilac-ink)', width = 60, height = 8 }: MiniBarProps) {
   const filled = Math.min(100, Math.max(0, isFinite(value) ? value : 0))
   return (
     <svg width={width} height={height} style={{ display: 'block' }}>
@@ -68,7 +68,7 @@ interface GaugeRingProps {
   label?: string
 }
 
-export function GaugeRing({ value, color = 'var(--as-lilac)', size = 44, label }: GaugeRingProps) {
+export function GaugeRing({ value, color = 'var(--fd-lilac-ink)', size = 44, label }: GaugeRingProps) {
   const r = (size / 2) - 4
   const circ = 2 * Math.PI * r
   const filled = (value / 100) * circ

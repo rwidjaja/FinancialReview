@@ -212,7 +212,7 @@ export function YearProjectionTable({ proj, scenario }: { proj: ProjYear[]; scen
             const nc      = r.netCashflow
             return (
               <tr key={r.calYear} style={{
-                background: 'transparent', boxShadow: ssStart ? 'inset 4px 0 0 var(--as-lilac)' : undefined,
+                background: 'transparent', boxShadow: ssStart ? 'inset 4px 0 0 var(--fd-lilac-ink)' : undefined,
               }}>
                 <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
                   {r.calYear}
@@ -258,7 +258,7 @@ export function ScenarioComparison({ projs, horizon, scenario, todayVal }: {
           return (
             <div key={sc} style={{
               background: sel ? `${meta.color}08` : 'var(--surface)',
-              border: sel ? `1px solid ${meta.color}60` : '1px solid rgba(255,255,255,0.07)',
+              border: sel ? `1px solid ${meta.color}` : '1px solid rgba(255,255,255,0.07)',
               borderTop: `3px solid ${meta.color}${sel ? '' : '60'}`,
               borderRadius: 0,
               padding: '12px 14px',
@@ -270,7 +270,7 @@ export function ScenarioComparison({ projs, horizon, scenario, todayVal }: {
                   {meta.icon} {meta.label}
                 </span>
                 <span style={{ fontSize: 12, color: meta.color, background: `${meta.color}18`,
-                  padding: '1px 6px', border: `1px solid ${meta.color}40`, borderRadius: 0 }}>
+                  padding: '1px 6px', border: `1px solid ${meta.color}`, borderRadius: 0 }}>
                   {growth >= 0 ? '+' : ''}{(growth * 100).toFixed(0)}%
                 </span>
               </div>

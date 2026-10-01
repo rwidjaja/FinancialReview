@@ -140,7 +140,7 @@ export function SpendingTab({ data }: Props) {
 
       <Sections>
         <Section title="Monthly spending" meta={<span style={{ display: 'flex', gap: 16, fontSize: 13 }}>
-          <Swatch c="var(--fd-accent)" t="At or below average" /><Swatch c="var(--as-lilac)" t="Above average" /><Swatch c="var(--fd-negative)" t="Over 1.5× average" />
+          <Swatch c="var(--fd-accent)" t="At or below average" /><Swatch c="var(--fd-lilac-ink)" t="Above average" /><Swatch c="var(--fd-negative)" t="Over 1.5× average" />
         </span>}>
           <MonthlyTimeline si={si} showTable={mode === 'advanced'} />
         </Section>
@@ -153,10 +153,10 @@ export function SpendingTab({ data }: Props) {
                   {cats.map(([name, c]) => (
                     <div key={name} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,180px) minmax(0,1fr) 110px 110px', gap: 16, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--fd-hairline)', fontSize: 14 }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                        <span style={{ width: 10, height: 10, borderRadius: 3, background: c.is_core ? 'var(--fd-accent)' : 'var(--as-lilac)', flexShrink: 0 }} />
+                        <span style={{ width: 10, height: 10, borderRadius: 3, background: c.is_core ? 'var(--fd-accent)' : 'var(--fd-lilac-ink)', flexShrink: 0 }} />
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
                       </span>
-                      <div style={{ height: 10, background: 'var(--fd-hairline)' }}><div style={{ height: 10, width: `${(c.annual / catMax) * 100}%`, background: c.is_core ? 'var(--fd-accent)' : 'var(--as-lilac)' }} /></div>
+                      <div style={{ height: 10, background: 'var(--fd-hairline)' }}><div style={{ height: 10, width: `${(c.annual / catMax) * 100}%`, background: c.is_core ? 'var(--fd-accent)' : 'var(--fd-lilac-ink)' }} /></div>
                       <span style={{ textAlign: 'right', fontWeight: 500 }}>{fmtMoneyFull(c.annual)}</span>
                       <span style={{ textAlign: 'right', ...muted }}>{catTotal > 0 ? `${((c.annual / catTotal) * 100).toFixed(1)}%` : ''} · {c.count} txns</span>
                     </div>
@@ -176,7 +176,7 @@ export function SpendingTab({ data }: Props) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0 }}>Core vs discretionary</h3>
               <div style={{ display: 'flex', height: 16 }}>
-                <div style={{ width: `${corePct}%`, background: 'var(--fd-accent)' }} /><div style={{ width: `${100 - corePct}%`, background: 'var(--as-lilac)' }} />
+                <div style={{ width: `${corePct}%`, background: 'var(--fd-accent)' }} /><div style={{ width: `${100 - corePct}%`, background: 'var(--fd-lilac-ink)' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, gap: 12 }}>
                 <span>Core {fmtMoneyFull(coreAmt)} · {corePct.toFixed(0)}%</span><span>Discretionary {fmtMoneyFull(ytdSpending - coreAmt)} · {(100 - corePct).toFixed(0)}%</span>
@@ -276,7 +276,7 @@ function IncomeSourceBreakdown({ data }: { data: DashboardData }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, marginBottom: 10 }}>
         <div style={{ padding: '8px 10px', background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0 }}>
           <div style={{ fontSize: 12, color: M, marginBottom: 2 }}>W2 SALARY (FULL YEAR)</div>
-          <div style={{ fontSize: 14, fontWeight: 500, color: '#74b9ff', fontFamily: 'var(--font-mono)' }}>{fmtMoneyFull(w2FullYear)}</div>
+          <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--fd-accent)', fontFamily: 'var(--font-mono)' }}>{fmtMoneyFull(w2FullYear)}</div>
           <div style={{ fontSize: 12, color: M }}>
             {fmtMoney(w2FullYear / 12)}/mo · YTD actual {fmtMoney(w2Ytd)}
           </div>
@@ -302,7 +302,7 @@ function IncomeSourceBreakdown({ data }: { data: DashboardData }) {
           <div style={{ width: `${divPct}%`, background: 'var(--green)', opacity: 0.8 }} title={`Dividend ${divPct.toFixed(0)}%`} />
         </div>
         <div style={{ display: 'flex', gap: 12, marginTop: 4, fontSize: 12, color: M }}>
-          <span><span style={{ color: '#74b9ff' }}>■</span> W2 {w2Pct.toFixed(0)}%</span>
+          <span><span style={{ color: 'var(--fd-accent)' }}>■</span> W2 {w2Pct.toFixed(0)}%</span>
           <span><span style={{ color: G }}>■</span> Dividend {divPct.toFixed(0)}%</span>
           <span style={{ marginLeft: 'auto', color: A }}>After W2 ends: 100% dividend</span>
         </div>
@@ -315,7 +315,7 @@ function IncomeSourceBreakdown({ data }: { data: DashboardData }) {
             <thead>
               <tr>
                 <th>MONTH</th>
-                <th className="r" style={{ color: '#74b9ff' }}>W2</th>
+                <th className="r" style={{ color: 'var(--fd-accent)' }}>W2</th>
                 <th className="r" style={{ color: G }}>DIVIDEND</th>
                 <th className="r">TOTAL</th>
               </tr>
@@ -324,7 +324,7 @@ function IncomeSourceBreakdown({ data }: { data: DashboardData }) {
               {rows.map((row, i) => (
                 <tr key={i}>
                   <td style={{ fontFamily: 'var(--font-mono)' }}>{row.month}</td>
-                  <td className="r" style={{ color: row.w2 > 0 ? '#74b9ff' : M, fontFamily: 'var(--font-mono)' }}>
+                  <td className="r" style={{ color: row.w2 > 0 ? 'var(--fd-accent)' : M, fontFamily: 'var(--font-mono)' }}>
                     {row.w2 > 0 ? fmtMoneyFull(row.w2) : '—'}
                   </td>
                   <td className="r" style={{ color: row.div > 0 ? G : M, fontFamily: 'var(--font-mono)' }}>
@@ -385,7 +385,7 @@ function BucketPlan({ data }: { data: DashboardData }) {
   return (
     <div style={{
       background: 'var(--fd-card)',
-      border: `1px solid ${stateColor}44`,
+      border: `1px solid ${stateColor}`,
       borderTop: `2px solid ${stateColor}`,
       borderRadius: 0, padding: '16px 18px',
       display: 'flex', flexDirection: 'column', gap: 0,
@@ -794,7 +794,7 @@ function MonthlyTimeline({ si, showTable = true }: { si: DashboardData['spending
           month: mt.month.split('-')[1] ?? mt.month.slice(-2),
           fullMonth: mt.month,
           amount: mt.amount,
-          color: mt.amount > mean * 1.5 ? 'var(--fd-negative)' : mt.amount > mean ? 'var(--as-lilac)' : 'var(--fd-accent)',
+          color: mt.amount > mean * 1.5 ? 'var(--fd-negative)' : mt.amount > mean ? 'var(--fd-lilac-ink)' : 'var(--fd-accent)',
         }))
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tip = ({ active, payload }: any) => {

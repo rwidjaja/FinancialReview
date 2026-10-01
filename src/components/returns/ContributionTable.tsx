@@ -129,7 +129,7 @@ export function ContributionTable({ data, perfData, period, totalValue }: {
         <tbody>
           {rows.map(r => {
             const retRank  = returnRankOf(r.symbol)
-            const medalColor = retRank === 1 ? A : retRank === 2 ? 'var(--text2)' : retRank === 3 ? '#cd7f32' : M
+            const medalColor = retRank === 1 ? A : retRank === 2 ? 'var(--text2)' : retRank === 3 ? 'var(--fd-ink)' : M
             const adv = r.advanced
             return (
               <tr key={r.symbol}>

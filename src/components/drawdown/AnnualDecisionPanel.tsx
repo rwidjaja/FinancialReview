@@ -446,7 +446,7 @@ export function AnnualDecisionPanel({ data, engineSpending, doConversion, mode =
           <div style={{
             padding: '10px 14px', borderRadius: 0,
             background: caseC ? 'var(--fd-card)' : caseB ? 'var(--fd-card)' : 'var(--fd-card)',
-            border: `1px solid ${caseColor}44`,
+            border: `1px solid ${caseColor}`,
             borderLeft: `3px solid ${caseColor}`,
           }}>
             {/* Header */}
@@ -568,7 +568,7 @@ export function AnnualDecisionPanel({ data, engineSpending, doConversion, mode =
             )
           })()}
         </div>
-        <div style={{ background: 'var(--surface)', border: `1px solid ${taxOptimalExceeded ? `${A}30` : doConversion && result.roth_conversion > 0 ? 'var(--fd-card)' : 'var(--fd-card)'}`, borderRadius: 0, padding: '8px 12px' }}>
+        <div style={{ background: 'var(--surface)', border: `1px solid ${taxOptimalExceeded ? `${A}` : doConversion && result.roth_conversion > 0 ? 'var(--fd-card)' : 'var(--fd-card)'}`, borderRadius: 0, padding: '8px 12px' }}>
           <div style={{ fontSize: 12, color: M, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 3 }}>ROTH CONVERSION</div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 500, color: taxOptimalExceeded ? R : doConversion && result.roth_conversion > 0 ? G : M }}>
             {taxOptimalExceeded ? 'STOP' : doConversion ? (result.roth_conversion > 0 ? fmtMoneyFull(result.roth_conversion) : '—') : 'excluded'}
@@ -578,7 +578,7 @@ export function AnnualDecisionPanel({ data, engineSpending, doConversion, mode =
               <div style={{ fontSize: 12, color: R, fontWeight: 500 }}>Recommended: do not convert</div>
               <div style={{ fontSize: 12, color: M }}>exceeded by {fmtMoneyFull(excessOverOptimal)}</div>
               {result.roth_conversion > 0 && (
-                <div style={{ fontSize: 12, color: A, marginTop: 1, borderTop: `1px solid ${A}25`, paddingTop: 2 }}>
+                <div style={{ fontSize: 12, color: A, marginTop: 1, borderTop: `1px solid ${A}`, paddingTop: 2 }}>
                   Optional only: {fmtMoneyFull(result.roth_conversion)} fills bracket — intentional override, not recommended
                 </div>
               )}
@@ -857,7 +857,7 @@ export function AnnualDecisionPanel({ data, engineSpending, doConversion, mode =
           if (taxOptimalExceeded) {
             return (
               <div style={{ padding: '6px 10px', background: `${A}09`,
-                border: `1px solid ${A}50`, fontSize: 12, color: A, lineHeight: 1.6, borderRadius: 0 }}>
+                border: `1px solid ${A}`, fontSize: 12, color: A, lineHeight: 1.6, borderRadius: 0 }}>
                  OPTIONAL BRACKET-FILL ONLY: up to {fmtMoneyFull(result.roth_conversion)} available inside the {(baseInputs.target_bracket_rate * 100).toFixed(0)}% bracket.
                 {' '}<span style={{ color: R, fontWeight: 500 }}>Recommendation: STOP</span>
                 <span style={{ color: M }}>

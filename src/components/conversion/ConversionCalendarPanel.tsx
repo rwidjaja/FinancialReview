@@ -370,7 +370,7 @@ function StepCard({ step, isToday, dimmed }: { step: ConvStep; isToday: boolean;
         {isToday && (
           <div style={{
             padding: '3px 8px', borderRadius: 0,
-            background: C.amber + '22', border: `1px solid ${C.amber}55`,
+            background: C.amber + '22', border: `1px solid ${C.amber}`,
             fontSize: 12, fontWeight: 500, color: C.amber,
           }}>TODAY'S YEAR</div>
         )}
@@ -609,7 +609,7 @@ function ConversionBlockedBanner({
           )}
           <div style={{
             marginTop: 10, padding: '6px 8px', borderRadius: 0,
-            background: accent + '10', border: `1px solid ${accent}33`,
+            background: accent + '10', border: `1px solid ${accent}`,
             fontSize: 12, color: C.muted, lineHeight: 1.5,
           }}>
             The <strong style={{ color: accent }}>depletion runway</strong> above shows the projected

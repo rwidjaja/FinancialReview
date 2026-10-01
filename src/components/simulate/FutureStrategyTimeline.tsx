@@ -29,7 +29,7 @@ export function FutureStrategyTimeline({ data }: { data: DashboardData }) {
   const milestones = data.tax_data.withdrawal_milestones ?? []
   const FST_THRESHOLDS = [
     { value: abThreshold, label: `${fmtMoney(abThreshold)} · State A→B`, color: 'var(--fd-accent)' },
-    { value: bcThreshold, label: `${fmtMoney(bcThreshold)} · State B→C`, color: '#ffd600' },
+    { value: bcThreshold, label: `${fmtMoney(bcThreshold)} · State B→C`, color: 'var(--fd-ink)' },
     ...milestones.map(m => ({ value: m.gain_value, label: `${fmtMoney(m.gain_value)} · ${m.label}`, color: m.color })),
   ]
 
@@ -61,7 +61,7 @@ export function FutureStrategyTimeline({ data }: { data: DashboardData }) {
   }))
 
   const yearCellColor = (y: number | null) =>
-    y === 0 ? 'var(--fd-accent)' : y == null ? 'var(--text2)' : y <= 5 ? 'var(--fd-negative)' : y <= 10 ? '#ffd600' : 'var(--fd-accent)'
+    y === 0 ? 'var(--fd-accent)' : y == null ? 'var(--text2)' : y <= 5 ? 'var(--fd-negative)' : y <= 10 ? 'var(--fd-ink)' : 'var(--fd-accent)'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -204,8 +204,8 @@ export function FutureStrategyTimeline({ data }: { data: DashboardData }) {
               label: 'STATE B → C',
               sublabel: 'Full harvest + 2yr SWVXX bucket (~$260K)',
               threshold: bcThreshold,
-              color: 'var(--as-lilac)',
-              targetColor: 'var(--as-lime)',
+              color: 'var(--fd-lilac-ink)',
+              targetColor: 'var(--fd-lime-ink)',
             },
             {
               label: 'DIVIDEND LOAD ALERT',
@@ -251,7 +251,7 @@ export function FutureStrategyTimeline({ data }: { data: DashboardData }) {
                 </div>
                 <div style={{
                   fontSize: alreadyHere ? 20 : 24, fontWeight: 500, fontFamily: 'var(--font-mono)',
-                  color: alreadyHere ? ev.targetColor : never ? M : displayYr! <= 5 ? 'var(--fd-negative)' : displayYr! <= 10 ? '#ffd600' : 'var(--fd-accent)',
+                  color: alreadyHere ? ev.targetColor : never ? M : displayYr! <= 5 ? 'var(--fd-negative)' : displayYr! <= 10 ? 'var(--fd-ink)' : 'var(--fd-accent)',
                   marginBottom: 2,
                 }}>
                   {alreadyHere ? 'NOW ✓' : never ? '>20yr' : `${displayYr}yr`}

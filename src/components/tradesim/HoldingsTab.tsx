@@ -332,7 +332,7 @@ export function HoldingsTab({ port, activeId, onMutate, divs = [], onLimitOrder:
   // Column header group styles
   const posHdr  = { background: 'var(--fd-card)',  color: 'var(--fd-accent)' }
   const incHdr  = { background: 'var(--fd-card)',   color: 'var(--fd-accent)' }
-  const schHdr  = { background: 'var(--fd-card)',  color: '#a5b4fc' }
+  const schHdr  = { background: 'var(--fd-card)',  color: 'var(--fd-lilac-ink)' }
   const cellR   = { padding: '5px 10px', textAlign: 'right'  as const }
   const cellL   = { padding: '5px 10px', textAlign: 'left'   as const }
 
@@ -353,7 +353,7 @@ export function HoldingsTab({ port, activeId, onMutate, divs = [], onLimitOrder:
             { label: 'Portfolio Yield',  value: `${portYield.toFixed(2)}%`,         color: 'var(--fd-accent)' },
             { label: 'Yield on Cost',    value: `${portYoC.toFixed(2)}%`,           color: 'var(--fd-accent)' },
             { label: 'Est Annual Income',value: fmtMoneyFull(totalAnnual),          color: 'var(--fd-accent)' },
-            { label: 'Monthly Income',   value: fmtMoneyFull(totalAnnual / 12),     color: '#a3e635' },
+            { label: 'Monthly Income',   value: fmtMoneyFull(totalAnnual / 12),     color: 'var(--fd-lime-ink)' },
           ].map(kpi => (
             <div key={kpi.label} style={{
               flex: '1 1 120px', background: 'var(--surface)',
@@ -643,7 +643,7 @@ export function HoldingsTab({ port, activeId, onMutate, divs = [], onLimitOrder:
                         const freq = h.payment_frequency || null
                         const freqColor = (f: string | null) =>
                           f === 'Monthly'     ? 'var(--fd-accent)'
-                          : f === 'Weekly'    ? 'var(--as-lilac)'
+                          : f === 'Weekly'    ? 'var(--fd-lilac-ink)'
                           : f === 'Quarterly' ? 'var(--fd-accent)'
                           : f === 'Semi-Annual' ? 'var(--fd-accent)'
                           : f === 'Annual'    ? 'var(--fd-hairline)'
@@ -689,7 +689,7 @@ export function HoldingsTab({ port, activeId, onMutate, divs = [], onLimitOrder:
                                 borderRadius: 0, background: `${col}20`,
                                 color: freq ? col : 'var(--fd-hairline)',
                                 textTransform: 'uppercase', letterSpacing: '0.3px',
-                                cursor: 'pointer', border: `1px solid ${col}30`,
+                                cursor: 'pointer', border: `1px solid ${col}`,
                               }}>
                               {freq ?? '—'}
                             </span>
@@ -724,7 +724,7 @@ export function HoldingsTab({ port, activeId, onMutate, divs = [], onLimitOrder:
                                   </div>
                                   {exDays != null && (
                                     <div style={{ fontSize: 12,
-                                      color: exDays < 0 ? M : exDays <= 7 ? 'var(--as-lilac)' : '#a5b4fc' }}>
+                                      color: exDays < 0 ? M : exDays <= 7 ? 'var(--fd-lilac-ink)' : 'var(--fd-lilac-ink)' }}>
                                       {exDays < 0 ? `${Math.abs(exDays)}d ago` : `in ${exDays}d`}
                                     </div>
                                   )}
@@ -758,7 +758,7 @@ export function HoldingsTab({ port, activeId, onMutate, divs = [], onLimitOrder:
                                   </div>
                                   {payDays != null && (
                                     <div style={{ fontSize: 12,
-                                      color: payDays < 0 ? M : payDays <= 14 ? 'var(--fd-accent)' : '#a5b4fc' }}>
+                                      color: payDays < 0 ? M : payDays <= 14 ? 'var(--fd-accent)' : 'var(--fd-lilac-ink)' }}>
                                       {payDays < 0 ? `${Math.abs(payDays)}d ago` : `in ${payDays}d`}
                                     </div>
                                   )}
@@ -775,7 +775,7 @@ export function HoldingsTab({ port, activeId, onMutate, divs = [], onLimitOrder:
                     <td style={{ ...cellR, background: schHdr.background }}>
                       {nextPayTotal != null ? (
                         <div>
-                          <div style={{ color: '#a5b4fc', fontWeight: 500, fontSize: 12 }}>
+                          <div style={{ color: 'var(--fd-lilac-ink)', fontWeight: 500, fontSize: 12 }}>
                             {fmtMoney(nextPayTotal)}
                           </div>
                           <div style={{ fontSize: 12, color: M }}>

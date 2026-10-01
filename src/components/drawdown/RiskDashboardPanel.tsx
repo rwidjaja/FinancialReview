@@ -115,14 +115,14 @@ export function RiskDashboardPanel({ result, inputs, data }: { result: DrawdownR
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Header */}
-      <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${R}30`, overflow: 'hidden' }}>
-        <div style={{ background: `${R}0c`, borderBottom: `1px solid ${R}25`, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${R}`, overflow: 'hidden' }}>
+        <div style={{ background: `${R}0c`, borderBottom: `1px solid ${R}`, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ fontSize: 12, fontWeight: 500, color: R }}>RISK DASHBOARD</span>
           <span style={{ fontSize: 12, color: M }}>Four key risk dimensions stress-tested against your plan</span>
         </div>
         <div style={{ padding: '10px 14px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
           {riskItems.map(r => (
-            <div key={r.key} style={{ padding: '6px 8px', borderRadius: 0, background: `${r.color}0a`, border: `1px solid ${r.color}40`, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div key={r.key} style={{ padding: '6px 8px', borderRadius: 0, background: `${r.color}0a`, border: `1px solid ${r.color}`, display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ fontSize: 14 }}>{r.icon}</span>
               <div>
                 <div style={{ fontSize: 12, color: M }}>{r.title}</div>
@@ -135,19 +135,19 @@ export function RiskDashboardPanel({ result, inputs, data }: { result: DrawdownR
 
       {/* Risk cards */}
       {riskItems.map(r => (
-        <div key={r.key} style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${r.color}30`, overflow: 'hidden' }}>
-          <div style={{ background: `${r.color}0c`, borderBottom: `1px solid ${r.color}25`, padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div key={r.key} style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${r.color}`, overflow: 'hidden' }}>
+          <div style={{ background: `${r.color}0c`, borderBottom: `1px solid ${r.color}`, padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 14 }}>{r.icon}</span>
             <span style={{ fontSize: 12, fontWeight: 500, color: r.color }}>{r.title}</span>
             <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 500, color: r.color,
-              background: `${r.color}18`, border: `1px solid ${r.color}40`, borderRadius: 0, padding: '1px 6px' }}>
+              background: `${r.color}18`, border: `1px solid ${r.color}`, borderRadius: 0, padding: '1px 6px' }}>
               {r.rating}
             </span>
           </div>
           <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)', color: r.color }}>{r.headline}</div>
             <div style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.7 }}>{r.detail}</div>
-            <div style={{ padding: '6px 10px', borderRadius: 0, background: `${G}08`, border: `1px solid ${G}30` }}>
+            <div style={{ padding: '6px 10px', borderRadius: 0, background: `${G}08`, border: `1px solid ${G}` }}>
               <span style={{ fontSize: 12, color: G, fontWeight: 500 }}>ACTION: </span>
               <span style={{ fontSize: 12, color: M }}>{r.action}</span>
             </div>

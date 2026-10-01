@@ -9,15 +9,15 @@ import { corrColor } from './researchHelpers'
 
 export function PortfolioRolePanel({ pf }: { pf?: ResearchApiData['portfolio_fit'] }) {
   if (!pf) return null
-  const SLEEVE_COLORS: Record<string, string> = { Growth: '#0984e3', Income: '#00b894', Stability: '#74b9ff', International: '#a29bfe', Alternatives: '#fdcb6e' }
-  const sleeveColor = pf.sleeve_color ?? SLEEVE_COLORS[pf.sleeve ?? ''] ?? '#636e72'
+  const SLEEVE_COLORS: Record<string, string> = { Growth: 'var(--fd-accent)', Income: 'var(--fd-lime-ink)', Stability: 'var(--fd-accent)', International: 'var(--fd-lilac-ink)', Alternatives: 'var(--fd-ink)' }
+  const sleeveColor = pf.sleeve_color ?? SLEEVE_COLORS[pf.sleeve ?? ''] ?? 'var(--fd-muted)'
 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: '12px 14px' }}>
       <PanelHeader>A. PORTFOLIO ROLE</PanelHeader>
       <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
         {pf.sleeve && (
-          <div style={{ padding: '8px 10px', background: `${sleeveColor}11`, border: `1px solid ${sleeveColor}44`, marginBottom: 6 }}>
+          <div style={{ padding: '8px 10px', background: `${sleeveColor}11`, border: `1px solid ${sleeveColor}`, marginBottom: 6 }}>
             <div style={{ fontSize: 12, color: M, textTransform: 'uppercase', fontWeight: 500 }}>SLEEVE</div>
             <div style={{ fontSize: 16, fontWeight: 500, color: sleeveColor }}>{pf.sleeve}</div>
             {pf.sleeve_existing_weight_pct != null && <div style={{ fontSize: 12, color: M, marginTop: 1 }}>{pf.sleeve_existing_weight_pct.toFixed(1)}% of portfolio in {pf.sleeve} sleeve (sleeve total)</div>}
@@ -52,13 +52,13 @@ export function CorrelationPanel({ pf }: { pf?: ResearchApiData['portfolio_fit']
       <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
         {pairs.length === 0 && <div style={{ fontSize: 12, color: M }}>No correlation data available.</div>}
         {pairs.map(([label, v]) => (
-          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', background: 'var(--bg)', border: `1px solid ${corrColor(v)}30` }}>
+          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', background: 'var(--bg)', border: `1px solid ${corrColor(v)}` }}>
             <span style={{ fontSize: 12, color: M }}>{label}</span>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <span style={{ fontSize: 12, fontWeight: 500, color: corrColor(v), fontFamily: 'var(--font-mono)' }}>
                 {v >= 0 ? '+' : ''}{v.toFixed(2)}
               </span>
-              <span style={{ fontSize: 12, padding: '1px 5px', background: `${corrColor(v)}15`, border: `1px solid ${corrColor(v)}40`, color: corrColor(v) }}>
+              <span style={{ fontSize: 12, padding: '1px 5px', background: `${corrColor(v)}15`, border: `1px solid ${corrColor(v)}`, color: corrColor(v) }}>
                 {corrBadge(v).toUpperCase()} · {corrLabel(v)}
               </span>
             </div>

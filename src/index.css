@@ -38,6 +38,11 @@
   --fd-watch:     var(--as-lilac);           /* status chip — watch / warn   */
   --fd-alert:     var(--as-vermillion);      /* status chip — alert          */
   --fd-focus:     var(--as-cobalt);
+  /* Lime/Lilac as TEXT, LINES or SERIES. The brand tints fail contrast on
+     Warm White, so light ground uses deep shades; dark/cobalt use the tints.
+     Keep --as-lime / --as-lilac for filled blocks that carry black text. */
+  --fd-lime-ink:  #1E7A14;
+  --fd-lilac-ink: #8A3FD0;
 
   --font-display: "Suffix Serif", Georgia, serif;
   --font-sans:    "Inter", "Helvetica Neue", Arial, sans-serif;
@@ -71,7 +76,7 @@
   --orange:    var(--fd-ink);
   --cyan:      var(--fd-muted);
   --blue:      var(--fd-accent);
-  --purple:    var(--as-lilac);
+  --purple:    var(--fd-lilac-ink);
   --green-dim: transparent; --amber-dim: transparent; --red-dim: transparent;
   --yellow-dim: transparent; --cyan-dim: transparent; --blue-dim: transparent; --purple-dim: transparent;
   --green-border: var(--fd-hairline); --amber-border: var(--fd-hairline); --red-border: var(--fd-hairline);
@@ -101,6 +106,8 @@
   --fd-rule:     var(--as-warm-white);
   --fd-accent:   var(--as-lime);     /* lime on black passes AAA; on white it fails */
   --fd-focus:    var(--as-lime);
+  --fd-lime-ink:  var(--as-lime);
+  --fd-lilac-ink: var(--as-lilac);
 }
 
 /* Cobalt statement plane — use for ONE decision panel per tab */
@@ -113,6 +120,8 @@
   --fd-rule:     var(--as-warm-white);
   --fd-accent:   var(--as-lime);
   --fd-focus:    var(--as-lime);
+  --fd-lime-ink:  var(--as-lime);
+  --fd-lilac-ink: var(--as-lilac);
 }
 /* Re-resolve the legacy aliases inside nested grounds so they follow --fd-* */
 [data-ground] {
@@ -209,9 +218,9 @@ em { font-style: italic; }
 .bb-table tr:hover td { background: var(--fd-card); }
 .bb-table .r { text-align: right; }
 
-.bb-row-green td:first-child  { box-shadow: inset 4px 0 0 var(--fd-ok); }
+.bb-row-green td:first-child  { box-shadow: inset 4px 0 0 var(--fd-lime-ink); }
 .bb-row-yellow td:first-child,
-.bb-row-orange td:first-child { box-shadow: inset 4px 0 0 var(--fd-watch); }
+.bb-row-orange td:first-child { box-shadow: inset 4px 0 0 var(--fd-lilac-ink); }
 .bb-row-red td:first-child    { box-shadow: inset 4px 0 0 var(--fd-alert); }
 
 /* ── Legacy panels → flat AtScale cards ────────────────────────────────── */

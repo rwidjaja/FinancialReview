@@ -121,7 +121,7 @@ export function FundVsYouTable({ data, perfData, period, totalValue }: {
                   {r.flag && (
                     <span style={{
                       fontSize: 12, fontWeight: 500, padding: '2px 6px', borderRadius: 0,
-                      background: `${r.flag.color}1a`, color: r.flag.color, border: `1px solid ${r.flag.color}44`,
+                      background: `${r.flag.color}1a`, color: r.flag.color, border: `1px solid ${r.flag.color}`,
                       whiteSpace: 'nowrap',
                     }}>{r.flag.label}</span>
                   )}

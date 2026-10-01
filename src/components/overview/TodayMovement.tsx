@@ -134,7 +134,7 @@ export function IncomePace({ data }: Props) {
             <span style={{
               fontSize: 12, fontWeight: 500, padding: '1px 5px',
               background: bracketStatusColor + '22', color: bracketStatusColor,
-              border: `1px solid ${bracketStatusColor}55`, borderRadius: 0,
+              border: `1px solid ${bracketStatusColor}`, borderRadius: 0,
             }}>{finalStatus}</span>
           </div>
 
@@ -189,7 +189,7 @@ export function IncomePace({ data }: Props) {
             <div style={{
               marginTop: 6, padding: '4px 6px', fontSize: 12,
               color: bracketStatusColor, background: bracketStatusColor + '11',
-              border: `1px solid ${bracketStatusColor}33`, borderRadius: 0,
+              border: `1px solid ${bracketStatusColor}`, borderRadius: 0,
             }}>{finalMsg}</div>
           )}
         </div>

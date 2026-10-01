@@ -13,7 +13,7 @@ export function TrendRegimeMeter({ price, tl, technicals }: {
 }) {
   // Regime segments
   const regimeTiers = [
-    { key: 'calm', label: 'CALM', color: '#00e5ff' },
+    { key: 'calm', label: 'CALM', color: 'var(--fd-accent)' },
     { key: 'normal', label: 'NORMAL', color: G },
     { key: 'high_vol', label: 'HIGH-VOL', color: Y },
     { key: 'extreme', label: 'EXTREME', color: R },
@@ -75,7 +75,7 @@ export function TrendRegimeMeter({ price, tl, technicals }: {
                   fontSize: 12, padding: '2px 5px', fontWeight: 500,
                   background: m.above ? `${G}18` : `${R}18`,
                   color: m.above ? G : R,
-                  border: `1px solid ${m.above ? G : R}44`,
+                  border: `1px solid ${m.above ? G : R}`,
                 }}>
                   {m.above ? '▲' : '▼'}{m.label}
                 </div>
@@ -158,7 +158,7 @@ export function SizingMeter({ sizingPct }: { sizingPct?: number }) {
                   transform: tipPos.x > window.innerWidth - 300 ? 'translateX(-100%)' : undefined,
                   zIndex: 9999, width: 260,
                   background: 'var(--bg2)',
-                  border: `1px solid ${t.color}50`,
+                  border: `1px solid ${t.color}`,
                   borderTop: `2px solid ${t.color}`,
                   borderRadius: 0,
                   padding: '10px 12px',
@@ -178,7 +178,7 @@ export function SizingMeter({ sizingPct }: { sizingPct?: number }) {
                   </div>
                   {isActive && (
                     <div style={{ marginTop: 6, padding: '4px 6px',
-                      background: `${t.color}10`, border: `1px solid ${t.color}40`,
+                      background: `${t.color}10`, border: `1px solid ${t.color}`,
                       borderRadius: 0, fontSize: 12, color: t.color }}>
                       ← Current signal
                     </div>

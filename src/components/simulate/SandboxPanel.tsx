@@ -191,7 +191,7 @@ export function SandboxPanel({ defaults }: { defaults: SimDefaults }) {
               {deltaPct !== null && deltaEnd !== null && (
                 <div style={{
                   padding: '10px 14px', background: 'var(--surface)',
-                  border: `1px solid ${deltaPct >= 0 ? G : R}40`,
+                  border: `1px solid ${deltaPct >= 0 ? G : R}`,
                   borderLeft: `4px solid ${deltaPct >= 0 ? G : R}`,
                   borderRadius: 0,
                   display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, fontSize: 12,

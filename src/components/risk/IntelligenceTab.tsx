@@ -236,7 +236,7 @@ export function IntelligenceTab({ data }: { data: DashboardData }) {
                 <div key={v.sym} style={{ display: 'grid', gridTemplateColumns: '84px minmax(0,1fr) 56px 150px', gap: 16, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--fd-hairline)' }}>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 500 }}>{v.sym}</span>
                   <div style={{ height: 10, background: 'var(--fd-hairline)' }}>
-                    <div style={{ height: 10, width: `${Math.min(100, v.share)}%`, background: i === 0 && v.share > 40 ? 'var(--fd-negative)' : v.share > 10 ? 'var(--as-lilac)' : 'var(--fd-accent)' }} />
+                    <div style={{ height: 10, width: `${Math.min(100, v.share)}%`, background: i === 0 && v.share > 40 ? 'var(--fd-negative)' : v.share > 10 ? 'var(--fd-lilac-ink)' : 'var(--fd-accent)' }} />
                   </div>
                   <span style={{ textAlign: 'right', fontWeight: 500 }}>{v.share.toFixed(0)}%</span>
                   <span style={{ fontSize: 13, ...muted, textAlign: 'right' }}>{Number.isFinite(v.weightPct) ? `${v.weightPct.toFixed(1)}% wt · σ ${v.volPct.toFixed(0)}%` : 'combined'}</span>

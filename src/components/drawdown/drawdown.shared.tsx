@@ -13,8 +13,8 @@ export const A  = 'var(--amber)'
 export const M  = 'var(--text2)'
 export const Y  = 'var(--yellow)'
 export const BL = 'var(--blue)'
-export const MU = '#9b59b6'   // muted purple for 5th strategy
-export const TL = '#14b8a6'   // teal for spending guardrails
+export const MU = 'var(--fd-lilac-ink)'   // muted purple for 5th strategy
+export const TL = 'var(--fd-lime-ink)'   // teal for spending guardrails
 
 export const STRATEGY_COLORS: Record<StrategyId, string> = {
   taxable_first:   A,

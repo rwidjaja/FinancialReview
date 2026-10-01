@@ -279,7 +279,7 @@ export function OverviewTab({ port, history, portfolioId }: { port: Portfolio; h
 
         return (
           <div>
-            <div style={{ fontSize: 12, fontWeight: 500, color: '#a5b4fc',
+            <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--fd-lilac-ink)',
               textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8,
               display: 'flex', alignItems: 'center', gap: 12 }}>
               <span>◈ PROJECTED INCOME — NEXT 12 MONTHS</span>
@@ -340,13 +340,13 @@ export function OverviewTab({ port, history, portfolioId }: { port: Portfolio; h
                     <span style={{
                       fontSize: 12, fontWeight: 500, padding: '2px 7px',
                       background: 'var(--fd-card)',
-                      color: '#a5b4fc', borderRadius: 0,
+                      color: 'var(--fd-lilac-ink)', borderRadius: 0,
                     }}>{ev.symbol}</span>
                     <div style={{ height: 3, background: 'var(--fd-page)', borderRadius: 0 }}>
                       <div style={{
                         height: 3, borderRadius: 0,
                         width: `${Math.min((ev.total / (totalProjected12m / events.length * 3)) * 100, 100)}%`,
-                        background: isPast ? 'var(--fd-hairline)' : isSoon ? 'var(--fd-accent)' : 'var(--as-lilac)',
+                        background: isPast ? 'var(--fd-hairline)' : isSoon ? 'var(--fd-accent)' : 'var(--fd-lilac-ink)',
                       }} />
                     </div>
                     <div style={{ textAlign: 'right', fontSize: 12, fontWeight: 500,

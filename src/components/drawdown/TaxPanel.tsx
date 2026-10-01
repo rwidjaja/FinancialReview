@@ -80,8 +80,8 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
 
         {/* Left: Tax Strategy Summary */}
-        <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${G}30`, overflow: 'hidden' }}>
-          <div style={{ background: `${G}0e`, borderBottom: `1px solid ${G}25`, padding: '6px 12px' }}>
+        <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${G}`, overflow: 'hidden' }}>
+          <div style={{ background: `${G}0e`, borderBottom: `1px solid ${G}`, padding: '6px 12px' }}>
             <span style={{ fontSize: 12, fontWeight: 500, color: G }}>TAX STRATEGY SUMMARY</span>
           </div>
           <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -97,7 +97,7 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
                 <div style={{ fontSize: 12, color: M }}>{dynTax.years.length}-yr plan</div>
               </div>
             </div>
-            <div style={{ padding: '6px 8px', borderRadius: 0, background: `${G}0a`, border: `1px solid ${G}25` }}>
+            <div style={{ padding: '6px 8px', borderRadius: 0, background: `${G}0a`, border: `1px solid ${G}` }}>
               <div style={{ fontSize: 12, color: G, fontWeight: 500 }}>★ Dynamic Bracket — optimal</div>
               <div style={{ fontSize: 12, color: M, marginTop: 2 }}>
                 Converts IRA early · harvests LTCG · defers Roth.
@@ -108,8 +108,8 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
         </div>
 
         {/* Right: Key Future Events timeline */}
-        <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${BL}30`, overflow: 'hidden' }}>
-          <div style={{ background: `${BL}0c`, borderBottom: `1px solid ${BL}25`, padding: '6px 12px' }}>
+        <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${BL}`, overflow: 'hidden' }}>
+          <div style={{ background: `${BL}0c`, borderBottom: `1px solid ${BL}`, padding: '6px 12px' }}>
             <span style={{ fontSize: 12, fontWeight: 500, color: BL }}>KEY FUTURE EVENTS</span>
           </div>
           <div style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -135,18 +135,18 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
       </div>
 
       {/* ── Why Dynamic Bracket Wins ── */}
-      <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${MU}30`, overflow: 'hidden' }}>
-        <div style={{ background: `${MU}0c`, borderBottom: `1px solid ${MU}25`, padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${MU}`, overflow: 'hidden' }}>
+        <div style={{ background: `${MU}0c`, borderBottom: `1px solid ${MU}`, padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 12, fontWeight: 500, color: MU }}>WHY DYNAMIC BRACKET WINS</span>
           <span style={{ fontSize: 12, color: M, fontStyle: 'italic' }}>vs. {worstStrat?.label ?? 'worst alternative'}</span>
         </div>
         <div style={{ padding: '10px 12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-          <div style={{ padding: '8px 10px', borderRadius: 0, background: `${G}0a`, border: `1px solid ${G}25`, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ padding: '8px 10px', borderRadius: 0, background: `${G}0a`, border: `1px solid ${G}`, display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div style={{ fontSize: 12, color: G, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Converts IRA Early</div>
             <div style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)', color: G }}>{fmt(taxActionSavings)}</div>
             <div style={{ fontSize: 12, color: M }}>lifetime tax saved vs worst strategy. Fills bracket each year before RMDs force higher rates.</div>
           </div>
-          <div style={{ padding: '8px 10px', borderRadius: 0, background: `${R}0a`, border: `1px solid ${R}25`, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ padding: '8px 10px', borderRadius: 0, background: `${R}0a`, border: `1px solid ${R}`, display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div style={{ fontSize: 12, color: R, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Avoids 32%+ Bracket</div>
             <div style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)', color: highBracketYears === 0 ? G : R }}>
               {highBracketYears === 0 ? 'Zero years' : `${highBracketYears} yr${highBracketYears > 1 ? 's' : ''}`}
@@ -157,7 +157,7 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
                 : `${highBracketYears} years projected above 32% — RMD spikes or large income events.`}
             </div>
           </div>
-          <div style={{ padding: '8px 10px', borderRadius: 0, background: `${A}0a`, border: `1px solid ${A}25`, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ padding: '8px 10px', borderRadius: 0, background: `${A}0a`, border: `1px solid ${A}`, display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div style={{ fontSize: 12, color: A, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>RMD Spike Impact</div>
             <div style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)', color: A }}>Age {rmdStartAge}</div>
             <div style={{ fontSize: 12, color: M }}>
@@ -166,7 +166,7 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
                 : `RMD onset at ${rmdStartAge}. Converting early keeps IRA balance smaller — smaller mandatory distributions later.`}
             </div>
           </div>
-          <div style={{ padding: '8px 10px', borderRadius: 0, background: `${BL}0a`, border: `1px solid ${BL}25`, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ padding: '8px 10px', borderRadius: 0, background: `${BL}0a`, border: `1px solid ${BL}`, display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div style={{ fontSize: 12, color: BL, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>More Roth Assets</div>
             <div style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)', color: extraRothVsWorst > 0 ? BL : M }}>
               {extraRothVsWorst > 0 ? `+${fmt(extraRothVsWorst)}` : '—'}

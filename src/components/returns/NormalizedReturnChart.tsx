@@ -16,8 +16,8 @@ export function NormalizedReturnChart({ data, perfData, period, symbols: symbols
   /** If provided, only show these symbols instead of all decisions. */
   symbols?: string[]
 }) {
-  const COLORS = ['var(--fd-accent)', 'var(--as-lilac)', 'var(--as-lime)', 'var(--fd-muted)', 'var(--fd-ink)',
-                  'var(--fd-negative)', 'var(--fd-accent)', 'var(--as-lilac)', 'var(--as-lime)', 'var(--fd-muted)']
+  const COLORS = ['var(--fd-accent)', 'var(--fd-lilac-ink)', 'var(--fd-lime-ink)', 'var(--fd-muted)', 'var(--fd-ink)',
+                  'var(--fd-negative)', 'var(--fd-accent)', 'var(--fd-lilac-ink)', 'var(--fd-lime-ink)', 'var(--fd-muted)']
 
   type SeriesMeta = { symbol: string; color: string; finalReturn: number; len: number }
 

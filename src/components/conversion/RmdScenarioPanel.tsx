@@ -448,7 +448,7 @@ export function RmdScenarioPanel({ tx, rolloverBal, rothBal, annualTarget }: {
           return (
             <div key={key} style={{
               background: isWinner ? 'var(--fd-card)' : 'var(--surface)',
-              border: isWinner ? `1px solid ${s.color}40` : '1px solid rgba(255,255,255,0.07)',
+              border: isWinner ? `1px solid ${s.color}` : '1px solid rgba(255,255,255,0.07)',
               borderTop: `3px solid ${s.color}`,
               borderRadius: 0, padding: '12px 14px',
             }}>

@@ -139,8 +139,8 @@ export function AlertManager({ data, onSaved }: {
                   <td style={{ padding: '4px 8px', textAlign: 'center' }}>
                     <button onClick={() => toggleMode(i)}
                       style={{ background: a.mode === 'price' ? 'var(--fd-card)' : 'var(--fd-card)',
-                        border: `1px solid ${a.mode === 'price' ? G : '#0984e3'}44`,
-                        color: a.mode === 'price' ? G : '#0984e3', fontSize: 12, fontWeight: 500,
+                        border: `1px solid ${a.mode === 'price' ? G : 'var(--fd-accent)'}`,
+                        color: a.mode === 'price' ? G : 'var(--fd-accent)', fontSize: 12, fontWeight: 500,
                         padding: '2px 7px', borderRadius: 0, cursor: 'pointer' }}>
                       {a.mode === 'price' ? '$' : '%'}
                     </button>
@@ -161,7 +161,7 @@ export function AlertManager({ data, onSaved }: {
                   <td style={{ padding: '4px 8px', textAlign: 'center' }}>
                     <button onClick={() => setAlert(i, { active: !a.active })} disabled={triggered}
                       style={{ background: a.active ? `${G}18` : 'var(--fd-card)',
-                        border: `1px solid ${a.active ? G : '#444'}44`, color: a.active ? G : M,
+                        border: `1px solid ${a.active ? G : 'var(--fd-hairline)'}`, color: a.active ? G : M,
                         fontSize: 12, fontWeight: 500, padding: '2px 6px', borderRadius: 0,
                         cursor: triggered ? 'not-allowed' : 'pointer', opacity: triggered ? 0.5 : 1 }}>
                       {triggered ? 'TRIGGERED' : a.active ? 'ACTIVE' : 'DISABLED'}

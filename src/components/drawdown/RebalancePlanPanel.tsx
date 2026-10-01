@@ -1018,7 +1018,7 @@ function SharedBudgetCard({ s }: { s: SharedBudget }) {
           </div>
           {!conv_ok && (
             <div style={{ marginTop: 6, padding: '4px 6px', borderRadius: 0,
-              background: C.red + '12', border: `1px solid ${C.red}44`,
+              background: C.red + '12', border: `1px solid ${C.red}`,
               fontSize: 12, color: C.red, lineHeight: 1.5 }}>
                Conversion target ({fmtK(s.conv_target)}) exceeds room after
               dividends ({fmtK(s.room_after_divs)}). Reduce conversion by{' '}
@@ -1164,7 +1164,7 @@ function AllocationTable({ rows }: { rows: AllocationRow[] }) {
             </span>
             <span style={{
               fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)', color: ac,
-              border: `1px solid ${ac}44`, borderRadius: 0, padding: '2px 6px',
+              border: `1px solid ${ac}`, borderRadius: 0, padding: '2px 6px',
               display: 'inline-block', textAlign: 'center',
             }}>
               {r.action === 'SELL' ? '▼ SELL' : r.action === 'BUY' ? '▲ BUY' : '✓ OK'}
@@ -1213,11 +1213,11 @@ function YearPictureCard({ p, is_current_year }: { p: YearPicture; is_current_ye
 
   return (
     <div style={{ padding: '12px 14px', borderRadius: 0, marginBottom: 14,
-      background: `${statusColor}08`, border: `1px solid ${statusColor}30` }}>
+      background: `${statusColor}08`, border: `1px solid ${statusColor}` }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10,
-        paddingBottom: 8, borderBottom: `1px solid ${statusColor}20` }}>
+        paddingBottom: 8, borderBottom: `1px solid ${statusColor}` }}>
         <span style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase',
           letterSpacing: '0.8px', color: statusColor }}>
           {p.year} complete income picture
@@ -1229,7 +1229,7 @@ function YearPictureCard({ p, is_current_year }: { p: YearPicture; is_current_ye
         )}
         <span style={{ fontSize: 12, fontWeight: 500, color: statusColor,
           marginLeft: 'auto', padding: '2px 8px',
-          border: `1px solid ${statusColor}55`, borderRadius: 0 }}>
+          border: `1px solid ${statusColor}`, borderRadius: 0 }}>
           {statusLabel}
         </span>
       </div>
@@ -1251,7 +1251,7 @@ function YearPictureCard({ p, is_current_year }: { p: YearPicture; is_current_ye
             <div style={{ position: 'absolute',
               left: w(p.dividends + p.conversion), top: 0, bottom: 0,
               width: w(p.other_ordinary),
-              background: '#e67e22', opacity: 0.85 }} />
+              background: 'var(--fd-ink)', opacity: 0.85 }} />
           )}
           {/* LTCG gain (after all ordinary) */}
           <div style={{ position: 'absolute', left: w(p.total_ordinary), top: 0, bottom: 0,
@@ -1290,7 +1290,7 @@ function YearPictureCard({ p, is_current_year }: { p: YearPicture; is_current_ye
           <span style={{ fontSize: 12, color: 'var(--blue)' }}>■ Dividends</span>
           <span style={{ fontSize: 12, color: C.blue }}>■ Roth conv</span>
           {p.other_ordinary > 0 && (
-            <span style={{ fontSize: 12, color: '#e67e22' }}>■ Other income</span>
+            <span style={{ fontSize: 12, color: 'var(--fd-ink)' }}>■ Other income</span>
           )}
           <span style={{ fontSize: 12, color: C.green }}>■ LTCG sell</span>
           {p.ceiling > 0 && (
@@ -1315,7 +1315,7 @@ function YearPictureCard({ p, is_current_year }: { p: YearPicture; is_current_ye
             ['Roth conversion', fmtD(p.conversion), C.blue,
               is_current_year ? 'YTD + remaining target' : 'annual target (continues)'],
             ...(p.other_ordinary > 0
-              ? [['Other income', fmtD(p.other_ordinary), '#e67e22', 'salary, SS, etc.']]
+              ? [['Other income', fmtD(p.other_ordinary), 'var(--fd-ink)', 'salary, SS, etc.']]
               : []),
           ].map(([label, val, color, note]) => (
             <div key={label as string} style={{ display: 'flex',
@@ -1333,7 +1333,7 @@ function YearPictureCard({ p, is_current_year }: { p: YearPicture; is_current_ye
           {/* Subtotal ordinary */}
           <div style={{ display: 'flex', justifyContent: 'space-between',
             padding: '4px 0', marginTop: 2,
-            borderTop: `1px solid ${p.ordinary_ok ? C.green : C.red}44` }}>
+            borderTop: `1px solid ${p.ordinary_ok ? C.green : C.red}` }}>
             <span style={{ fontSize: 12, fontWeight: 500, color: C.text }}>
               = Ordinary subtotal
             </span>
@@ -1378,7 +1378,7 @@ function YearPictureCard({ p, is_current_year }: { p: YearPicture; is_current_ye
           {/* MAGI total */}
           <div style={{ display: 'flex', justifyContent: 'space-between',
             padding: '4px 0', marginTop: 2,
-            borderTop: `1px solid ${p.niit_ok ? C.green : p.niit_already ? C.amber : C.red}44` }}>
+            borderTop: `1px solid ${p.niit_ok ? C.green : p.niit_already ? C.amber : C.red}` }}>
             <span style={{ fontSize: 12, fontWeight: 500, color: C.text }}>
               = Total MAGI
             </span>
@@ -1428,7 +1428,7 @@ function YearPictureCard({ p, is_current_year }: { p: YearPicture; is_current_ye
       )}
       {!p.ordinary_ok && (
         <div style={{ marginTop: 6, padding: '5px 8px', borderRadius: 0,
-          background: C.amber + '10', border: `1px solid ${C.amber}44`,
+          background: C.amber + '10', border: `1px solid ${C.amber}`,
           fontSize: 12, color: C.amber, lineHeight: 1.6 }}>
            Ordinary income ({fmtD(p.total_ordinary)}) exceeds the bracket ceiling
           ({fmtD(p.ceiling)}) by {fmtD(p.total_ordinary - p.ceiling)}.
@@ -1438,7 +1438,7 @@ function YearPictureCard({ p, is_current_year }: { p: YearPicture; is_current_ye
       )}
       {!p.niit_ok && p.niit_already && (
         <div style={{ marginTop: 6, padding: '5px 8px', borderRadius: 0,
-          background: C.amber + '0d', border: `1px solid ${C.amber}33`,
+          background: C.amber + '0d', border: `1px solid ${C.amber}`,
           fontSize: 12, color: C.amber, lineHeight: 1.6 }}>
           ○ NIIT applies every year — your ordinary income ({fmtD(p.total_ordinary)}) already
           exceeds the {fmtD(p.niit_threshold)} threshold before this trade.
@@ -1448,7 +1448,7 @@ function YearPictureCard({ p, is_current_year }: { p: YearPicture; is_current_ye
       )}
       {!p.niit_ok && !p.niit_already && (
         <div style={{ marginTop: 6, padding: '5px 8px', borderRadius: 0,
-          background: C.red + '10', border: `1px solid ${C.red}44`,
+          background: C.red + '10', border: `1px solid ${C.red}`,
           fontSize: 12, color: C.red, lineHeight: 1.6 }}>
            Total MAGI ({fmtD(p.total_magi)}) exceeds the NIIT threshold by{' '}
           {fmtD(p.total_magi - p.niit_threshold)} — 3.8% NIIT applies to the excess.
@@ -1457,7 +1457,7 @@ function YearPictureCard({ p, is_current_year }: { p: YearPicture; is_current_ye
       )}
       {p.niit_ok && margin_left > 0 && margin_left < p.niit_threshold * 0.04 && (
         <div style={{ marginTop: 6, padding: '5px 8px', borderRadius: 0,
-          background: C.amber + '0d', border: `1px solid ${C.amber}33`,
+          background: C.amber + '0d', border: `1px solid ${C.amber}`,
           fontSize: 12, color: C.amber, lineHeight: 1.6 }}>
            Only {fmtD(margin_left)} before NIIT threshold — one unexpected distribution
           could trigger the 3.8% surcharge. Consider selling {fmtD(margin_left * 0.5)} less
@@ -1593,7 +1593,7 @@ function TradeStepCard({ step, total_steps }: { step: TradeStep; total_steps: nu
 
       {/* ── Why this month ── */}
       <div style={{ padding: '8px 10px', borderRadius: 0, marginBottom: 12,
-        background: C.amber + '0c', border: `1px solid ${C.amber}22`,
+        background: C.amber + '0c', border: `1px solid ${C.amber}`,
         fontSize: 12, color: C.muted, lineHeight: 1.65 }}>
         <span style={{ color: C.amber, fontWeight: 500 }}>
            Why {MONTHS_SHORT[step.month - 1]}?{' '}
@@ -1608,7 +1608,7 @@ function TradeStepCard({ step, total_steps }: { step: TradeStep; total_steps: nu
       <div style={{ marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <div style={{
-            background: C.red + '1a', border: `1px solid ${C.red}44`,
+            background: C.red + '1a', border: `1px solid ${C.red}`,
             borderRadius: 0, padding: '2px 10px', fontSize: 12,
             fontWeight: 500, color: C.red,
           }}>
@@ -1635,7 +1635,7 @@ function TradeStepCard({ step, total_steps }: { step: TradeStep; total_steps: nu
                 letterSpacing: '-0.5px' }}>{s.symbol}</span>
               {s.is_stcg_wait && (
                 <span style={{ fontSize: 12, fontWeight: 500,
-                  color: C.green, border: `1px solid ${C.green}55`,
+                  color: C.green, border: `1px solid ${C.green}`,
                   borderRadius: 0, padding: '1px 6px' }}>
                   STCG → LTCG
                 </span>
@@ -1692,7 +1692,7 @@ function TradeStepCard({ step, total_steps }: { step: TradeStep; total_steps: nu
             {/* Schwab instruction */}
             {s.acquired_date && (
               <div style={{ padding: '5px 8px', borderRadius: 0,
-                background: C.blue + '0d', border: `1px solid ${C.blue}22`,
+                background: C.blue + '0d', border: `1px solid ${C.blue}`,
                 fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
                 <span style={{ color: C.blue, fontWeight: 500 }}>
                   In Schwab:{' '}
@@ -1737,7 +1737,7 @@ function TradeStepCard({ step, total_steps }: { step: TradeStep; total_steps: nu
         <div style={{ flex: 1, height: 1, background: C.green + '28' }} />
         <div style={{
           fontSize: 12, fontWeight: 500, color: C.green,
-          padding: '3px 10px', border: `1px solid ${C.green}44`,
+          padding: '3px 10px', border: `1px solid ${C.green}`,
           borderRadius: 20, background: C.green + '0c',
           whiteSpace: 'nowrap',
         }}>
@@ -1750,7 +1750,7 @@ function TradeStepCard({ step, total_steps }: { step: TradeStep; total_steps: nu
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <div style={{
-            background: C.green + '1a', border: `1px solid ${C.green}44`,
+            background: C.green + '1a', border: `1px solid ${C.green}`,
             borderRadius: 0, padding: '2px 10px', fontSize: 12,
             fontWeight: 500, color: C.green,
           }}>
@@ -2044,7 +2044,7 @@ function ActionPlan({ steps, waiting, today_is_bad, onSelectStep, shared }: {
                 {is_now && <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--fd-ink)',
                   background: C.green, borderRadius: 0, padding: '2px 6px' }}>▶ ACT NOW</span>}
                 {!is_now && is_first && <span style={{ fontSize: 12, fontWeight: 500, color: C.amber,
-                  border: `1px solid ${C.amber}88`, borderRadius: 0, padding: '1px 6px' }}>NEXT</span>}
+                  border: `1px solid ${C.amber}`, borderRadius: 0, padding: '1px 6px' }}>NEXT</span>}
                 {/* Totals */}
                 <span style={{ fontSize: 12, color: C.muted }}>
                   Sell{' '}
@@ -2063,7 +2063,7 @@ function ActionPlan({ steps, waiting, today_is_bad, onSelectStep, shared }: {
                 {/* NIIT badge right-aligned */}
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4,
                   padding: '2px 7px', borderRadius: 0,
-                  background: status_c + '12', border: `1px solid ${status_c}40` }}>
+                  background: status_c + '12', border: `1px solid ${status_c}` }}>
                   <span style={{ fontSize: 12, fontWeight: 500, color: status_c }}>
                     {step.year_picture.status === 'safe' ? '' : ''}
                   </span>
@@ -2110,7 +2110,7 @@ function ActionPlan({ steps, waiting, today_is_bad, onSelectStep, shared }: {
                         )}
                         {g.isWait && (
                           <span style={{ fontSize: 12, fontWeight: 500, color: C.blue,
-                            border: `1px solid ${C.blue}55`, borderRadius: 0,
+                            border: `1px solid ${C.blue}`, borderRadius: 0,
                             padding: '1px 5px' }}>
                              waited for LTCG
                           </span>
@@ -2137,7 +2137,7 @@ function ActionPlan({ steps, waiting, today_is_bad, onSelectStep, shared }: {
                       {step.buys.map(b => (
                         <div key={b.symbol} style={{ display: 'flex', alignItems: 'center', gap: 6,
                           padding: '5px 10px', borderRadius: 0,
-                          background: C.green + '07', border: `1px solid ${C.green}20` }}>
+                          background: C.green + '07', border: `1px solid ${C.green}` }}>
                           <span style={{ fontSize: 12, fontWeight: 500,
                             fontFamily: 'var(--font-mono)', color: C.text }}>{b.symbol}</span>
                           <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)',
@@ -2272,7 +2272,7 @@ function PlanSummary({ plan }: { plan: Plan }) {
 
       {no_lot_data && (
         <div style={{ padding: '7px 10px', borderRadius: 0, marginBottom: 8,
-          background: C.amber + '0c', border: `1px solid ${C.amber}33`,
+          background: C.amber + '0c', border: `1px solid ${C.amber}`,
           fontSize: 12, color: C.amber, lineHeight: 1.65 }}>
            Lot-level data is missing for some symbols — gains are estimated.
           Verify actual lot gains and share counts in Schwab before executing.
@@ -2291,7 +2291,7 @@ function PlanSummary({ plan }: { plan: Plan }) {
 
       {steps.some(st => st.year === cy && st.month === 12) && (
         <div style={{ marginTop: 8, padding: '6px 10px', borderRadius: 0,
-          background: C.amber + '0a', border: `1px solid ${C.amber}33`,
+          background: C.amber + '0a', border: `1px solid ${C.amber}`,
           fontSize: 12, color: C.amber, lineHeight: 1.6 }}>
            <strong>Estimated tax reminder:</strong> December trades generate a tax liability due April 15 next year.
           Consider a Q4 estimated tax payment by <strong>January 15</strong> to avoid the underpayment penalty.
@@ -2331,7 +2331,7 @@ function StepDetailModal({ step, onClose }: { step: TradeStep; onClose: () => vo
       <div onClick={e => e.stopPropagation()} style={{
         background: 'var(--bg)', borderRadius: 0, width: '100%', maxWidth: 640,
         maxHeight: '80vh', overflowY: 'auto',
-        border: `1px solid ${C.amber}55`,
+        border: `1px solid ${C.amber}`,
         boxShadow: `none`,
       }}>
         {/* Header */}
@@ -2396,7 +2396,7 @@ function StepDetailModal({ step, onClose }: { step: TradeStep; onClose: () => vo
                     )}
                     {g.isWait && (
                       <span style={{ fontSize: 12, color: C.blue,
-                        border: `1px solid ${C.blue}55`, borderRadius: 0, padding: '1px 6px' }}>
+                        border: `1px solid ${C.blue}`, borderRadius: 0, padding: '1px 6px' }}>
                          waited for LTCG
                       </span>
                     )}
@@ -2469,7 +2469,7 @@ function StepDetailModal({ step, onClose }: { step: TradeStep; onClose: () => vo
                 {step.buys.map(b => (
                   <div key={b.symbol} style={{ display: 'flex', alignItems: 'center', gap: 8,
                     padding: '7px 14px', borderRadius: 0,
-                    background: C.green + '08', border: `1px solid ${C.green}22` }}>
+                    background: C.green + '08', border: `1px solid ${C.green}` }}>
                     <span style={{ fontSize: 14, fontWeight: 500,
                       fontFamily: 'var(--font-mono)', color: C.text }}>{b.symbol}</span>
                     <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)',
@@ -2503,7 +2503,7 @@ function StepDetailModal({ step, onClose }: { step: TradeStep; onClose: () => vo
           {/* Why this month */}
           {step.why_this_month && (
             <div style={{ padding: '8px 12px', borderRadius: 0,
-              background: C.blue + '0a', border: `1px solid ${C.blue}22`,
+              background: C.blue + '0a', border: `1px solid ${C.blue}`,
               fontSize: 12, color: C.muted, lineHeight: 1.65 }}>
               <span style={{ color: C.blue, fontWeight: 500 }}>Why this month: </span>
               {step.why_this_month}
@@ -2605,7 +2605,7 @@ function RebalanceTimeline({ plan, onSelectStep }: { plan: Plan; onSelectStep: (
                     {yearSyms.map(sym => (
                       <span key={sym} style={{ fontSize: 12, fontWeight: 500,
                         fontFamily: 'var(--font-mono)', color: C.red,
-                        background: C.red + '10', border: `1px solid ${C.red}25`,
+                        background: C.red + '10', border: `1px solid ${C.red}`,
                         borderRadius: 0, padding: '1px 6px' }}>{sym}</span>
                     ))}
                   </div>
@@ -2687,7 +2687,7 @@ function RebalanceTimeline({ plan, onSelectStep }: { plan: Plan; onSelectStep: (
                     {[...symMap.entries()].map(([sym, amt]) => (
                       <span key={sym} style={{ fontSize: 12, fontWeight: 500,
                         fontFamily: 'var(--font-mono)', color: C.text,
-                        background: C.red + '12', border: `1px solid ${C.red}28`,
+                        background: C.red + '12', border: `1px solid ${C.red}`,
                         borderRadius: 0, padding: '2px 7px' }}>
                         {sym} <span style={{ color: C.red }}>{fmtK(amt)}</span>
                       </span>
@@ -2707,7 +2707,7 @@ function RebalanceTimeline({ plan, onSelectStep }: { plan: Plan; onSelectStep: (
                       {step.buys.map(b => (
                         <span key={b.symbol} style={{ fontSize: 12, fontWeight: 500,
                           fontFamily: 'var(--font-mono)', color: C.text,
-                          background: C.green + '0c', border: `1px solid ${C.green}22`,
+                          background: C.green + '0c', border: `1px solid ${C.green}`,
                           borderRadius: 0, padding: '2px 7px' }}>
                           {b.symbol} <span style={{ color: C.green }}>{fmtK(b.amount)}</span>
                         </span>
@@ -2826,7 +2826,7 @@ function TaxCeilingCard({ plan }: { plan: Plan }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
           {/* 1. LTCG capacity this year */}
           <div style={{ padding: '7px 10px', borderRadius: 0,
-            background: capThisYrClr + '0d', border: `1px solid ${capThisYrClr}28` }}>
+            background: capThisYrClr + '0d', border: `1px solid ${capThisYrClr}` }}>
             <div style={{ fontSize: 12, color: C.muted, textTransform: 'uppercase',
               letterSpacing: '0.5px', marginBottom: 3 }}>Planned LTCG Budget · this year</div>
             <div style={{ fontSize: 15, fontWeight: 500, fontFamily: 'var(--font-mono)',
@@ -2842,7 +2842,7 @@ function TaxCeilingCard({ plan }: { plan: Plan }) {
 
           {/* 2. LTCG capacity future years */}
           <div style={{ padding: '7px 10px', borderRadius: 0,
-            background: capFutureClr + '0d', border: `1px solid ${capFutureClr}28` }}>
+            background: capFutureClr + '0d', border: `1px solid ${capFutureClr}` }}>
             <div style={{ fontSize: 12, color: C.muted, textTransform: 'uppercase',
               letterSpacing: '0.5px', marginBottom: 3 }}>Planned LTCG Budget · per year</div>
             <div style={{ fontSize: 15, fontWeight: 500, fontFamily: 'var(--font-mono)',
@@ -2872,7 +2872,7 @@ function TaxCeilingCard({ plan }: { plan: Plan }) {
 
           {/* 4. Years to complete */}
           <div style={{ padding: '7px 10px', borderRadius: 0,
-            background: yrClr + '0d', border: `1px solid ${yrClr}28` }}>
+            background: yrClr + '0d', border: `1px solid ${yrClr}` }}>
             <div style={{ fontSize: 12, color: C.muted, textTransform: 'uppercase',
               letterSpacing: '0.5px', marginBottom: 3 }}>Plan timeline</div>
             <div style={{ fontSize: 15, fontWeight: 500, fontFamily: 'var(--font-mono)',
@@ -2964,7 +2964,7 @@ function TaxCeilingCard({ plan }: { plan: Plan }) {
           {chips.map(ch => (
             <span key={ch.label} style={{
               fontSize: 12, fontWeight: 500, color: ch.color,
-              border: `1px solid ${ch.color}40`, borderRadius: 0,
+              border: `1px solid ${ch.color}`, borderRadius: 0,
               padding: '2px 8px', background: ch.color + '0e',
             }}>{ch.label}</span>
           ))}

@@ -40,14 +40,14 @@ export function SystemHealthPanel({ data }: { data: DashboardData }) {
           label="VOL BUDGET"
           sublabel={pi.vol_budget_used > 130 ? 'CRITICAL' : pi.vol_budget_used > 100 ? 'ELEVATED' : 'OK'}
           size={100}
-          zones={[{ max: 80, color: 'var(--fd-accent)' },{ max: 120, color: '#ffd600' },{ max: 150, color: 'var(--fd-ink)' },{ max: 200, color: 'var(--fd-negative)' }]}
+          zones={[{ max: 80, color: 'var(--fd-accent)' },{ max: 120, color: 'var(--fd-ink)' },{ max: 150, color: 'var(--fd-ink)' },{ max: 200, color: 'var(--fd-negative)' }]}
         />
         <RadialGauge
           value={Math.round(pi.fragility_score)} max={100}
           label="FRAGILITY"
           sublabel={pi.fragility_level}
           size={100}
-          zones={[{ max: 30, color: 'var(--fd-accent)' },{ max: 50, color: '#ffd600' },{ max: 70, color: 'var(--fd-ink)' },{ max: 100, color: 'var(--fd-negative)' }]}
+          zones={[{ max: 30, color: 'var(--fd-accent)' },{ max: 50, color: 'var(--fd-ink)' },{ max: 70, color: 'var(--fd-ink)' },{ max: 100, color: 'var(--fd-negative)' }]}
         />
       </div>
     </div>
@@ -199,7 +199,7 @@ export function WithdrawalStateSignal({ data }: { data: DashboardData }) {
   const serverState  = tx.withdrawal_current_state
   const stateIdx     = serverState === 'C' ? 2 : serverState === 'B' ? 1 : serverState === 'A' ? 0
                      : gains < abThreshold ? 0 : gains < bcThreshold ? 1 : 2
-  const stateColor   = ['var(--fd-accent)', '#ffd600', 'var(--fd-negative)'][stateIdx]
+  const stateColor   = ['var(--fd-accent)', 'var(--fd-ink)', 'var(--fd-negative)'][stateIdx]
   const stateLabel   = ['A · INCOME-DOMINANT', 'B · HYBRID', 'C · CAPITAL-GAIN-DOMINANT'][stateIdx]
   const nextThreshold = stateIdx === 0 ? abThreshold : stateIdx === 1 ? bcThreshold : null
   const distToNext    = nextThreshold != null ? nextThreshold - gains : null

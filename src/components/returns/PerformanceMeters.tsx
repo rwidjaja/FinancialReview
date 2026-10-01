@@ -85,7 +85,7 @@ export function ConcentrationMeter({ top1, top3, top5 }: { top1: number; top3: n
           <span style={{ fontSize: 12, color: M }}>/100</span>
           <span style={{
             fontSize: 12, fontWeight: 500, padding: '1px 5px', borderRadius: 0,
-            background: `${activeColor}22`, color: activeColor, border: `1px solid ${activeColor}44`,
+            background: `${activeColor}22`, color: activeColor, border: `1px solid ${activeColor}`,
             fontFamily: 'var(--font-mono)',
           }}>{tiers[activeIdx]?.label ?? 'CRITICAL'}</span>
         </div>

@@ -86,7 +86,7 @@ export function StressCorrelation({ data }: { data: DashboardData }) {
     if (c > 0.85) return R
     if (c > 0.70) return A
     if (c > 0.55) return A
-    return 'var(--as-lilac)'
+    return 'var(--fd-lilac-ink)'
   }
 
   return (

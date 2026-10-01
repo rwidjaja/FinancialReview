@@ -90,7 +90,7 @@ export function SequenceRiskPanel({ defaults }: { defaults: SimDefaults }) {
                     <ReferenceLine x={basePct} stroke={A} strokeDasharray="3 3" />
                     <Bar dataKey="success" radius={0} label={{ position: 'right', fontSize: 12, fill: 'var(--text2)', formatter: (v: unknown) => `${v}%` }}>
                       {chartData.map((d, i) => (
-                        <Cell key={i} fill={d.isBase ? 'var(--as-lilac)' : d.success >= 90 ? 'var(--fd-accent)' : d.success >= 75 ? '#ffd600' : 'var(--fd-negative)'} fillOpacity={0.85} />
+                        <Cell key={i} fill={d.isBase ? 'var(--fd-lilac-ink)' : d.success >= 90 ? 'var(--fd-accent)' : d.success >= 75 ? 'var(--fd-ink)' : 'var(--fd-negative)'} fillOpacity={0.85} />
                       ))}
                     </Bar>
                   </BarChart>

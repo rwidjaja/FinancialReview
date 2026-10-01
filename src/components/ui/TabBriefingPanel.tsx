@@ -326,7 +326,7 @@ export function TabBriefingPanel({ endpoint, title, staleMs = 60_000, compact = 
                 display: 'grid', gridTemplateColumns: '8px 1fr auto', gap: 14, padding: '10px 0', textAlign: 'left',
                 background: 'transparent', border: 'none', borderBottom: '1px solid var(--fd-hairline)', cursor: 'pointer',
               }}>
-                <span style={{ background: alert.severity === 'crit' ? 'var(--fd-alert)' : 'var(--fd-watch)' }} />
+                <span style={{ background: alert.severity === 'crit' ? 'var(--fd-alert)' : 'var(--fd-lilac-ink)' }} />
                 <span style={{ fontSize: 14, lineHeight: 1.35 }}>{label}{count > 1 && <span style={{ color: 'var(--fd-muted)' }}> ×{count}</span>}</span>
                 <span style={{ ...mono, color: 'var(--fd-muted)', alignSelf: 'center' }}>Detail →</span>
               </button>

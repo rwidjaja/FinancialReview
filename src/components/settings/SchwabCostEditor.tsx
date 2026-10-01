@@ -525,7 +525,7 @@ export function SchwabCostEditor({ data, accountMapping = {}, onSaved }: {
       <PanelHeader>Schwab Cost Basis — Edit Lots & Symbols</PanelHeader>
       
       <div style={{ fontSize: 12, color: A, marginBottom: 12, padding: '6px 10px',
-        background: `${A}12`, border: `1px solid ${A}40`, borderRadius: 0 }}>
+        background: `${A}12`, border: `1px solid ${A}`, borderRadius: 0 }}>
          Edit cost basis lots directly. Add new symbols and purchase lots. 
         Values auto-calculate (MV = qty × price, gain/loss = MV - basis).
       </div>
@@ -558,7 +558,7 @@ export function SchwabCostEditor({ data, accountMapping = {}, onSaved }: {
           <div style={{ width: 1, height: 24, background: 'var(--border2)', margin: '0 8px' }} />
           
           <label style={{
-            padding: '6px 16px', fontSize: 12, fontWeight: 500, background: '#0984e3',
+            padding: '6px 16px', fontSize: 12, fontWeight: 500, background: 'var(--fd-accent)',
             color: 'var(--fd-ink)', border: 'none', borderRadius: 0, cursor: 'pointer',
             display: 'inline-block',
           }}>
@@ -619,7 +619,7 @@ export function SchwabCostEditor({ data, accountMapping = {}, onSaved }: {
                 style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   padding: '10px 14px', background: isExpanded ? `${G}08` : BG,
-                  cursor: 'pointer', borderBottom: isExpanded ? `1px solid ${G}30` : 'none',
+                  cursor: 'pointer', borderBottom: isExpanded ? `1px solid ${G}` : 'none',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -635,7 +635,7 @@ export function SchwabCostEditor({ data, accountMapping = {}, onSaved }: {
                       <span style={{ color: M }}>{formatCurrency(symData.totalCostBasis)} basis</span>
                       <span style={{
                         color: Y, fontWeight: 500, fontSize: 12,
-                        padding: '1px 6px', border: `1px solid ${Y}50`, borderRadius: 0,
+                        padding: '1px 6px', border: `1px solid ${Y}`, borderRadius: 0,
                       }} title="Gain/loss not computable — lot price missing or zero at import">
                         STALE PRICE
                       </span>

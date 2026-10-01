@@ -20,6 +20,14 @@ export const STATUS_FILL: Record<Status, string> = {
   alert: 'var(--fd-alert)',
   info:  'var(--fd-hairline)',
 }
+/** Status as a bare mark (dot, stripe, bar) with no text on it — must read on Warm White. */
+export const STATUS_MARK: Record<Status, string> = {
+  ok:    'var(--fd-lime-ink)',
+  watch: 'var(--fd-lilac-ink)',
+  warn:  'var(--fd-lilac-ink)',
+  alert: 'var(--fd-alert)',
+  info:  'var(--fd-hairline)',
+}
 /** Text colour that sits ON a status fill. */
 export const STATUS_ON: Record<Status, string> = {
   ok: 'var(--as-washed-black)', watch: 'var(--as-washed-black)', warn: 'var(--as-washed-black)',
@@ -135,7 +143,7 @@ export function KpiStrip({ items, size = 44, bleed = false }: { items: Kpi[]; si
 
 // ── Status chip (12px square, 4px radius) and status tag (mono pill) ─────────
 export function StatusChip({ status, size = 12 }: { status: Status; size?: number }) {
-  return <span aria-label={status} style={{ width: size, height: size, borderRadius: 4, background: STATUS_FILL[status], flexShrink: 0, display: 'inline-block' }} />
+  return <span aria-label={status} style={{ width: size, height: size, borderRadius: 4, background: STATUS_MARK[status], flexShrink: 0, display: 'inline-block' }} />
 }
 export function StatusTag({ status, children }: { status: Status; children: ReactNode }) {
   return (
@@ -180,7 +188,7 @@ export function AttentionRow({ status, title, msg, tab, onClick }: { status: Sta
     <div onClick={onClick} className={onClick ? 'fd-row' : undefined} role={onClick ? 'button' : undefined} tabIndex={onClick ? 0 : undefined}
       onKeyDown={onClick ? e => { if (e.key === 'Enter') onClick() } : undefined}
       style={{ display: 'grid', gridTemplateColumns: '8px 1fr auto', gap: 20, padding: '16px 0', borderBottom: '1px solid var(--fd-hairline)', cursor: onClick ? 'pointer' : 'default' }}>
-      <div style={{ background: STATUS_FILL[status] }} />
+      <div style={{ background: STATUS_MARK[status] }} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         <span style={{ fontSize: 16, fontWeight: 500 }}>{title}</span>
         <span style={{ fontSize: 14, lineHeight: 1.35, ...muted }}>{msg}</span>

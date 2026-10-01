@@ -8,7 +8,7 @@ export function PortfolioHeatmap({ data }: { data: DashboardData }) {
   const pi = data.portfolio_intel
   if (!pi) return null
   const segments = [
-    { label: 'Growth',    value: pi.tech_growth_pct ?? 0, color: '#2979ff' },
+    { label: 'Growth',    value: pi.tech_growth_pct ?? 0, color: 'var(--fd-accent)' },
     { label: 'Income',    value: pi.income_pct ?? 0,      color: 'var(--fd-accent)' },
     { label: 'Defensive', value: pi.defensive_pct ?? 0,   color: 'var(--fd-ink)' },
   ].filter(s => s.value > 0)

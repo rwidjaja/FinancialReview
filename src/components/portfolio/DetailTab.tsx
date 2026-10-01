@@ -41,7 +41,7 @@ import {
 
 interface Props { data: DashboardData }
 
-const ACCOUNT_BAR = ['var(--fd-accent)', 'var(--as-lilac)', 'var(--as-lime)', 'var(--fd-muted)']
+const ACCOUNT_BAR = ['var(--fd-accent)', 'var(--fd-lilac-ink)', 'var(--fd-lime-ink)', 'var(--fd-muted)']
 
 export function DetailTab({ data }: Props) {
   const [mode] = useGlobalViewMode()
@@ -292,7 +292,7 @@ export function DetailTab({ data }: Props) {
                   {months.map((x, i) => (
                     <div key={i} title={`${x.projected ? 'Projected' : 'Received'} ${fmtMoneyFull(x.v)}`} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%', gap: 6, alignItems: 'center' }}>
                       <span style={{ fontSize: 12, ...muted, whiteSpace: 'nowrap' }}>{x.v > 0 ? `$${(x.v / 1000).toFixed(1)}K` : ''}</span>
-                      <div style={{ width: '100%', height: Math.max(x.v > 0 ? 2 : 0, (x.v / maxMonth) * 140), background: x.projected ? 'var(--as-lilac)' : 'var(--fd-accent)' }} />
+                      <div style={{ width: '100%', height: Math.max(x.v > 0 ? 2 : 0, (x.v / maxMonth) * 140), background: x.projected ? 'var(--fd-lilac-ink)' : 'var(--fd-accent)' }} />
                     </div>
                   ))}
                 </div>

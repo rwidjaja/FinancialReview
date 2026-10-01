@@ -11,7 +11,7 @@
 import type { DashboardData } from '../../types/dashboard'
 import type { RetirementDecision, PrimaryAction } from '../../utils/retirementEngine'
 import { fmtMoneyFull } from '../../utils/formatters'
-import { Dialog, STATUS_FILL, mono, type Status } from '../ui/primitives'
+import { Dialog, STATUS_MARK, mono, type Status } from '../ui/primitives'
 
 interface Props {
   data:     DashboardData
@@ -41,7 +41,7 @@ function fmt(n: number | null | undefined): string {
 function Section({ title, children, accent }: { title: string; children: React.ReactNode; accent?: Status }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: accent ? '8px 1fr' : '1fr', gap: 20, borderTop: '2px solid var(--fd-rule)', paddingTop: 16 }}>
-      {accent && <div style={{ background: STATUS_FILL[accent] }} />}
+      {accent && <div style={{ background: STATUS_MARK[accent] }} />}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ fontSize: 18, fontWeight: 500 }}>{title}</div>
         {children}

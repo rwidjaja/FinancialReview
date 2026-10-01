@@ -104,9 +104,9 @@ export function SectionB_Advanced({ allChartData, baseProj, data }: {
                   <XAxis dataKey="year" tick={{ fill: M, fontSize: 12 }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fill: M, fontSize: 12 }} tickFormatter={fmtK} axisLine={false} tickLine={false} width={48} />
                   <Tooltip content={<MoneyTooltip />} />
-                  <Area type="monotone" dataKey="taxable"  name="Taxable"               stackId="1" stroke={BASE_C} fill={`${BASE_C}20`} />
-                  <Area type="monotone" dataKey="rollover" name="Rollover IRA (reinvested — not spendable)" stackId="1" stroke={DIM}    fill={`${DIM}18`} strokeDasharray="3 3" />
-                  <Area type="monotone" dataKey="roth"     name="Roth IRA"              stackId="1" stroke={BULL_C} fill={`${BULL_C}20`} />
+                  <Area type="monotone" dataKey="taxable"  name="Taxable"               stackId="1" stroke={BASE_C} fill={BASE_C} fillOpacity={0.13} />
+                  <Area type="monotone" dataKey="rollover" name="Rollover IRA (reinvested — not spendable)" stackId="1" stroke={DIM}    fill={DIM} fillOpacity={0.09} strokeDasharray="3 3" />
+                  <Area type="monotone" dataKey="roth"     name="Roth IRA"              stackId="1" stroke={BULL_C} fill={BULL_C} fillOpacity={0.13} />
                 </AreaChart>
               </ResponsiveContainer>
               <div style={{ fontSize: 12, color: DIM, marginTop: 4 }}>
@@ -368,7 +368,7 @@ export function SectionE_Advanced({ baseProj, bullProj, bearProj, expBase }: {
         {bearRunway != null && bearLast && (
           <div style={{
             padding: '6px 12px', background: 'var(--fd-card)',
-            border: `1px solid ${BEAR_C}40`, borderLeft: `3px solid ${BEAR_C}`,
+            border: `1px solid ${BEAR_C}`, borderLeft: `3px solid ${BEAR_C}`,
             borderRadius: 0, fontSize: 12, color: BEAR_C,
           }}>
              <strong>Bear case portfolio runway:</strong> at {bearLast.calYear} deficit of{' '}

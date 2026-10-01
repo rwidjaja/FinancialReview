@@ -347,7 +347,7 @@ export function BalanceHistoryTab({ data }: Props) {
     return k
   }
   const ACCT_COLORS: Record<string, string> = {}
-  const PALETTE = ['var(--fd-accent)', 'var(--as-lilac)', 'var(--as-lime)', 'var(--fd-muted)', 'var(--fd-ink)']
+  const PALETTE = ['var(--fd-accent)', 'var(--fd-lilac-ink)', 'var(--fd-lime-ink)', 'var(--fd-muted)', 'var(--fd-ink)']
   acctKeys.forEach((k, i) => { ACCT_COLORS[k] = PALETTE[i % PALETTE.length] })
 
   const monthsWithAccts = displayMonths.map(mo => {
@@ -513,7 +513,7 @@ export function BalanceHistoryTab({ data }: Props) {
         {/* Badge */}
         <span style={{
           fontSize: 12, fontWeight: 500, padding: '2px 6px',
-          border: `1px solid ${color}60`,
+          border: `1px solid ${color}`,
           color, background: `${color}12`,
           borderRadius: 0, cursor: 'default', whiteSpace: 'nowrap',
           letterSpacing: '0.4px',
@@ -529,7 +529,7 @@ export function BalanceHistoryTab({ data }: Props) {
             transform: pos.x > window.innerWidth - 320 ? 'translateX(-100%)' : undefined,
             zIndex: 9999, minWidth: 260, maxWidth: 300,
             background: 'var(--bg2)',
-            border: `1px solid ${color}50`,
+            border: `1px solid ${color}`,
             borderTop: `2px solid ${color}`,
             borderRadius: 0,
             padding: '10px 12px',
@@ -1536,7 +1536,7 @@ export function BalanceHistoryTab({ data }: Props) {
                                   ? <span style={{ color: M, fontSize: 12 }}>—</span>
                                   : <span style={{
                                       fontSize: 12, fontWeight: 500, padding: '2px 6px',
-                                      border: `1px solid ${di.color}60`,
+                                      border: `1px solid ${di.color}`,
                                       color: di.color, background: `${di.color}12`,
                                       borderRadius: 0, whiteSpace: 'nowrap', letterSpacing: '0.4px',
                                     }}>

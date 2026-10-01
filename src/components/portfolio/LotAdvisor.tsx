@@ -262,7 +262,7 @@ function LotRow({ lot, index, stcgRate, ltcgRate, symbol, manualSelected, onManu
         <td style={{ padding: '5px 10px', textAlign: 'center' }}>
           <span style={{
             fontSize: 12, fontWeight: 500, padding: '2px 6px',
-            background: statusColor + '22', border: `1px solid ${statusColor}44`, color: statusColor,
+            background: statusColor + '22', border: `1px solid ${statusColor}`, color: statusColor,
             whiteSpace: 'nowrap',
           }}>
             {lot.is_ltcg ? 'LTCG ✓' : 'STCG'}
@@ -425,7 +425,7 @@ function SymbolRow({
           <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
             <span style={{
               fontSize: 12, fontWeight: 500, padding: '3px 8px',
-              background: meta.bg, border: `1px solid ${meta.color}44`, color: meta.color, whiteSpace: 'nowrap',
+              background: meta.bg, border: `1px solid ${meta.color}`, color: meta.color, whiteSpace: 'nowrap',
             }}>
               {meta.label}
             </span>
@@ -526,7 +526,7 @@ function MaturityCalendar({ events, stcgRate, ltcgRate }: {
             <div key={i} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center',
               padding: '6px 10px', background: 'var(--surface)',
-              border: `1px solid ${daysColor(e.days_away)}44`,
+              border: `1px solid ${daysColor(e.days_away)}`,
               borderTop: `2px solid ${daysColor(e.days_away)}`, minWidth: 110, gap: 2,
             }}>
               <span style={{ fontSize: 12, fontWeight: 500, color: A }}>{e.symbol}</span>
@@ -1112,7 +1112,7 @@ function GainPlannerPanel({
               <span key={sym} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 3,
                 padding: '2px 6px 2px 9px',
-                background: `${A}15`, border: `1px solid ${A}40`,
+                background: `${A}15`, border: `1px solid ${A}`,
                 fontSize: 12, fontWeight: 500, color: A,
               }}>
                 {sym}

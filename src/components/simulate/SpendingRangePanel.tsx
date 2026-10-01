@@ -93,11 +93,11 @@ export function SpendingRangePanel({ defaults }: { defaults: SimDefaults }) {
                         {chartData.find(d => d.isCurrent) && (
                           <ReferenceLine x={chartData.find(d => d.isCurrent)!.spending} stroke={A} strokeDasharray="3 3" label={{ value: 'Current', fill: A, fontSize: 12 }} />
                         )}
-                        <Line type="monotone" dataKey="success" stroke="var(--as-lilac)" strokeWidth={2} dot={(props: any) => {
+                        <Line type="monotone" dataKey="success" stroke="var(--fd-lilac-ink)" strokeWidth={2} dot={(props: any) => {
                           const d = chartData[props.index]
                           return d?.isCurrent
                             ? <circle key={props.index} cx={props.cx} cy={props.cy} r={5} fill={A} stroke="var(--fd-ink)" strokeWidth={1} />
-                            : <circle key={props.index} cx={props.cx} cy={props.cy} r={2} fill="var(--as-lilac)" />
+                            : <circle key={props.index} cx={props.cx} cy={props.cy} r={2} fill="var(--fd-lilac-ink)" />
                         }} />
                       </LineChart>
                     </ResponsiveContainer>

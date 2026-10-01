@@ -50,7 +50,7 @@ function Badge({ label, color }: { label: string; color: string }) {
   return (
     <span style={{
       fontSize: 12, fontWeight: 500, padding: '2px 7px',
-      border: `1px solid ${color}60`, color,
+      border: `1px solid ${color}`, color,
       background: `${color}12`, borderRadius: 0,
       whiteSpace: 'nowrap', letterSpacing: '0.3px',
     }}>{label}</span>
@@ -180,7 +180,7 @@ export function VolatilityStructurePanel({ r }: { r: ResearchApiData }) {
           {badges.map(b => (
             <span key={b.label} style={{ display: 'inline-flex', alignItems: 'center',
               fontSize: 12, fontWeight: 500, padding: '1px 5px',
-              border: `1px solid ${b.color}60`, color: b.color,
+              border: `1px solid ${b.color}`, color: b.color,
               background: `${b.color}12`, borderRadius: 0 }}>
               {b.label}
               <InfoTooltip term={b.label.toLowerCase() as 'nr4' | 'nr7' | 'wr7' | 'wr10'} inline />
@@ -436,7 +436,7 @@ export function PortfolioStressPanel({ r }: { r: ResearchApiData }) {
 
         return (
           <div key={label} style={{ marginBottom: 6, padding: '6px 8px',
-            background: `${color}06`, border: `1px solid ${color}30`,
+            background: `${color}06`, border: `1px solid ${color}`,
             borderRadius: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
               <span style={{ fontSize: 12, fontWeight: 500, color }}>{label}</span>
@@ -578,7 +578,7 @@ export function PatternEnginePanel({ r }: { r: ResearchApiData }) {
 
             return (
               <div key={i} style={{ padding: '8px 10px',
-                background: `${meta.color}06`, border: `1px solid ${meta.color}40`,
+                background: `${meta.color}06`, border: `1px solid ${meta.color}`,
                 borderLeft: `3px solid ${meta.color}`, borderRadius: 0 }}>
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -821,7 +821,7 @@ export function LiquidityFlowPanel({ r }: { r: ResearchApiData }) {
       {/* Divergence */}
       <div style={{ marginTop: 8, padding: '6px 8px',
         background: fe.bearish_div ? 'var(--fd-card)' : fe.bullish_div ? 'var(--fd-card)' : 'transparent',
-        border: `1px solid ${divColor}30`,
+        border: `1px solid ${divColor}`,
         borderRadius: 0, fontSize: 12, color: divColor, lineHeight: 1.5 }}>
         {fe.divergence}
       </div>
