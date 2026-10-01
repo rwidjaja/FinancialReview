@@ -133,7 +133,8 @@ export function IncomeIntelligence({ ia, data }: {
   const dayOfYear = Math.ceil((today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / 86400000)
   // Projected EOY: YTD received + FWD run rate for remaining days — same formula as IncomeHistory
   const _daysInYr = (today.getFullYear() % 4 === 0 ? 366 : 365)
-  const _ytdTotal = Object.values((ia as any).by_account ?? {}).reduce((s: number, a: any) => s + (a.ytd_income ?? 0), 0) as number
+  // Reinvested (DRIP) accounts aren't spendable income — keep them out, matching fwd12
+  const _ytdTotal = Object.values((ia as any).by_account ?? {}).reduce((s: number, a: any) => s + (a.reinvested ? 0 : (a.ytd_income ?? 0)), 0) as number
   const projEoyConsistent = _ytdTotal + (fwd12 / _daysInYr) * Math.max(0, _daysInYr - dayOfYear)
 
   // Withdrawal state — used to add State C context to Lifestyle section

@@ -97,7 +97,9 @@ export function CashflowSparkline({ data }: { data: DashboardData }) {
   const incomeHistory = data.income_history
   const incomeYear = incomeHistory?.year ?? new Date().getFullYear()
   const monthlyIncomeByYearMonth: Record<string, number> = {}
-  for (const acct of Object.values(incomeHistory?.by_account ?? {})) {
+  const reinvested = new Set(data.income_analytics?.reinvested_accounts ?? [])
+  for (const [acctKey, acct] of Object.entries(incomeHistory?.by_account ?? {})) {
+    if (reinvested.has(acctKey)) continue   // DRIP — not cash income
     const byMonth = acct.by_month ?? []
     byMonth.forEach((v, idx) => {
       const val = typeof v === 'number' ? v : (v as { total?: number }).total ?? 0

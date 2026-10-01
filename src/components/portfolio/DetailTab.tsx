@@ -52,7 +52,7 @@ export function DetailTab({ data }: Props) {
   const totalValue = s.total_value
 
   // ── Per-account and merged holdings (unchanged aggregation) ──
-  const sleeveHoldings: { key: string; label: string; holdings: HoldingRow[]; totalValue: number; dayChg: number; income: number }[] = []
+  const sleeveHoldings: { key: string; label: string; holdings: HoldingRow[]; totalValue: number; dayChg: number; income: number; reinvested: boolean }[] = []
   const holdingsMap: Record<string, HoldingRow & { accts: string[] }> = {}
   for (const acct of data.accounts) {
     const acctMap: Record<string, HoldingRow> = {}
@@ -77,6 +77,7 @@ export function DetailTab({ data }: Props) {
         totalValue: acctHoldings.reduce((t, h) => t + h.value, 0),
         dayChg: acctHoldings.reduce((t, h) => t + h.dayChg, 0),
         income: ia?.by_account?.[acct.key]?.fwd_12m ?? acctHoldings.reduce((t, h) => t + h.annualInc, 0),
+        reinvested: !!ia?.by_account?.[acct.key]?.reinvested,
       })
     }
   }
@@ -202,7 +203,7 @@ export function DetailTab({ data }: Props) {
               <span style={{ fontSize: 40, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1 }}>{fmtMoneyFull(a.totalValue)}</span>
               <span style={{ fontSize: 14 }}>
                 <span style={{ color: gain(a.dayChg), fontWeight: 500 }}>{signedMoney(a.dayChg, fmtFull)}</span>
-                <span style={muted}> today · income {fmtFull(a.income)}/yr</span>
+                <span style={muted}> today · {a.reinvested ? 'reinvested' : 'income'} {fmtFull(a.income)}/yr</span>
               </span>
               <div style={{ height: 6, background: 'var(--fd-hairline)' }}><div style={{ height: 6, width: `${share}%`, background: ACCOUNT_BAR[i % ACCOUNT_BAR.length] }} /></div>
             </div>

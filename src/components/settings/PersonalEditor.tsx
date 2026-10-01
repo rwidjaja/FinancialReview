@@ -78,6 +78,8 @@ interface PersonalData {
     estimated_spending: number; collect_medicare: boolean; medicare_people: number
     target_vol_pct?: number
     conversion_safety_buffer?: number
+    /** Accounts whose dividends are reinvested (DRIP) — not counted as spendable income */
+    reinvested_accounts?: string[]
     spouse?: { name: string; dob: string; ss_start_age: number }
     social_security?: Record<string, SSOption>
   }
@@ -107,6 +109,8 @@ export function PersonalEditor({ data, onSaved, taxBracketsData }: {
   const [spending,        setSpending]      = useState(p.estimated_spending ?? 0)
   const [medicare,        setMedicare]      = useState(p.collect_medicare ?? false)
   const [medPeople,       setMedPeople]     = useState(p.medicare_people ?? 1)
+  // Server default (key absent) = rollover reinvested
+  const [rolloverDrip,    setRolloverDrip]  = useState((p.reinvested_accounts ?? ['rollover_ira']).includes('rollover_ira'))
   const [targetVol,       setTargetVol]     = useState(p.target_vol_pct ?? 15)
   const [safetyBuf,       setSafetyBuf]     = useState(p.conversion_safety_buffer ?? DEFAULT_SAFETY_BUFFER)
   const [spouseName,      setSpouseName]    = useState(p.spouse?.name ?? '')
@@ -223,6 +227,10 @@ export function PersonalEditor({ data, onSaved, taxBracketsData }: {
       estimated_spending: Number(spending),
       collect_medicare: medicare,
       medicare_people: Number(medPeople),
+      reinvested_accounts: [
+        ...(p.reinvested_accounts ?? []).filter(k => k !== 'rollover_ira'),
+        ...(rolloverDrip ? ['rollover_ira'] : []),
+      ],
       target_vol_pct: Number(targetVol),
       conversion_safety_buffer: Number(safetyBuf),
       ...(spouseName ? { spouse: { name: spouseName, dob: spouseDob, ss_start_age: Number(spouseSsAge) } } : {}),
@@ -338,6 +346,20 @@ export function PersonalEditor({ data, onSaved, taxBracketsData }: {
                       min={1} max={2} style={{ ...CELL_INPUT, width: 40 }} />
                   </div>
                 )}
+              </div>
+            </Row>
+
+            <Row label="Rollover IRA dividends">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 12 }}>
+                  <input type="checkbox" checked={rolloverDrip} onChange={e => setRolloverDrip(e.target.checked)} />
+                  Reinvested (DRIP)
+                </label>
+                <span style={{ color: M, fontSize: 12 }}>
+                  {rolloverDrip
+                    ? 'Not counted as spendable income — coverage, income gap and forecasts leave it out'
+                    : 'Counted as spendable income alongside Taxable and Roth'}
+                </span>
               </div>
             </Row>
 

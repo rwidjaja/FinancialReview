@@ -246,7 +246,9 @@ function IncomeSourceBreakdown({ data }: { data: DashboardData }) {
   // Per-month table: W2 from spending_analytics, dividend from income_history.by_account
   const currentMonth = new Date().getMonth() + 1
   const divByMonth: number[] = Array(12).fill(0)
-  for (const acct of Object.values(ih?.by_account ?? {})) {
+  const reinvested = new Set(data.income_analytics?.reinvested_accounts ?? [])
+  for (const [acctKey, acct] of Object.entries(ih?.by_account ?? {})) {
+    if (reinvested.has(acctKey)) continue   // DRIP — not cash income
     const bm = (acct as { by_month?: unknown[] }).by_month ?? []
     bm.forEach((v, i) => {
       const val = typeof v === 'number' ? v : (v as { total?: number })?.total ?? 0

@@ -1133,9 +1133,17 @@ def fetch_all_data() -> Dict[str, Any]:
         # Target income: use explicit override from _PERSONAL if set, otherwise use bracket-derived target
         _target_income = float(cfg.get("_PERSONAL", {}).get("target_income", _income_bracket_target))
 
+        # Accounts whose dividends are reinvested (DRIP), not drawn — they still
+        # compound the portfolio but are NOT spendable income. Excluded from
+        # portfolio_fwd_12m (coverage, income gap, life-stage, state machine).
+        # Override via personal.json "reinvested_accounts"; default = Rollover IRA.
+        _reinvested_accts = set(cfg.get("_PERSONAL", {}).get("reinvested_accounts", ["rollover_ira"]))
+
         # Per-account volatility scores, forward 12M income, and confidence
         _acct_analytics = {}
-        _portfolio_fwd12m = 0.0
+        _portfolio_fwd12m = 0.0       # spendable (excludes reinvested accounts)
+        _portfolio_fwd12m_all = 0.0   # every account — used for portfolio yield
+        _reinvested_fwd12m = 0.0
         for _acct in accounts:
             _by_month = _acct.get("ytd_by_month") or []
             _nonzero  = [v for v in _by_month if v > 0]
@@ -1194,8 +1202,13 @@ def fetch_all_data() -> Dict[str, Any]:
                 "volatility_score":   _vol,
                 "avg_stability":      round(_avg_stab, 1) if _avg_stab is not None else None,
                 "forward_confidence": _conf,
+                "reinvested":         _acct["key"] in _reinvested_accts,
             }
-            _portfolio_fwd12m += _fwd12
+            _portfolio_fwd12m_all += _fwd12
+            if _acct["key"] in _reinvested_accts:
+                _reinvested_fwd12m += _fwd12
+            else:
+                _portfolio_fwd12m += _fwd12
 
         # ── Dividend ceiling drift (taxable account only) ─────────────────
         _ytd_taxable = income_history.get("by_account", {}).get("taxable", {}).get("total") or 0.0
@@ -1288,9 +1301,13 @@ def fetch_all_data() -> Dict[str, Any]:
 
         income_analytics = {
             "by_account":            _acct_analytics,
-            "portfolio_fwd_12m":     round(_portfolio_fwd12m, 2),
-            # Pre-computed ratio so tabs don't re-derive fwd12m / total_value individually
-            "yield_pct":             round((_portfolio_fwd12m / grand_total_value * 100) if grand_total_value else 0.0, 3),
+            "portfolio_fwd_12m":     round(_portfolio_fwd12m, 2),       # spendable only
+            "portfolio_fwd_12m_all": round(_portfolio_fwd12m_all, 2),   # incl. reinvested
+            "reinvested_fwd_12m":    round(_reinvested_fwd12m, 2),
+            "reinvested_accounts":   sorted(_reinvested_accts),
+            # Pre-computed ratio so tabs don't re-derive fwd12m / total_value individually.
+            # Yield describes the holdings, so it uses every account's income.
+            "yield_pct":             round((_portfolio_fwd12m_all / grand_total_value * 100) if grand_total_value else 0.0, 3),
             "taxable_ytd":           round(_ytd_taxable, 2),
             "monthly_avg":           round(_monthly_avg, 2),
             "projected_eoy":         round(_projected_eoy, 2),
@@ -2283,7 +2300,7 @@ def fetch_all_data() -> Dict[str, Any]:
             _fwd_qual_total = 0.0
             _fwd_roc_total = 0.0
             _attribution: Dict[str, float] = {}
-            _p_fwd12m = income_analytics.get("portfolio_fwd_12m", 0.0) or 1.0
+            _p_fwd12m = income_analytics.get("portfolio_fwd_12m_all", 0.0) or 1.0   # attribution spans every account
 
             for _acct in accounts:
                 _vol_a = _ia_by_acct.get(_acct["key"], {}).get("volatility_score") or 0.0
@@ -4874,7 +4891,10 @@ def fetch_all_data() -> Dict[str, Any]:
         # Dividends split: taxable vs non-taxable (Roth + Rollover).
         # Each account is already in actual_div_by_acct; sum the two buckets explicitly
         # so the frontend can display "total income" vs "taxable income" separately.
-        _NON_TAXABLE_ACCTS = {"roth_ira", "rollover_ira"}
+        # Reinvested (DRIP) accounts stay in *_by_acct but are left out of the
+        # totals — that money is never drawn, so it isn't income.
+        _reinv = set((ia or {}).get("reinvested_accounts", []))
+        _NON_TAXABLE_ACCTS = {"roth_ira", "rollover_ira"} - _reinv
         actual_div_taxable     = actual_div_by_acct.get("taxable", 0)
         actual_div_nontaxable  = sum(v for k, v in actual_div_by_acct.items() if k in _NON_TAXABLE_ACCTS)
         actual_div_total       = round(actual_div_taxable + actual_div_nontaxable)

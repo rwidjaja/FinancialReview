@@ -79,7 +79,7 @@ export function PredictionsTab({ data }: Props) {
   const todayYr  = new Date().getFullYear()
   const todayVal = data.summary.total_value
   // Spendable fwd12m: taxable + Roth only — Rollover IRA dividends reinvest inside the IRA
-  // and are not available cash. buildIncomeByType subtracts rolloverFwd from the anchor.
+  // and are not available cash. The server already leaves them out of portfolio_fwd_12m.
   const { serverTotal: spendableFwd12m } = useMemo(() => buildIncomeByType(data), [data])
   const fwd12m   = spendableFwd12m > 0 ? spendableFwd12m : (data.income_analytics?.portfolio_fwd_12m ?? 0)
   // Use the canonical portfolio_fwd_12m for the "today" display label so it matches

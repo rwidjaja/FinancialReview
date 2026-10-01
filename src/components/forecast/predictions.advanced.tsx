@@ -39,7 +39,8 @@ export function SectionB_Advanced({ allChartData, baseProj, data }: {
 
   tickers.sort((a, b) => b.income - a.income)
   const ia = data.income_analytics
-  const totalIncome = ia?.portfolio_fwd_12m ?? tickers.reduce((s, t) => s + t.income, 0)
+  // Yield-on-cost spans every account's holdings, so include reinvested income too
+  const totalIncome = ia?.portfolio_fwd_12m_all ?? ia?.portfolio_fwd_12m ?? tickers.reduce((s, t) => s + t.income, 0)
   // YOC denominator = actual cost basis (what you paid), not portfolio value
   const costBasis = data.summary?.total_cost ?? 0
 

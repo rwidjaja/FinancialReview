@@ -152,11 +152,10 @@ export function buildIncomeByType(data: DashboardData): { byType: Record<string,
     }
   }
 
-  // Spendable server total: portfolio_fwd_12m minus rollover IRA forward income.
-  // Rollover IRA income is pre-tax deferred accumulation, not cash available to spend.
+  // Spendable server total. The server already leaves reinvested (DRIP)
+  // accounts — the rollover IRA — out of portfolio_fwd_12m, so use it as-is.
   const rolloverFwd = incByAcct['rollover_ira'] ?? 0
-  const allTotal    = ia?.portfolio_fwd_12m ?? Object.values(byTypeRaw).reduce((s, v) => s + v, 0)
-  const serverTotal = allTotal - rolloverFwd  // spendable-only anchor
+  const serverTotal = ia?.portfolio_fwd_12m ?? Object.values(byTypeRaw).reduce((s, v) => s + v, 0)
 
   const posTotal    = Object.values(byTypeRaw).reduce((s, v) => s + v, 0)
   const scale       = posTotal > 0 ? serverTotal / posTotal : 1

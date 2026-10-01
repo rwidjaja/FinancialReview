@@ -364,7 +364,10 @@ export interface IncomeAttribution {
 }
 
 export interface IncomeAnalytics {
-  portfolio_fwd_12m: number
+  portfolio_fwd_12m: number            // spendable — excludes reinvested (DRIP) accounts
+  portfolio_fwd_12m_all?: number       // every account, incl. reinvested
+  reinvested_fwd_12m?: number
+  reinvested_accounts?: string[]
   /** Forward 12-month income ÷ total portfolio value × 100. Single source of truth — do not recompute in tabs. */
   yield_pct: number | null
   target_income: number
@@ -383,6 +386,8 @@ export interface IncomeAnalytics {
     fwd_12m: number
     ytd_income: number
     by_symbol: Record<string, number>
+    /** Dividends reinvested (DRIP) — not counted as spendable income */
+    reinvested?: boolean
   }>
   /** Lifestyle income target range (from _INCOME_TARGET block in input.json) */
   lifestyle_target_min: number | null

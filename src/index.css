@@ -300,6 +300,7 @@ input[type="range"] { accent-color: var(--fd-accent); }
   border-radius: 0 !important; padding: 0 14px !important; font-size: 14px !important; color: var(--fd-ink) !important;
 }
 .fd-settings textarea { padding: 10px 14px !important; }
+.fd-settings input[type="number"] { min-width: 96px; padding: 0 10px !important; }
 .fd-settings td input:not([type="checkbox"]) { min-height: 36px !important; text-align: right; }
 .fd-settings input:focus, .fd-settings select:focus, .fd-settings textarea:focus { outline: 2px solid var(--fd-focus) !important; outline-offset: 0; }
 .fd-settings label { font-size: 13px; }
