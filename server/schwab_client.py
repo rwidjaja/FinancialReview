@@ -1699,6 +1699,8 @@ def get_conversion_transactions(
 
 _realized_gains_cache: dict = {}
 _realized_gains_cache_date: str = ""
+# How far back the one-time trade-history backfill reaches for BUY cost basis.
+_TRADE_HISTORY_YEARS = 6
 
 def get_realized_gains(year: int = None, force: bool = False) -> Dict[str, Any]:
     """
@@ -1735,7 +1737,7 @@ def get_realized_gains(year: int = None, force: bool = False) -> Dict[str, Any]:
     if not force and _realized_gains_cache and _realized_gains_cache_date == _today_str:
         return _realized_gains_cache
 
-    _cache_key = f"realized_gains_v12_{_today_str}"
+    _cache_key = f"realized_gains_v13_{_today_str}"
     if force:
         # Bust both memory cache and disk cache so we re-fetch from Schwab
         _realized_gains_cache = {}
@@ -1780,6 +1782,8 @@ def get_realized_gains(year: int = None, force: bool = False) -> Dict[str, Any]:
     # This keeps each individual Schwab API call small (< 100 txns) and avoids
     # the ~400-transaction cap that silently drops recent trades on busy days.
 
+    _fetch_errors: list = []
+
     def _fetch_range(s_dt, e_dt, label=""):
         """Fetch one date window from Schwab; return list of raw tx dicts."""
         try:
@@ -1797,10 +1801,16 @@ def get_realized_gains(year: int = None, force: bool = False) -> Dict[str, Any]:
             return txns
         except Exception as _fe:
             print(f"[schwab] realized_gains fetch {label} error: {_fe}")
+            _fetch_errors.append(label)
             return []
 
     def _raw_to_store_row(tx):
-        """Extract the fields we need to store from a raw Schwab tx dict."""
+        """Extract the fields we need to store from a raw Schwab tx dict.
+
+        Both SELL fills (net_amount > 0) and BUY fills (net_amount < 0) are
+        kept: buys are the FIFO cost basis for positions that have since been
+        sold and therefore no longer appear in the lots table.
+        """
         import json as _j
         act_id = str(tx.get("activityId") or "")
         date_s = (tx.get("tradeDate") or tx.get("settleDate") or tx.get("time") or "")[:10]
@@ -1813,11 +1823,9 @@ def get_realized_gains(year: int = None, force: bool = False) -> Dict[str, Any]:
             s = instr.get("symbol") or instr.get("cusip")
             if s and not sym:
                 sym = s
-            amt = float(item.get("amount", 0) or 0)
-            if amt < 0:
-                shares += abs(amt)
+            shares += abs(float(item.get("amount", 0) or 0))
         net = float(tx.get("netAmount") or 0)
-        if net <= 0:
+        if net == 0:
             # fallback: find positive CURRENCY cash leg
             for item in tx.get("transferItems", []):
                 try:
@@ -1828,7 +1836,7 @@ def get_realized_gains(year: int = None, force: bool = False) -> Dict[str, Any]:
                             break
                 except Exception:
                     pass
-        if not act_id or not date_s or not sym or net <= 0:
+        if not act_id or not date_s or not sym or net == 0 or shares == 0:
             return None
         return {"activity_id": act_id, "trade_date": date_s, "symbol": sym,
                 "shares": shares, "net_amount": net, "raw_json": _j.dumps(tx)}
@@ -1866,6 +1874,26 @@ def get_realized_gains(year: int = None, force: bool = False) -> Dict[str, Any]:
             _rows = [r for r in (_raw_to_store_row(t) for t in _m_txns) if r]
             _dbm.realized_txns_upsert(_rows)
             _dbm.realized_txns_mark_period(_mk)
+
+        # ── 1b. One-time trade-history backfill (buys + sells) ───────────────
+        # Sold positions need their original BUY fills for cost basis, and FIFO
+        # needs every earlier sell to know which lots were already consumed.
+        # Schwab serves several years of history but rejects ranges > 1 year,
+        # so walk back in 360-day windows up to the rolling window.
+        _hist_key = "trades-history-v1"
+        if not _dbm.realized_txns_period_logged(_hist_key):
+            _errs_before = len(_fetch_errors)
+            _h_end = datetime(_cutoff_year, _cutoff_month, 1)
+            _h_start = datetime(_year - _TRADE_HISTORY_YEARS, 1, 1)
+            _s = _h_start
+            while _s < _h_end:
+                _e = min(_s + timedelta(days=360), _h_end)
+                _h_txns = _fetch_range(_s, _e, label=f"history {_s.date()}→{_e.date()}")
+                _dbm.realized_txns_upsert(
+                    [r for r in (_raw_to_store_row(t) for t in _h_txns) if r])
+                _s = _e
+            if len(_fetch_errors) == _errs_before:
+                _dbm.realized_txns_mark_period(_hist_key)
 
         # ── 2. Rolling window: always re-fetch last 2 months ─────────────────
         # Use INSERT OR REPLACE so corrections/late-settling trades are updated.
@@ -1943,6 +1971,53 @@ def get_realized_gains(year: int = None, force: bool = False) -> Dict[str, Any]:
         print(f"[schwab] realized gains: lot_sales merge FAILED: {_e}")
         traceback.print_exc()
 
+    # Rebuild lots from stored BUY fills. The lots table only holds what is
+    # held today (plus sold lots captured by lot_sales), so a position that
+    # was fully sold — or bought and sold between lot syncs — has no basis
+    # there. On a date the lots table already covers, only the bought shares
+    # beyond what it holds are added (the lots table keeps the *remaining*
+    # quantity of a partly-sold lot), so a share is never counted twice.
+    _buy_lots: Dict[str, list] = {}
+    for tx in (raw if isinstance(raw, list) else []):
+        try:
+            if float(tx.get("netAmount") or 0) >= 0:
+                continue
+            _bdate = (tx.get("tradeDate") or tx.get("settleDate") or tx.get("time") or "")[:10]
+            for item in tx.get("transferItems", []):
+                instr = item.get("instrument", {})
+                if instr.get("assetType") == "CURRENCY":
+                    continue
+                _bsym = instr.get("symbol") or instr.get("cusip")
+                _bqty = float(item.get("amount", 0) or 0)
+                _bpx  = float(item.get("price", 0) or 0)
+                if not _bsym or _bqty <= 0 or _bsym in _KNOWN_MMF:
+                    continue
+                if _bpx <= 0:
+                    _bpx = abs(float(tx.get("netAmount") or 0)) / _bqty
+                if _bpx <= 1.10:          # stable-NAV money market
+                    continue
+                _buy_lots.setdefault(_bsym, []).append({"date": _bdate, "cost": _bpx, "qty": _bqty})
+                break
+        except (TypeError, ValueError):
+            continue
+    for _sym, _blots in _buy_lots.items():
+        existing = _lot_map.get(_sym, [])
+        _have: Dict[str, float] = {}
+        for l in existing:
+            _have[l["date"]] = _have.get(l["date"], 0.0) + l["qty"]
+        _by_date: Dict[str, list] = {}
+        for l in _blots:
+            _by_date.setdefault(l["date"], []).append(l)
+        added = []
+        for _d, _ls in _by_date.items():
+            _bought = sum(l["qty"] for l in _ls)
+            _extra  = _bought - _have.get(_d, 0.0)
+            if _extra > 0.001:
+                _avg = sum(l["qty"] * l["cost"] for l in _ls) / _bought
+                added.append({"date": _d, "cost": _avg, "qty": _extra})
+        if added:
+            _lot_map[_sym] = sorted(existing + added, key=lambda l: l["date"])
+
     def _safe_net(tx):
         try:
             return float(tx.get("netAmount") or 0)
@@ -1968,6 +2043,8 @@ def get_realized_gains(year: int = None, force: bool = False) -> Dict[str, Any]:
     prev_q4_stcg = 0.0
     prev_q4_loss = 0.0
     _curr_year_str = _curr_year_start.strftime("%Y-%m-%d")
+    _prev_q4_str   = f"{_year - 1}-10-01"
+    unmatched: Dict[str, float] = {}   # symbol → shares sold with no lot to match
 
     # Stateful FIFO: build a mutable lot queue per symbol (deep-copy so we can
     # consume shares).  Sells are processed in chronological order so each
@@ -2115,7 +2192,14 @@ def get_realized_gains(year: int = None, force: bool = False) -> Dict[str, Any]:
                     _ltcg_gain += lot_gain
                 lot["qty"]  -= matched
                 remaining   -= matched
-            # Shares beyond available lots are silently skipped (no fallback guessing)
+            # Shares beyond available lots are skipped (no fallback guessing) —
+            # surfaced in `unmatched_sells` so missing basis is visible.
+            if remaining > 0.001 and date_str >= _prev_q4_str:
+                unmatched[symbol] = unmatched.get(symbol, 0.0) + remaining
+
+            # Older sells only exist to consume FIFO lots; they aren't reported.
+            if date_str < _prev_q4_str:
+                continue
 
             gain      = _stcg_gain + _ltcg_gain
             cost      = proceeds - gain   # implied cost for display
@@ -2194,6 +2278,8 @@ def get_realized_gains(year: int = None, force: bool = False) -> Dict[str, Any]:
         "prev_q4_stcg":         round(prev_q4_stcg, 2),
         "prev_q4_loss":         round(prev_q4_loss, 2),
         "prev_q4_transactions": sorted(prev_q4_transactions, key=lambda x: x["date"], reverse=True),
+        # Shares sold (prior Q4 onward) that had no lot or BUY fill to match — gain understated
+        "unmatched_sells":      {k: round(v, 3) for k, v in unmatched.items()},
     }
     _realized_gains_cache = result
     _realized_gains_cache_date = _today_str

@@ -554,7 +554,7 @@ def do_refresh():
         try:
             import db_manager as _dbm
             from datetime import date as _date
-            _rg_key = f"schwab:realized_gains_v12_{_date.today().isoformat()}"
+            _rg_key = f"schwab:realized_gains_v13_{_date.today().isoformat()}"
             _dbm.cache_delete(_rg_key)
         except Exception:
             pass
@@ -2504,7 +2504,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             try:
                 import db_manager as _dbm
                 from datetime import date as _date
-                _rg_key = f"schwab:realized_gains_v12_{_date.today().isoformat()}"
+                _rg_key = f"schwab:realized_gains_v13_{_date.today().isoformat()}"
                 _dbm.cache_delete(_rg_key)
             except Exception:
                 pass

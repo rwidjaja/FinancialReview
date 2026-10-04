@@ -201,8 +201,8 @@ def _init_schema() -> None:
         CREATE INDEX IF NOT EXISTS idx_schwab_tx_account
             ON schwab_transactions(account_type, tx_date DESC);
 
-        -- Persistent store for taxable-account SELL transactions used for
-        -- realized capital gain calculation.  Historical rows (> 2 months old)
+        -- Persistent store for taxable-account TRADE fills (sells: net_amount > 0,
+        -- buys: net_amount < 0) used for realized capital gain calculation.  Historical rows (> 2 months old)
         -- are written once and never overwritten; only the rolling window is
         -- refreshed each run.
         CREATE TABLE IF NOT EXISTS realized_trade_txns (
@@ -333,7 +333,7 @@ def get_schwab_tx_date_range(account_type: str) -> tuple:
 # ── realized_trade_txns ──────────────────────────────────────────────────────
 
 def realized_txns_upsert(rows: list) -> int:
-    """Insert raw Schwab SELL transactions. Primary key = activity_id; existing rows are skipped."""
+    """Insert raw Schwab TRADE fills (buys and sells). Primary key = activity_id; existing rows are skipped."""
     if not rows:
         return 0
     c = _conn()
@@ -369,7 +369,7 @@ def realized_txns_upsert_replace(rows: list) -> int:
 
 
 def realized_txns_get_all() -> list:
-    """Return all stored raw Schwab SELL rows as dicts."""
+    """Return all stored raw Schwab TRADE rows (buys and sells) as dicts."""
     c = _conn()
     rows = c.execute(
         "SELECT raw_json FROM realized_trade_txns ORDER BY trade_date ASC"
