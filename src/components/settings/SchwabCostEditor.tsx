@@ -552,14 +552,14 @@ export function SchwabCostEditor({ data, accountMapping = {}, onSaved }: {
           </select>
           <button onClick={addSymbol} style={{
             padding: '6px 16px', fontSize: 12, fontWeight: 500, background: G,
-            color: 'var(--fd-ink)', border: 'none', borderRadius: 0, cursor: 'pointer',
+            color: 'var(--fd-page)', border: 'none', borderRadius: 0, cursor: 'pointer',
           }}>Create Symbol</button>
           
           <div style={{ width: 1, height: 24, background: 'var(--border2)', margin: '0 8px' }} />
           
           <label style={{
             padding: '6px 16px', fontSize: 12, fontWeight: 500, background: 'var(--fd-accent)',
-            color: 'var(--fd-ink)', border: 'none', borderRadius: 0, cursor: 'pointer',
+            color: 'var(--fd-page)', border: 'none', borderRadius: 0, cursor: 'pointer',
             display: 'inline-block',
           }}>
              Import CSV

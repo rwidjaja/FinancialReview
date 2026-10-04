@@ -71,7 +71,7 @@ function SaveBar({ onSave, saving, saved, error }: {
         disabled={saving}
         style={{
           padding: '6px 18px', fontSize: 12, fontWeight: 500,
-          background: saving ? 'var(--border2)' : G, color: 'var(--fd-ink)',
+          background: saving ? 'var(--border2)' : G, color: saving ? 'var(--fd-ink)' : 'var(--fd-page)',
           border: 'none', borderRadius: 0, cursor: saving ? 'not-allowed' : 'pointer',
           letterSpacing: '0.5px', textTransform: 'uppercase',
         }}
