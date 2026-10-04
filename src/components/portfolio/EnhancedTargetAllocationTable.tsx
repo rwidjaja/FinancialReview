@@ -1,6 +1,7 @@
 import { fmtMoneyFull } from '../../utils/formatters'
 import type { DashboardData } from '../../types/dashboard'
-import { G, R, A, M } from './DetailTab.constants'
+import { G, R, M } from './DetailTab.constants'
+import { TileGrid, GridTile, StatusTag, Label, mono, muted, type Status } from '../ui/primitives'
 
 export function EnhancedTargetAllocationTable({
   rows,
@@ -133,295 +134,98 @@ export function EnhancedTargetAllocationTable({
     })
 
   const enhancedRows = [...enhancedFromTarget, ...currentOnlyRows]
-    .sort((a, b) => {
-      if (a.action === 'SELL' && b.action !== 'SELL') return -1
-      if (a.action !== 'SELL' && b.action === 'SELL') return 1
-      return Math.abs(b.gapValue) - Math.abs(a.gapValue)
-    })
+    .sort((a, b) => (ACTION_ORDER[a.action] ?? 9) - (ACTION_ORDER[b.action] ?? 9) || Math.abs(b.gapValue) - Math.abs(a.gapValue))
 
   if (enhancedRows.length === 0 || accountTotalValue === 0) {
     return (
-      <div style={{ padding: '16px', color: M, fontSize: 12 }}>
+      <span style={{ fontSize: 14, ...muted }}>
         No target allocation data available for {accountType === 'roth' ? 'Roth IRA' : 'Taxable'} account.
-      </div>
+      </span>
     )
   }
 
+  // ── Totals ──
+  const buys  = enhancedRows.filter(r => r.gapValue > 0).reduce((s, r) => s + r.gapValue, 0)
+  const sells = Math.abs(enhancedRows.filter(r => r.gapValue < 0).reduce((s, r) => s + r.gapValue, 0))
+  const nBuy  = enhancedRows.filter(r => r.action === 'BUY').length
+  const nSell = enhancedRows.filter(r => r.action === 'SELL' || r.action === 'EXIT').length
+
+  // Drift accuracy: 100% − (Σ|gap%| ÷ 2). Dividing by 2 avoids double-counting
+  // (overweights mirror underweights). Same formula as app.passive.com.
+  const sumAbsGap = enhancedRows.reduce((sum, r) => sum + Math.abs(r.gapPct), 0)
+  const adherence = Math.max(0, 100 - sumAbsGap / 2)
+  const adherenceStatus: Status = adherence >= 95 ? 'ok' : adherence >= 85 ? 'watch' : 'alert'
+  const adherenceLabel = adherence >= 95 ? 'Excellent' : adherence >= 85 ? 'Good' : adherence >= 70 ? 'Fair' : 'Needs rebalance'
+  const maxRow = enhancedRows.reduce((m, r) => (Math.abs(r.gapPct) > Math.abs(m.gapPct) ? r : m), enhancedRows[0])
+
+  // Tax-aware (taxable only): sells on positions with unrealised short-term gains are deferred
+  const tx = data.tax_data as unknown as { marginal_rate?: number; ltcg_rate?: number; cost_basis_lots?: Record<string, { lots?: Lot[] }> } | undefined
+  const lots = tx?.cost_basis_lots ?? {}
+  const rate = (v: number | undefined, d: number) => { const x = v ?? d; return x > 1 ? x / 100 : x }
+  const stcgRate = rate(tx?.marginal_rate, 32)
+  const ltcgRate = rate(tx?.ltcg_rate, 15)
+  let sellNow = 0, deferredTaxSaved = 0
+  const deferred: string[] = []
+  for (const r of enhancedRows) {
+    if (r.gapValue >= 0) continue
+    const symLots = lots[r.symbol]?.lots ?? []
+    const stLots = symLots.filter((l: Lot) => (l.days_to_lt ?? 0) > 0 && ((l.market_value ?? 0) - (l.cost_basis ?? 0)) > 0)
+    if (stLots.length === 0) { sellNow += Math.abs(r.gapValue); continue }
+    deferred.push(r.symbol)
+    deferredTaxSaved += stLots.reduce((s: number, l: Lot) => s + ((l.market_value ?? 0) - (l.cost_basis ?? 0)), 0) * (stcgRate - ltcgRate)
+  }
+
+  const sellSub = accountType === 'roth'
+    ? `${nSell} position${nSell !== 1 ? 's' : ''} · tax-free inside the Roth`
+    : deferred.length === 0
+      ? `${nSell} position${nSell !== 1 ? 's' : ''} · no short-term lots in the way`
+      : `${fmtMoneyFull(sellNow)} can go now. Waiting on ${deferred.join(', ')} for long-term rates saves ~${fmtMoneyFull(deferredTaxSaved)}.`
+
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table className="bb-table" style={{ minWidth: 800 }}>
-        <thead>
-          <tr>
-            <th>SYMBOL</th>
-            <th className="r">TARGET %</th>
-            <th className="r">CURRENT %</th>
-            <th className="r">GAP %</th>
-            <th className="r">TARGET $</th>
-            <th className="r">CURRENT $</th>
-            <th className="r">GAP $</th>
-            <th className="r"># SHARES</th>
-            <th>ACTION</th>
-          </tr>
-        </thead>
-        <tbody>
-          {enhancedRows.map(r => {
-            const gapColor = Math.abs(r.gapPct) < 1 ? G : Math.abs(r.gapPct) < 3 ? 'var(--yellow)' : R
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <TileGrid cols={3}>
+        <GridTile label="To sell" value={<span style={{ color: sells > 0 ? 'var(--fd-negative)' : undefined }}>{fmtMoneyFull(sells)}</span>} sub={sellSub} />
+        <GridTile label="To buy" value={fmtMoneyFull(buys)} sub={`${nBuy} position${nBuy !== 1 ? 's' : ''} · account ${fmtMoneyFull(accountTotalValue)}`} />
+        <GridTile label="Plan adherence" status={adherenceStatus} value={`${adherence.toFixed(1)}%`}
+          sub={`${adherenceLabel}. Largest gap ${maxRow.symbol} ${Math.abs(maxRow.gapPct).toFixed(1)} pts.${accountType === 'taxable' && adherence < 85 ? ' Low score expected while tax-constrained exits wait.' : ''}`} />
+      </TileGrid>
 
-            return (
-              <tr key={r.symbol}>
-                              <td>
-                <span style={{ fontWeight: 500, fontFamily: 'var(--font-mono)' }}>
-                  {r.symbol.toUpperCase().includes('NEW') ? (
-                    <span title={r.symbol}>Future position (TBD)</span>
-                  ) : r.symbol}
-                </span>
-                {r.isCurrentOnly && (
-                  <span style={{
-                    fontSize: 12, fontWeight: 500, color: R,
-                    padding: '1px 4px', marginLeft: 6,
-                    border: '1px solid var(--fd-hairline)',
-                    letterSpacing: '0.4px', borderRadius: 0
-                  }}>EXIT</span>
-                )}
-                {r.isTargetOnly && !r.isCurrentOnly && (
-                  <span style={{
-                    fontSize: 12, fontWeight: 500, color: G,
-                    padding: '1px 4px', marginLeft: 6,
-                    border: '1px solid var(--fd-hairline)',
-                    letterSpacing: '0.4px', borderRadius: 0
-                  }}>NEW</span>
-                )}
-              </td>
+      <div>
+        <div style={{ display: 'grid', gridTemplateColumns: COLS, gap: 12, padding: '10px 0', borderTop: '2px solid var(--fd-rule)', borderBottom: '1px solid var(--fd-hairline)', ...mono, ...muted }}>
+          <span>Symbol</span><span>Current → target</span><span style={{ textAlign: 'right' }}>Trade</span><span style={{ textAlign: 'right' }}>Shares</span><span style={{ textAlign: 'right' }}>Action</span>
+        </div>
+        {enhancedRows.map(r => {
+          const hold = r.action === 'HOLD'
+          const label = r.symbol.toUpperCase().includes('NEW') ? 'Future (TBD)' : r.symbol
+          return (
+            <div key={r.symbol} className="fd-row"
+              title={`Current ${fmtMoneyFull(r.currentValue)} → target ${fmtMoneyFull(r.targetValue)}${r.price > 0 ? ` · @ ${fmtMoneyFull(r.price)}` : ''}`}
+              style={{ display: 'grid', gridTemplateColumns: COLS, gap: 12, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--fd-hairline)', fontSize: 14, color: hold ? 'var(--fd-muted)' : undefined }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 500 }} title={r.symbol}>{label}</span>
+              <span>
+                {r.currentPct.toFixed(1)}% <span style={muted}>→</span> {r.targetPct.toFixed(1)}%
+                {r.isTargetOnly && !r.isCurrentOnly && <span style={{ fontSize: 13, ...muted }}> · new</span>}
+              </span>
+              <span style={{ textAlign: 'right', fontWeight: 500, color: hold ? undefined : r.gapValue >= 0 ? 'var(--fd-ink)' : 'var(--fd-negative)' }}>
+                {hold ? '—' : `${r.gapValue >= 0 ? '+' : '−'}${fmtMoneyFull(Math.abs(r.gapValue))}`}
+              </span>
+              <span style={{ textAlign: 'right' }}>{!hold && r.sharesAbs > 0.0001 ? formatShares(r.sharesAbs) : '—'}</span>
+              <span style={{ textAlign: 'right' }}>
+                {hold ? <Label>Hold</Label> : <StatusTag status={r.action === 'BUY' ? 'ok' : 'alert'}>{r.action}</StatusTag>}
+              </span>
+            </div>
+          )
+        })}
+      </div>
 
-                <td className="r" style={{ fontFamily: 'var(--font-mono)' }}>{r.targetPct.toFixed(1)}%</td>
-                <td className="r" style={{ fontFamily: 'var(--font-mono)' }}>{r.currentPct.toFixed(1)}%</td>
-                <td className="r" style={{ color: gapColor, fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
-                  {r.gapPct >= 0 ? '+' : ''}{r.gapPct.toFixed(1)}%
-                </td>
-                <td className="r" style={{ fontFamily: 'var(--font-mono)', color: A }}>
-                  {fmtMoneyFull(r.targetValue)}
-                </td>
-                <td className="r" style={{ fontFamily: 'var(--font-mono)', color: M }}>
-                  {fmtMoneyFull(r.currentValue)}
-                </td>
-                <td className="r" style={{ fontFamily: 'var(--font-mono)', color: r.gapValue >= 0 ? G : R, fontWeight: 500 }}>
-                  {r.gapValue >= 0 ? '+' : '−'}{fmtMoneyFull(Math.abs(r.gapValue))}
-                </td>
-                <td className="r" style={{ fontFamily: 'var(--font-mono)', color: r.actionColor }}>
-                  {Math.abs(r.sharesToTrade) > 0.0001 ? formatShares(r.sharesAbs) : '—'}
-                </td>
-                <td>
-                  <span style={{
-                    fontSize: 12, fontWeight: 500, padding: '2px 6px', borderRadius: 0,
-                    background: r.action === 'BUY' ? 'var(--fd-card)' : r.action === 'SELL' || r.action === 'EXIT' ? 'var(--fd-card)' : 'transparent',
-                    color: r.actionColor,
-                  }}>
-                    {r.action}
-                  </span>
-                  {r.action === 'EXIT' && (
-                    <div style={{ fontSize: 12, color: M, marginTop: 2, lineHeight: 1.3 }}>
-                      {accountType === 'roth' ? 'full exit · tax-free' : 'full exit · CPA pending'}
-                    </div>
-                  )}
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-        <tfoot>
-          <tr style={{ fontWeight: 500, borderTop: '2px solid var(--border2)', background: 'var(--surface)' }}>
-            <td colSpan={8} style={{ padding: '8px 12px' }}>
-              {/* ── Rebalance Options ── */}
-              {(() => {
-                const tx = data.tax_data as any
-                const lots = tx?.cost_basis_lots ?? {}
-                const stcgRate = tx ? ((tx.marginal_rate ?? 32) > 1 ? (tx.marginal_rate ?? 32) / 100 : (tx.marginal_rate ?? 0.32)) : 0.32
-                const ltcgRate = tx ? ((tx.ltcg_rate ?? 15) > 1 ? (tx.ltcg_rate ?? 15) / 100 : (tx.ltcg_rate ?? 0.15)) : 0.15
-
-                const modelBuys  = enhancedRows.filter(r => r.gapValue > 0).reduce((s, r) => s + r.gapValue, 0)
-                const modelSells = Math.abs(enhancedRows.filter(r => r.gapValue < 0).reduce((s, r) => s + r.gapValue, 0))
-                const modelTotal = (modelBuys + modelSells) / 2
-
-                // Tax-aware: include buys always; for sells only include positions with no STCG lots
-                let taxAwareSells = 0
-                let taxAwareBuys  = modelBuys
-                let deferredStcgTax = 0
-                for (const r of enhancedRows) {
-                  if (r.gapValue >= 0) continue
-                  const symLots = lots[r.symbol]?.lots ?? []
-                  const hasStcg = symLots.some((l: any) => (l.days_to_lt ?? 0) > 0 && ((l.market_value ?? 0) - (l.cost_basis ?? 0)) > 0)
-                  if (!hasStcg) {
-                    taxAwareSells += Math.abs(r.gapValue)
-                  } else {
-                    // Estimate tax on STCG portion deferred
-                    const stcgGain = symLots.filter((l: any) => (l.days_to_lt ?? 0) > 0).reduce((s: number, l: any) => s + Math.max(0, (l.market_value ?? 0) - (l.cost_basis ?? 0)), 0)
-                    deferredStcgTax += stcgGain * (stcgRate - ltcgRate)
-                  }
-                }
-                const taxAwareTotal = (taxAwareBuys + taxAwareSells) / 2
-
-                // Do nothing: drift cost estimated as avg drift% × 0.5% annual alpha drag
-                const sumAbsGap = enhancedRows.reduce((sum, r) => sum + Math.abs(r.gapPct), 0)
-                const avgDrift = enhancedRows.length > 0 ? sumAbsGap / enhancedRows.length : 0
-                const annualDriftCost = (avgDrift / 100) * accountTotalValue * 0.005
-
-                if (accountType === 'roth') {
-                  const rothOpts = [
-                    {
-                      label: 'Rebalance Now',
-                      sub: 'Tax-free — no STCG or LTCG owed',
-                      value: fmtMoneyFull(modelTotal),
-                      detail: `${fmtMoneyFull(modelBuys)} buys · ${fmtMoneyFull(modelSells)} sells`,
-                      color: G,
-                    },
-                    {
-                      label: 'Do Nothing',
-                      sub: 'Estimated annual drift cost',
-                      value: `~${fmtMoneyFull(annualDriftCost)}/yr`,
-                      detail: `${avgDrift.toFixed(1)}% avg drift · 0.5% alpha drag`,
-                      color: R,
-                    },
-                  ]
-                  return (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 10 }}>
-                      {rothOpts.map(o => (
-                        <div key={o.label} style={{
-                          padding: '8px 10px', borderRadius: 0,
-                          background: 'var(--fd-card)',
-                          border: '1px solid var(--fd-hairline)',
-                        }}>
-                          <div style={{ fontSize: 12, fontWeight: 500, color: o.color, letterSpacing: '0.4px', marginBottom: 2 }}>{o.label}</div>
-                          <div style={{ fontSize: 15, fontWeight: 500, fontFamily: 'var(--font-mono)', color: 'var(--text)', lineHeight: 1.2 }}>{o.value}</div>
-                          <div style={{ fontSize: 12, color: M, marginTop: 3 }}>{o.sub}</div>
-                          <div style={{ fontSize: 12, color: M, marginTop: 1, opacity: 0.7 }}>{o.detail}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )
-                }
-
-                const opts = [
-                  {
-                    label: 'Model Rebalance',
-                    sub: 'Full rebalance to target',
-                    value: fmtMoneyFull(modelTotal),
-                    detail: `${fmtMoneyFull(modelBuys)} buys · ${fmtMoneyFull(modelSells)} sells`,
-                    color: A,
-                  },
-                  {
-                    label: 'Tax-Aware',
-                    sub: `Defer STCG lots · save ~${fmtMoneyFull(deferredStcgTax)}`,
-                    value: fmtMoneyFull(taxAwareTotal),
-                    detail: `${fmtMoneyFull(taxAwareBuys)} buys · ${fmtMoneyFull(taxAwareSells)} sells`,
-                    color: G,
-                  },
-                  {
-                    label: 'Do Nothing',
-                    sub: 'Estimated annual drift cost',
-                    value: `~${fmtMoneyFull(annualDriftCost)}/yr`,
-                    detail: `${avgDrift.toFixed(1)}% avg drift · 0.5% alpha drag`,
-                    color: R,
-                  },
-                ]
-
-                return (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 10 }}>
-                    {opts.map(o => (
-                      <div key={o.label} style={{
-                        padding: '8px 10px', borderRadius: 0,
-                        background: 'var(--fd-card)',
-                        border: '1px solid var(--fd-hairline)',
-                      }}>
-                        <div style={{ fontSize: 12, fontWeight: 500, color: o.color, letterSpacing: '0.4px', marginBottom: 2 }}>{o.label}</div>
-                        <div style={{ fontSize: 15, fontWeight: 500, fontFamily: 'var(--font-mono)', color: 'var(--text)', lineHeight: 1.2 }}>{o.value}</div>
-                        <div style={{ fontSize: 12, color: M, marginTop: 3 }}>{o.sub}</div>
-                        <div style={{ fontSize: 12, color: M, marginTop: 1, opacity: 0.7 }}>{o.detail}</div>
-                      </div>
-                    ))}
-                  </div>
-                )
-              })()}
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                <span style={{ color: M }}>TOTAL PORTFOLIO VALUE: <span style={{ color: 'var(--text)', fontWeight: 500 }}>{fmtMoneyFull(accountTotalValue)}</span></span>
-                <span style={{ color: A }}>
-                  TOTAL REBALANCE: {fmtMoneyFull(enhancedRows.reduce((sum, r) => sum + Math.abs(r.gapValue), 0) / 2)}
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 12 }}>
-                <span style={{ color: G }}>
-                  BUYS: {fmtMoneyFull(enhancedRows.filter(r => r.gapValue > 0).reduce((s, r) => s + r.gapValue, 0))}
-                </span>
-                <span style={{ color: R }}>
-                  SELLS: {fmtMoneyFull(Math.abs(enhancedRows.filter(r => r.gapValue < 0).reduce((s, r) => s + r.gapValue, 0)))}
-                </span>
-                <span style={{ color: M }}>
-                  NET: {fmtMoneyFull(enhancedRows.reduce((sum, r) => sum + r.gapValue, 0))}
-                </span>
-              </div>
-              {/* ── Drift Accuracy + Summary ── */}
-              {(() => {
-                // Drift accuracy: 100% − (Σ|gap%| / 2)
-                // Dividing by 2 avoids double-counting (overweights mirror underweights).
-                // 100% = perfectly on target; matches the formula used by app.passive.com.
-                const sumAbsGap = enhancedRows.reduce((sum, r) => sum + Math.abs(r.gapPct), 0)
-                const driftAccuracy = Math.max(0, 100 - sumAbsGap / 2)
-                const accuracyColor = driftAccuracy >= 95 ? G : driftAccuracy >= 85 ? 'var(--yellow)' : driftAccuracy >= 70 ? A : R
-                const accuracyLabel = driftAccuracy >= 95 ? 'EXCELLENT' : driftAccuracy >= 85 ? 'GOOD' : driftAccuracy >= 70 ? 'FAIR' : 'NEEDS REBAL'
-
-                // Average per-position absolute drift
-                const totalDriftPct = enhancedRows.length > 0 ? sumAbsGap / enhancedRows.length : 0
-                const driftColor = totalDriftPct < 2 ? G : totalDriftPct < 5 ? 'var(--yellow)' : totalDriftPct < 10 ? A : R
-                const maxDrift = Math.max(...enhancedRows.map(r => Math.abs(r.gapPct)), 0)
-                const maxDriftSym = enhancedRows.find(r => Math.abs(r.gapPct) === maxDrift)?.symbol ?? '—'
-                return (
-                  <>
-                    {/* Drift accuracy — prominent row */}
-                    <div style={{
-                      display: 'flex', alignItems: 'center', gap: 12, marginTop: 8,
-                      padding: '6px 10px', borderRadius: 0,
-                      background: 'var(--fd-card)',
-                      border: '1px solid var(--fd-hairline)',
-                    }}>
-                      <div style={{ fontSize: 22, fontWeight: 500, fontFamily: 'var(--font-mono)', color: accuracyColor, lineHeight: 1 }}>
-                        {driftAccuracy.toFixed(1)}%
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 500, color: accuracyColor, letterSpacing: '0.5px' }}>
-                          PLAN ADHERENCE — {accuracyLabel}
-                        </div>
-                        <div style={{ fontSize: 12, color: M, marginTop: 1 }}>
-                          100% − (Σ|gap| ÷ 2) · {sumAbsGap.toFixed(2)}% total deviation across {enhancedRows.length} positions
-                          {accountType === 'taxable' && driftAccuracy < 85 && (
-                            <span style={{ color: A, marginLeft: 4 }}>· low score expected — tax-constrained exits pending CPA guidance</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    {/* Detail drift stats */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 12, borderTop: '1px solid var(--border2)', paddingTop: 4 }}>
-                      <span style={{ color: M }}>
-                        AVG DRIFT: <span style={{ color: driftColor, fontWeight: 500 }}>{totalDriftPct.toFixed(2)}%</span> per position
-                      </span>
-                      <span style={{ color: M }}>
-                        MAX DRIFT: <span style={{ color: driftColor, fontWeight: 500, fontFamily: 'var(--font-mono)' }}>{maxDriftSym}</span>
-                        {' '}<span style={{ color: driftColor, fontWeight: 500 }}>{maxDrift.toFixed(1)}%</span>
-                      </span>
-                      <span style={{ color: M }}>
-                        DRIFT RATING: <span style={{ color: driftColor, fontWeight: 500 }}>
-                          {totalDriftPct < 2 ? 'TIGHT' : totalDriftPct < 5 ? 'MODERATE' : totalDriftPct < 10 ? 'LOOSE' : 'DRIFTED'}
-                        </span>
-                      </span>
-                    </div>
-                  </>
-                )
-              })()}
-              <div style={{ fontSize: 12, color: M, marginTop: 4 }}>
-                * Positive gap = buy, Negative gap = sell | EXIT = remove from portfolio | Shares calculated at current market price
-              </div>
-            </td>
-          </tr>
-        </tfoot>
-      </table>
+      <span style={{ fontSize: 13, ...muted }}>
+        Shares at current price. Hold = within 0.5 pts of target. Exit = held without a target{accountType === 'taxable' ? ' (CPA pending)' : ''}. Hover a row for dollar values.
+      </span>
     </div>
   )
 }
+
+type Lot = { days_to_lt?: number; market_value?: number; cost_basis?: number }
+
+const COLS = '88px minmax(0,1fr) 120px 88px 72px'
+const ACTION_ORDER: Record<string, number> = { EXIT: 0, SELL: 0, BUY: 1, HOLD: 2 }
