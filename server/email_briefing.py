@@ -223,6 +223,62 @@ def build_signal_lines(data: dict) -> tuple[str, list[str]]:
     return header, lines
 
 
+# (label, account key, analysis field) — same sources as the dashboard's
+# EnhancedTargetAllocationTable.
+_DRIFT_SLEEVES = [
+    ("Taxable", "taxable", "taxable_target_analysis"),
+    ("Roth IRA", "roth_ira", "roth_target_analysis"),
+]
+_DRIFT_HOLD_BAND = 0.5  # pts — gaps inside this are HOLD, matching the dashboard
+
+
+def build_drift_lines(data: dict) -> list[str]:
+    """Per-account drift from target allocation. Adherence uses the same
+    formula as the dashboard: 100 − Σ|gap pts| ÷ 2."""
+    accounts = {a.get("key"): a for a in (data.get("accounts") or [])}
+    lines = []
+    for label, acct_key, field in _DRIFT_SLEEVES:
+        rows = data.get(field) or []
+        if not rows:
+            continue
+        acct = accounts.get(acct_key) or {}
+        acct_value = acct.get("value") or 0.0
+
+        drift = []  # (symbol, current %, target %, gap pts, gap $)
+        for r in rows:
+            gap_pts = (r.get("gap_pct") or 0) * 100
+            gap_usd = r.get("dollar_gap")
+            if gap_usd is None:
+                gap_usd = (r.get("target_weight") or 0) * acct_value - (r.get("current_value") or 0)
+            drift.append((r.get("symbol", "?"), (r.get("current_weight") or 0) * 100,
+                          (r.get("target_weight") or 0) * 100, gap_pts, gap_usd))
+
+        # Holdings with no target weight — the dashboard treats these as full exits.
+        target_syms = {r.get("symbol") for r in rows}
+        for p in acct.get("positions") or []:
+            val = p.get("value") or 0
+            if p.get("symbol") not in target_syms and val > 0 and acct_value:
+                pct = val / acct_value * 100
+                drift.append((p["symbol"], pct, 0.0, -pct, -val))
+
+        adherence = max(0.0, 100 - sum(abs(d[3]) for d in drift) / 2)
+        status = ("Excellent" if adherence >= 95 else "Good" if adherence >= 85
+                  else "Fair" if adherence >= 70 else "Needs rebalance")
+        lines.append(f"  {label} — adherence {adherence:.1f}% ({status})")
+
+        out_of_band = sorted((d for d in drift if abs(d[3]) > _DRIFT_HOLD_BAND),
+                             key=lambda d: -abs(d[3]))
+        if not out_of_band:
+            lines.append(f"    All positions within ±{_DRIFT_HOLD_BAND} pts of target.")
+        for sym, cur, tgt, gap, usd in out_of_band:
+            action = "EXIT" if tgt == 0 else "BUY" if usd > 0 else "SELL"
+            lines.append(
+                f"    {sym:<6s} {cur:5.1f}% → {tgt:5.1f}%   {-gap:+5.1f} pts   "
+                f"{action:<4s} {_fmt_usd(usd).lstrip('+-').rjust(12)}"
+            )
+    return lines
+
+
 def build_action_lines(data: dict) -> list[str]:
     return [f"  {a.get('icon', '')} {a.get('action', '')} — {a.get('text', '')}"
             for a in (data.get("decision_strip") or [])]
@@ -248,6 +304,7 @@ def build_email(session: str, dashboard_url: str) -> tuple[str, str]:
     action_lines = build_action_lines(data)
     account_lines = build_account_lines(data)
     market_lines = build_market_lines(indices, data)
+    drift_lines = build_drift_lines(data)
 
     parts = [
         f"{session_label} — {time_str}",
@@ -260,6 +317,9 @@ def build_email(session: str, dashboard_url: str) -> tuple[str, str]:
         "",
         "BY ACCOUNT",
         *(account_lines or ["  (no account data)"]),
+        "",
+        "DRIFT FROM TARGET",
+        *(drift_lines or ["  (no target allocation data)"]),
         "",
         "MARKET",
         *(market_lines or ["  (index data unavailable)"]),
