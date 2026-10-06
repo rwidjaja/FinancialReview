@@ -152,13 +152,13 @@ export function LotMaturityPanel({ tx }: { tx: DashboardData['tax_data'] }) {
                     </div>
                     {events.map((ev, i) => (
                       <div key={i} style={{
-                        display: 'grid', gridTemplateColumns: '70px 1fr 80px 70px 60px',
-                        fontSize: 12, padding: '3px 6px',
+                        display: 'grid', gridTemplateColumns: '56px minmax(0,1fr) 96px 92px 48px',
+                        gap: '0 12px', fontSize: 12, padding: '3px 6px', whiteSpace: 'nowrap',
                         borderBottom: i < events.length - 1 ? '1px solid var(--border)' : 'none',
                         alignItems: 'center',
                       }}>
                         <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 500, color: 'var(--text)' }}>{ev.symbol}</span>
-                        <span style={{ color: M }}>{ev.shares.toLocaleString()} sh · acq {ev.acq_date}</span>
+                        <span style={{ color: M, overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.shares.toLocaleString()} sh · acq {ev.acq_date}</span>
                         <span style={{ fontFamily: 'var(--font-mono)', textAlign: 'right', color: ev.gain >= 0 ? Y : G, fontWeight: 500 }}>
                           {fmtMoneyFull(ev.gain)}
                         </span>
@@ -188,8 +188,8 @@ export function LotMaturityPanel({ tx }: { tx: DashboardData['tax_data'] }) {
                     </div>
                     {s.lots.map((lot, i) => (
                       <div key={i} style={{
-                        display: 'grid', gridTemplateColumns: '80px 50px 70px 75px 1fr',
-                        fontSize: 12, padding: '2px 4px',
+                        display: 'grid', gridTemplateColumns: '88px 80px minmax(88px,1fr) 104px 48px',
+                        gap: '0 12px', fontSize: 12, padding: '2px 4px', whiteSpace: 'nowrap',
                         background: i % 2 === 0 ? 'transparent' : 'var(--panel)',
                         color: M, alignItems: 'center',
                       }}>

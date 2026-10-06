@@ -1627,7 +1627,7 @@ function TradeStepCard({ step, total_steps }: { step: TradeStep; total_steps: nu
               : 'var(--fd-card)',
             border: `1px solid ${s.is_stcg_wait ? C.green + '30' : 'var(--fd-hairline)'}`,
           }}>
-            {/* Top row: symbol + badge + key numbers */}
+            {/* Top row: symbol + badge */}
             <div style={{ display: 'flex', alignItems: 'center',
               gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
               <span style={{ fontSize: 16, fontWeight: 500,
@@ -1640,51 +1640,31 @@ function TradeStepCard({ step, total_steps }: { step: TradeStep; total_steps: nu
                   STCG → LTCG
                 </span>
               )}
-              <div style={{ marginLeft: 'auto', display: 'flex', gap: 16,
-                alignItems: 'baseline' }}>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 12, color: C.muted }}>Proceeds</div>
-                  <div style={{ fontSize: 13, fontFamily: 'var(--font-mono)',
-                    fontWeight: 500, color: C.text }}>{fmtD(s.proceeds)}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 12, color: C.muted }}>LTCG gain</div>
-                  <div style={{ fontSize: 13, fontFamily: 'var(--font-mono)',
-                    fontWeight: 500,
-                    color: s.gain > 0 ? C.green : s.gain < 0 ? C.red : C.muted }}>
-                    {s.gain !== 0 ? (s.gain > 0 ? `+${fmtD(s.gain)}` : fmtD(s.gain)) : '—'}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 12, color: C.muted }}>Tax est.</div>
-                  <div style={{ fontSize: 13, fontFamily: 'var(--font-mono)',
-                    fontWeight: 500,
-                    color: s.tax_est > 0 ? C.red : C.muted }}>
-                    {s.tax_est > 0 ? `~${fmtD(s.tax_est)}` : '—'}
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* Lot detail grid */}
-            <div style={{ display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
-              gap: '4px 12px',
-              padding: '8px 10px', borderRadius: 0,
-              background: 'var(--fd-card)',
-              marginBottom: 8 }}>
-              {[
-                ['Shares to sell', s.shares > 0 ? `${fmtShares(s.shares)} sh` : '—'],
-                ['Acquired date',  s.acquired_date ? fmtAcqDate(s.acquired_date) : '—'],
-                ['Cost/share',     s.cost_per_sh > 0 ? `$${s.cost_per_sh.toFixed(2)}` : '—'],
-                ['Cost basis',     s.cost_basis_total > 0 ? fmtD(s.cost_basis_total) : '—'],
-                ['Gain %',         s.gain_pct !== 0 ? `${s.gain_pct > 0 ? '+' : ''}${s.gain_pct}%` : '—'],
-              ].map(([label, val]) => (
-                <div key={label}>
+            {/* Stat strip: trade outcome, then lot detail — compact, left-aligned */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start',
+              gap: '8px 28px', marginBottom: 8 }}>
+              {([
+                ['Proceeds',       fmtD(s.proceeds), C.text],
+                ['LTCG gain',      s.gain !== 0 ? (s.gain > 0 ? `+${fmtD(s.gain)}` : fmtD(s.gain)) : '—',
+                                   s.gain > 0 ? C.green : s.gain < 0 ? C.red : C.muted],
+                ['Tax est.',       s.tax_est > 0 ? `~${fmtD(s.tax_est)}` : '—', s.tax_est > 0 ? C.red : C.muted],
+                null,
+                ['Shares to sell', s.shares > 0 ? `${fmtShares(s.shares)} sh` : '—', C.text],
+                ['Acquired',       s.acquired_date ? fmtAcqDate(s.acquired_date) : '—', C.text],
+                ['Cost/share',     s.cost_per_sh > 0 ? `$${s.cost_per_sh.toFixed(2)}` : '—', C.text],
+                ['Cost basis',     s.cost_basis_total > 0 ? fmtD(s.cost_basis_total) : '—', C.text],
+                ['Gain %',         s.gain_pct !== 0 ? `${s.gain_pct > 0 ? '+' : ''}${s.gain_pct}%` : '—',
+                                   s.gain_pct > 0 ? C.green : s.gain_pct < 0 ? C.red : C.muted],
+              ] as const).map((cell, j) => cell == null ? (
+                <div key={j} style={{ width: 1, alignSelf: 'stretch', background: 'var(--fd-hairline)' }} />
+              ) : (
+                <div key={cell[0]} style={{ whiteSpace: 'nowrap', minWidth: 88 }}>
                   <div style={{ fontSize: 12, color: C.muted,
-                    textTransform: 'uppercase', letterSpacing: '0.4px' }}>{label}</div>
-                  <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)',
-                    fontWeight: 500, color: C.text, marginTop: 1 }}>{val}</div>
+                    textTransform: 'uppercase', letterSpacing: '0.4px' }}>{cell[0]}</div>
+                  <div style={{ fontSize: 13, fontFamily: 'var(--font-mono)',
+                    fontWeight: 500, color: cell[2], marginTop: 2 }}>{cell[1]}</div>
                 </div>
               ))}
             </div>
