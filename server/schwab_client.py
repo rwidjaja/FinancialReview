@@ -112,7 +112,7 @@ def _account_map() -> Dict[str, str]:
         "Run start.sh to authenticate — discover_accounts() will auto-populate\n"
         "account_mapping.json with all linked Schwab accounts.\n"
         "Then set each account type (taxable / rollover_ira / roth_ira) in\n"
-        "Settings → Schwab Account Mapping."
+        "Settings → Schwab accounts."
     )
 
 
@@ -120,7 +120,7 @@ def _register_new_accounts(suffix_list: List[str]) -> None:
     """Add any newly-seen account suffixes to account_mapping.json with null type.
 
     Called automatically by get_account_hashes() so unmapped accounts appear
-    in Settings → Schwab Account Mapping for the user to label.
+    in Settings → Schwab accounts for the user to label.
     """
     mapping = _load_account_mapping()
     changed = False
@@ -139,7 +139,7 @@ def _register_new_accounts(suffix_list: List[str]) -> None:
             changed = True
             print(
                 f"[schwab] New account ...{suffix} added to account_mapping.json — "
-                f"set its type in Settings → Schwab Account Mapping"
+                f"set its type in Settings → Schwab accounts"
             )
 
     if changed:

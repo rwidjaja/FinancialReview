@@ -56,6 +56,7 @@ server/dashboard.db-wal
 redesign/*
 server/.yfinance_cache/*
 *.md
+!README.md
 server/.fuse_hidden0000000c00000001
 server/.fuse_hidden0000000c00000002
 server/.fuse_hidden0000000d00000001

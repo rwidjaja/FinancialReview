@@ -93,8 +93,9 @@ def main():
             print(f"  ...{num[-4:]}  (hash: {acct.get('hashValue', '?')[:12]}...)")
 
         print()
-        print("You can now run the dashboard:")
-        print("  python3 dashboard.py")
+        print("You can now run the dashboard from the project root:")
+        print("  ./start.sh")
+        print("Then set each account's type in Settings → Schwab accounts.")
 
     except KeyboardInterrupt:
         print("\nAborted.")
