@@ -275,14 +275,16 @@ export function TaxTab({ data }: Props) {
         )
       })()}
 
-      <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, borderTop: '2px solid var(--fd-rule)', paddingTop: 16, marginBottom: 0 }}>
+      {/* In the Advanced workspace the rail's view switcher replaces this bar. */}
+      {!ws.enabled && <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, borderTop: '2px solid var(--fd-rule)', paddingTop: 16, marginBottom: 0 }}>
         <SubTabBar>
           <SubTabBtn label="Tax planning"     index={1} active={subView === 'tax'}  onClick={() => setSubView('tax')}  />
           <SubTabBtn label="Roth conversion"  index={2} active={subView === 'roth'} onClick={() => setSubView('roth')} />
           <SubTabBtn label="Sell and rebalance" index={3} active={subView === 'sell'} onClick={() => setSubView('sell')} />
         </SubTabBar>
         <Label>Federal tax only — no state income tax modelled</Label>
-      </nav>
+      </nav>}
+      {ws.enabled && <Label>Federal tax only — no state income tax modelled</Label>}
 
       {(() => {
         const kpis: Record<SubView, Kpi[]> = {

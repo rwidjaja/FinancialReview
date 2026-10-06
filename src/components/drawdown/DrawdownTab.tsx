@@ -37,7 +37,7 @@ import { SandboxPanel }             from './SandboxPanel'
 import { PersistentActionChecklist } from './PersistentActionChecklist'
 import { PlainSummaryPanel }        from './PlainSummaryPanel'
 import { WsSection } from '../workspace/WorkspaceContext'
-import { useWsSubTabs } from '../workspace/context'
+import { useWorkspace, useWsSubTabs } from '../workspace/context'
 
 // ─── Main DrawdownTab ─────────────────────────────────────────────────────────
 interface Props { data: DashboardData }
@@ -45,6 +45,7 @@ interface Props { data: DashboardData }
 export function DrawdownTab({ data }: Props) {
   const [subTab, setSubTab] = useState<SubTab>('decision')
   useWsSubTabs(subTab, setSubTab as (s: string) => void)
+  const wsOn = useWorkspace().enabled   // the rail's view switcher replaces the sub-tab bar
   const [mode] = useGlobalViewMode()
   // Editable inputs — shared via context so Tax tab's Sell & Rebalance section
   // sizes its plan to the same taxable withdrawal need shown here.
@@ -185,11 +186,13 @@ export function DrawdownTab({ data }: Props) {
 
         <PersistentActionChecklist data={data} />
 
+        {!wsOn && (
         <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, borderTop: '2px solid var(--fd-rule)', paddingTop: 16 }}>
           <SubTabBar>
             {subTabs.map((t, i) => <SubTabBtn key={t.id} label={t.label} index={i + 1} active={subTab === t.id} onClick={() => setSubTab(t.id)} />)}
           </SubTabBar>
         </nav>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* AnnualDecisionPanel stays mounted (hidden when inactive) to keep its local state. */}

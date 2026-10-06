@@ -259,8 +259,8 @@ function TaxReadiness({ accounts, upcoming }: { accounts: Account[]; upcoming: Q
   const covered = surplus >= 0
   const fill = due > 0 ? Math.min(100, (liquid / due) * 100 / 1.5) : 100
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 24, alignItems: 'center', background: 'var(--fd-card)', padding: '20px 24px' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px 24px', alignItems: 'center', background: 'var(--fd-card)', padding: '20px 24px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: '1 1 360px', minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, fontSize: 14, flexWrap: 'wrap' }}>
           <Label>Payment readiness · {upcoming.quarter} · due {upcoming.due_label} · {upcoming.days_until === 0 ? 'today' : `${upcoming.days_until} days`}</Label>
           <span style={{ fontWeight: 500 }}>{$(liquid)} liquid vs {$(due)} due</span>
@@ -322,7 +322,7 @@ export function QuarterlyPayments({ tx, accounts, data }: { tx: DashboardData['t
 
   return (
     <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px 16px' }}>
         <h2 style={{ fontSize: 24, fontWeight: 500, letterSpacing: '-0.005em', margin: 0 }}>Estimated tax payments</h2>
         <Label>{$(yearTotal)} for {currentYear} · select a quarter for detail</Label>
       </div>
@@ -330,7 +330,8 @@ export function QuarterlyPayments({ tx, accounts, data }: { tx: DashboardData['t
 
       <TaxReadiness accounts={accounts} upcoming={upcoming} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(5, payments.length || 1)}, minmax(0,1fr))`, gap: 16 }}>
+      {/* Cards wrap to as many ≥220px columns as fit (≤5) — a fixed 5-up overflowed in narrow columns. */}
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(max(220px, calc((100% - ${(Math.min(5, payments.length || 1)) - 1} * 16px) / ${Math.min(5, payments.length || 1)})), 1fr))`, gap: 16 }}>
         {payments.map(p => {
           const st = quarterStatus(p, upcoming?.quarter, currentYear)
           const { qNum } = parseQuarter(p.quarter)
@@ -347,20 +348,20 @@ export function QuarterlyPayments({ tx, accounts, data }: { tx: DashboardData['t
               background: 'var(--fd-card)', color: 'var(--fd-ink)', padding: 20, display: 'flex', flexDirection: 'column', gap: 10,
               textAlign: 'left', cursor: 'pointer', minWidth: 0,
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 8 }}>
-                <span style={mono}>{p.quarter.replace(/\s*\d{4}$/, '')} · {p.period}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', width: '100%', gap: '4px 8px' }}>
+                <span style={{ ...mono, minWidth: 0 }}>{p.quarter.replace(/\s*\d{4}$/, '')} · {p.period}</span>
                 <span style={{ ...mono, color: st.isPast ? 'var(--fd-muted)' : 'var(--fd-accent)', whiteSpace: 'nowrap' }}>{st.priorYear ? 'Prior year' : st.isCurrent ? `Current · ${st.word}` : st.word}</span>
               </div>
-              <span style={{ fontSize: 32, fontWeight: 500, letterSpacing: '-0.005em', lineHeight: 1 }}>{fmtFull(p.payment)}</span>
+              <span style={{ fontSize: 'clamp(24px, 2.2vw, 32px)', fontWeight: 500, letterSpacing: '-0.005em', lineHeight: 1, whiteSpace: 'nowrap', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{fmtFull(p.payment)}</span>
               <span style={{ fontSize: 13, ...muted }}>Due {p.due_label}{rate != null ? ` · effective rate ${rate.toFixed(1)}%` : ''}</span>
               <div style={{ display: 'flex', flexDirection: 'column', width: '100%', borderTop: '1px solid var(--fd-hairline)' }}>
                 {lines.map(l => (
-                  <div key={l.k} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--fd-hairline)', fontSize: 13, gap: 8 }}>
-                    <span style={muted}>{l.k}</span><span>{l.v}</span>
+                  <div key={l.k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '8px 0', borderBottom: '1px solid var(--fd-hairline)', fontSize: 13, gap: 8 }}>
+                    <span style={{ ...muted, minWidth: 0 }}>{l.k}</span><span style={{ whiteSpace: 'nowrap' }}>{l.v}</span>
                   </div>
                 ))}
               </div>
-              <span style={{ ...mono, color: 'var(--fd-accent)' }}>Why {fmtFull(p.payment)} →</span>
+              <span style={{ ...mono, color: 'var(--fd-accent)', marginTop: 'auto' }}>Why this amount →</span>
             </button>
           )
         })}

@@ -1,7 +1,7 @@
 /**
  * Overview › Financial wellness — v4: three ruled columns + pill chips.
  * Columns: Wealth and income · Readiness · Signals. Same /api/wellness fields
- * and derived values as v3 (gauges/sparklines became rows).
+ * and derived values as v3 (gauges became rows; the 90-day net-worth line is kept).
  */
 import { useMemo, type ReactNode } from 'react'
 import { useWellnessData, useBalanceHistory } from '../../hooks/useDashboardData'
@@ -32,23 +32,43 @@ function Column({ title, rows }: { title: string; rows: Row[] }) {
   )
 }
 
-/** 90-day net-worth change from balance-history closes. */
+/** 90-day net-worth series (one close per day + today's value) and its % change. */
 function useNetWorthTrend(current: number | undefined) {
   const { data: rows } = useBalanceHistory(90)
   return useMemo(() => {
-    if (!rows || rows.length === 0 || !current) return null
+    if (!rows || rows.length === 0 || !current) return { pct: null, points: [] as number[] }
     const byDate: Record<string, number> = {}
     for (const r of rows) if (!byDate[r.date] || r.label === 'close') byDate[r.date] = r.total_value
-    const first = Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b))[0]?.[1]
-    return first ? ((current - first) / first) * 100 : null
+    const vals = Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v)
+    const first = vals[0]
+    return { pct: first ? ((current - first) / first) * 100 : null, points: vals.length > 1 ? [...vals, current] : [] }
   }, [rows, current])
+}
+
+/** The v3 net-worth sparkline, restored: 90-day line under the net-worth figure. */
+function NetWorthSparkline({ points }: { points: number[] }) {
+  if (points.length < 2) return null
+  const W = 240, H = 40
+  const min = Math.min(...points), max = Math.max(...points)
+  const range = max - min || 1
+  const x = (i: number) => (i / (points.length - 1)) * W
+  const y = (v: number) => H - 2 - ((v - min) / range) * (H - 4)
+  const d = points.map((v, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ')
+  const up = points[points.length - 1] >= points[0]
+  const color = up ? 'var(--fd-accent)' : 'var(--fd-negative)'
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" width="100%" height={H} aria-label="Net worth, last 90 days" style={{ display: 'block', overflow: 'visible', marginTop: 6 }}>
+      <path d={d} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <circle cx={x(points.length - 1)} cy={y(points[points.length - 1])} r={3} fill={color} />
+    </svg>
+  )
 }
 
 const successStatus = (p: number): Status => p >= 0.9 ? 'ok' : p >= 0.8 ? 'watch' : p >= 0.7 ? 'warn' : 'alert'
 
 export function WellnessSnapshot({ data }: { data: DashboardData }) {
   const { data: w, isLoading, error } = useWellnessData()
-  const trend = useNetWorthTrend(w?.net_worth)
+  const { pct: trend, points: nwPoints } = useNetWorthTrend(w?.net_worth)
   const pi = data.portfolio_intel
   const td = data.tax_data
   const s = data.summary
@@ -99,7 +119,10 @@ export function WellnessSnapshot({ data }: { data: DashboardData }) {
   const fragStatus: Status = pi?.fragility_level === 'HIGH' ? 'alert' : pi?.fragility_level === 'MODERATE' ? 'warn' : 'ok'
 
   const wealth: Row[] = [
-    { label: 'Net worth', value: fmtFull(w.net_worth), sub: `All accounts${trend != null ? ` · ${trend >= 0 ? '+' : '−'}${Math.abs(trend).toFixed(1)}% in 90 days` : ''}` },
+    { label: 'Net worth', value: fmtFull(w.net_worth), sub: <>
+      <span>All accounts{trend != null ? ` · ${trend >= 0 ? '+' : '−'}${Math.abs(trend).toFixed(1)}% in 90 days` : ''}</span>
+      <NetWorthSparkline points={nwPoints} />
+    </> },
     { label: 'Portfolio income', value: `${fmtFull(w.portfolio_income)}/yr`, sub: 'Dividends expected over the next 12 months' },
     { label: 'Plan spending', value: `${fmtFull(w.estimated_spending)}/yr`, sub: 'What you expect to spend' },
     { label: 'Dividends vs spending', value: cov != null ? `${cov.toFixed(1)}%` : '—', sub: covSub, status: cov == null ? 'info' : cov >= 100 ? 'ok' : cov >= 75 ? 'warn' : 'alert' },

@@ -16,3 +16,10 @@ export interface SectionMeta {
   keys?: string[]
   sub?: string
 }
+
+/**
+ * A tab's internal sub-tabs, in bar order. When a registry exports these the
+ * rail is scoped to the current sub-tab (with a switcher on top) instead of
+ * listing every sub-tab's sections in one list.
+ */
+export interface SubTabMeta { id: string; label: string }

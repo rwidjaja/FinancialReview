@@ -21,26 +21,35 @@ export interface SectionInfo {
   /** Only for sections that are not in the static registry. */
   title?: string
   group?: string
+  /** The section rendered nothing (e.g. a block that only shows in some months). */
+  empty?: boolean
 }
+
+/** A tab's sub-tab state; `badges` carry counts the in-page bar showed (e.g. open orders). */
+export interface SubTabState { current: string; set: (sub: string) => void; badges?: Record<string, string | number | undefined> }
 
 export interface WorkspaceCtx {
   enabled: boolean
   layout: AdvLayout
-  /** Effective section shown in focus layout (null = none registered yet). */
-  activeId: string | null
+  /** Section ids shown in focus layout — the current page (group). null = show all. */
+  visibleIds: Set<string> | null
+  /** Rail title for a section, so a section without its own heading can show one. */
+  titleFor: (id: string) => string | undefined
+  /** Rail position, used as CSS `order` so a page reads in the rail's order. */
+  orderFor: (id: string) => number
   /** Compact hero band target (PageHero / KpiStrip portal into it). */
   heroSlot: HTMLElement | null
   register: (id: string, info: SectionInfo) => void
   unregister: (id: string) => void
   /** Tabs with internal sub-tabs expose their switcher so the rail can fold them in. */
-  setSubTabs: (s: { current: string; set: (sub: string) => void } | null) => void
+  setSubTabs: (s: SubTabState | null) => void
   /** Jump to a section (e.g. one a button just revealed). */
   focusSection: (id: string) => void
 }
 
 const noop = () => {}
 export const WorkspaceContext = createContext<WorkspaceCtx>({
-  enabled: false, layout: 'focus', activeId: null, heroSlot: null,
+  enabled: false, layout: 'focus', visibleIds: null, titleFor: () => undefined, orderFor: () => 0, heroSlot: null,
   register: noop, unregister: noop, setSubTabs: noop, focusSection: noop,
 })
 
@@ -52,12 +61,13 @@ export function useWorkspace() {
 }
 
 /** Register a tab's sub-tab state with the workspace (no-op in Simple mode). */
-export function useWsSubTabs(current: string, set: (sub: string) => void) {
+export function useWsSubTabs(current: string, set: (sub: string) => void, badges?: Record<string, string | number | undefined>) {
   const { enabled, setSubTabs } = useContext(WorkspaceContext)
+  const badgeKey = badges ? JSON.stringify(badges) : ''
   useLayoutEffect(() => {
     if (!enabled) return
-    setSubTabs({ current, set: set as (sub: string) => void })
-  }, [enabled, setSubTabs, current, set])
+    setSubTabs({ current, set: set as (sub: string) => void, badges: badgeKey ? JSON.parse(badgeKey) : undefined })
+  }, [enabled, setSubTabs, current, set, badgeKey])
   useLayoutEffect(() => {
     if (!enabled) return
     return () => setSubTabs(null)

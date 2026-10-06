@@ -1,12 +1,12 @@
 /**
  * Overview "Today" additions:
  *   MarketsToday  — S&P 500 · Dow · Nasdaq · VIX: level, day change, 10-day line
- *   LastSessions  — portfolio value (line) and daily P&L (bars), last 10 sessions
+ *   LastSessions  — portfolio value line (dots coloured by day P&L), last 10 sessions
  */
 import { useMemo } from 'react'
-import { ComposedChart, Line, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { useBalanceHistory, useMarketIndices } from '../../hooks/useDashboardData'
-import { CHART, AXIS, LINE_PROPS, TOOLTIP_CONTENT_STYLE, TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS, TOOLTIP_CURSOR } from '../ui/chartTheme'
+import { CHART, AXIS, TOOLTIP_CONTENT_STYLE, TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTheme'
 import { fmtFull, fmtK } from '../../utils/formatters'
 import type { DashboardData } from '../../types/dashboard'
 import { WsSection } from '../workspace/WorkspaceContext'
@@ -109,30 +109,43 @@ export function LastSessions({ data }: { data: DashboardData }) {
         <span style={{ fontSize: 24, fontWeight: 500, color: gain(net) }}>{signedMoney(net, fmtFull)}</span>
         <span style={{ fontSize: 13, color: gain(net) }}>{signedPct(first > 0 ? (net / first) * 100 : 0)} since {rows[0].label}</span>
       </div>
-      <div style={{ height: 160 }}>
+      <div style={{ height: 150 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={rows} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
+          <LineChart data={rows} margin={{ top: 10, right: 8, bottom: 0, left: 8 }}>
             <XAxis dataKey="label" {...AXIS} interval="preserveStartEnd" minTickGap={16} />
-            <YAxis yAxisId="v" hide domain={['dataMin', 'dataMax']} />
-            <YAxis yAxisId="p" hide orientation="right" domain={([lo, hi]: readonly [number, number]): [number, number] => {
-              const m = Math.max(Math.abs(lo), Math.abs(hi)) || 1
-              return [-m * 2.2, m * 2.2]      // keep the bars in the lower band, under the value line
-            }} />
-            <ReferenceLine yAxisId="p" y={0} stroke="var(--fd-hairline)" />
+            <YAxis hide domain={[(lo: number) => lo * 0.997, (hi: number) => hi * 1.003]} />
+            <ReferenceLine y={first} stroke="var(--fd-hairline)" strokeDasharray="3 3" />
             <Tooltip
-              contentStyle={TOOLTIP_CONTENT_STYLE} labelStyle={TOOLTIP_LABEL_RECHARTS} itemStyle={TOOLTIP_ITEM_RECHARTS} cursor={TOOLTIP_CURSOR}
-              formatter={(v, name) => [name === 'pnl' ? signedMoney(Number(v), fmtFull) : fmtFull(Number(v)), name === 'pnl' ? 'Day P&L' : 'Portfolio']}
+              contentStyle={TOOLTIP_CONTENT_STYLE} labelStyle={TOOLTIP_LABEL_RECHARTS} itemStyle={TOOLTIP_ITEM_RECHARTS}
+              cursor={{ stroke: 'var(--fd-hairline)' }}
+              formatter={(v, _n, item) => {
+                const pnl = (item?.payload as DayRow | undefined)?.pnl
+                return [`${fmtFull(Number(v))}${pnl != null ? ` · day ${signedMoney(pnl, fmtFull)}` : ''}`, 'Portfolio']
+              }}
             />
-            <Bar yAxisId="p" dataKey="pnl" maxBarSize={14} isAnimationActive={false}>
-              {rows.map((r, i) => <Cell key={i} fill={(r.pnl ?? 0) >= 0 ? CHART.positive : CHART.negative} />)}
-            </Bar>
-            <Line yAxisId="v" dataKey="value" stroke="var(--fd-ink)" {...LINE_PROPS} strokeWidth={2} isAnimationActive={false} />
-          </ComposedChart>
+            {/* One line for value; each session's dot is coloured by that day's P&L. */}
+            <Line dataKey="value" stroke={gain(net)} strokeWidth={2.5} type="monotone" isAnimationActive={false}
+              dot={(p: { cx?: number; cy?: number; index?: number }) => {
+                const r = rows[p.index ?? 0]
+                const c = r?.pnl == null ? 'var(--fd-muted)' : r.pnl >= 0 ? CHART.positive : CHART.negative
+                return <circle key={p.index} cx={p.cx} cy={p.cy} r={3.5} fill="var(--fd-page)" stroke={c} strokeWidth={2} />
+              }}
+              activeDot={{ r: 5 }} />
+          </LineChart>
         </ResponsiveContainer>
       </div>
-      <div style={{ display: 'flex', gap: 20 }}>
-        <Label><span style={{ display: 'inline-block', width: 12, height: 2, background: 'var(--fd-ink)', verticalAlign: 'middle', marginRight: 6 }} />Portfolio value · {fmtK(last)}</Label>
-        <Label><span style={{ display: 'inline-block', width: 8, height: 8, background: CHART.positive, verticalAlign: 'middle', marginRight: 6 }} />Daily P&L</Label>
+      {/* Daily P&L as a compact strip under the line, same order as the dots */}
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${rows.length}, minmax(0,1fr))`, gap: 2 }}>
+        {rows.map(r => (
+          <div key={r.date} title={`${r.label}: ${r.pnl == null ? '—' : signedMoney(r.pnl, fmtFull)}`} style={{
+            height: 6, background: r.pnl == null ? 'var(--fd-hairline)' : r.pnl >= 0 ? CHART.positive : CHART.negative,
+            opacity: r.pnl == null ? 1 : 0.35 + 0.65 * Math.min(1, Math.abs(r.pnl) / Math.max(1, ...pnls.map(Math.abs))),
+          }} />
+        ))}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <Label>Value {fmtK(last)} · dashed line = {rows[0].label}</Label>
+        <Label>Best day {signedMoney(Math.max(...pnls), fmtK)} · worst {signedMoney(Math.min(...pnls), fmtK)}</Label>
       </div>
       <span style={{ fontSize: 12, ...muted }}>Daily P&L is the change in total value, so deposits and withdrawals show up in it.</span>
     </Section>

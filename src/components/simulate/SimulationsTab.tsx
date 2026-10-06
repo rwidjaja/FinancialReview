@@ -20,7 +20,7 @@ import { SpendingRangePanel } from './SpendingRangePanel'
 import { SandboxPanel } from './SandboxPanel'
 import { SubTabBtn, SubTabBar } from '../ui/SubTabBtn'
 import { WsSection } from '../workspace/WorkspaceContext'
-import { useWsSubTabs } from '../workspace/context'
+import { useWorkspace, useWsSubTabs } from '../workspace/context'
 
 type SubTab = 'monte_carlo' | 'sequence_risk' | 'withdrawal' | 'spending_range' | 'sandbox'
 interface Props { data: DashboardData }
@@ -39,6 +39,7 @@ interface SharedParams {
 export function SimulationsTab({ data }: Props) {
   const [subTab, setSubTab] = useState<SubTab>('monte_carlo')
   useWsSubTabs(subTab, setSubTab as (s: string) => void)
+  const wsOn = useWorkspace().enabled   // the rail's view switcher replaces the sub-tab bar
   const [mode] = useGlobalViewMode()
   const { data: w } = useWellnessData()
   const { data: defaults } = useQuery<SimDefaults>({
@@ -183,11 +184,13 @@ export function SimulationsTab({ data }: Props) {
       <Sections>
         <LongevityMeter currentAge={d.current_age} targetAge={sharedParams.targetAge} onTargetAgeChange={age => setSharedParams(prev => ({ ...prev, targetAge: age }))} />
 
+        {!wsOn && (
         <nav style={{ borderTop: '2px solid var(--fd-rule)', paddingTop: 16 }}>
           <SubTabBar>
             {subTabs.map((t, i) => <SubTabBtn key={t.id} label={t.label} index={i + 1} active={subTab === t.id} onClick={() => setSubTab(t.id)} />)}
           </SubTabBar>
         </nav>
+        )}
 
         <MainRail
           main={<>

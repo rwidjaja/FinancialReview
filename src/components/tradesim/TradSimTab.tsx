@@ -28,7 +28,7 @@ import { SwingTradeTab } from './SwingTradeTab'
 import { EditModal, CreateModal, ImportModal } from './PortfolioModals'
 import { OrderModal } from './OrderModal'
 import { WsSection } from '../workspace/WorkspaceContext'
-import { useWsSubTabs } from '../workspace/context'
+import { useWorkspace, useWsSubTabs } from '../workspace/context'
 
 // ── Main component ─────────────────────────────────────────────────────────────
 interface Props {
@@ -42,7 +42,7 @@ export function TradSimTab({ data }: Props) {
   const qc = useQueryClient()
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [subTab,     setSubTab]     = useState<SubTab>('overview')
-  useWsSubTabs(subTab, setSubTab as (s: string) => void)
+  const wsOn = useWorkspace().enabled   // the rail's view switcher replaces the sub-tab bar
   const [showCreate, setShowCreate] = useState(false)
   const [showImport, setShowImport] = useState(false)
   const [showEdit,   setShowEdit]   = useState(false)
@@ -235,6 +235,8 @@ export function TradSimTab({ data }: Props) {
   const openOrderCount = limitOrders.orders.filter(
     o => o.portfolioId === activeId && o.status === 'OPEN'
   ).length
+  // The rail's view switcher shows the open-order count the sub-tab bar carries.
+  useWsSubTabs(subTab, setSubTab as (s: string) => void, { orders: openOrderCount || undefined })
 
   const TABS: { id: SubTab; label: string; badge?: number }[] = [
     { id: 'overview',     label: 'Overview'     },
@@ -299,6 +301,7 @@ export function TradSimTab({ data }: Props) {
           <MonoNote>Loading…</MonoNote>
         ) : port ? (
           <>
+            {!wsOn && (
             <nav style={{ borderTop: '2px solid var(--fd-rule)', paddingTop: 16 }}>
               <SubTabBar>
                 {TABS.map((t, i) => (
@@ -307,6 +310,7 @@ export function TradSimTab({ data }: Props) {
                 ))}
               </SubTabBar>
             </nav>
+            )}
 
             {/* Sub-tab content */}
             <div>

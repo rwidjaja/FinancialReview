@@ -408,7 +408,7 @@ export function ResearchTab({ data, initialSymbol }: Props) {
               {/* ══════════ ADVANCED MODE — tabbed modules ══════════ */}
               {mode === 'advanced' && (
                 <>
-                  <nav style={{ borderTop: '2px solid var(--fd-rule)', paddingTop: 16 }}>
+                  {!ws.enabled && <nav style={{ borderTop: '2px solid var(--fd-rule)', paddingTop: 16 }}>
                     <SubTabBar>
                       {([
                         { key: 'action', label: 'Action engine' },
@@ -419,7 +419,7 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                         <SubTabBtn key={tab.key} label={tab.label} index={i + 1} active={advTab === tab.key} onClick={() => setAdvTab(tab.key)} />
                       ))}
                     </SubTabBar>
-                  </nav>
+                  </nav>}
 
                   {/* ── Tab content — minHeight prevents scroll jump when switching to short tabs ── */}
                   <div style={ws.enabled ? { display: 'contents' } : { minHeight: '72vh' }}>
