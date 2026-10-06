@@ -6,6 +6,7 @@ import type { Portfolio, SnapshotPoint } from './types'
 import { G, R, A, M, B } from './constants'
 import { StatBox, fmtPct } from './shared'
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_CURSOR , TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTooltip'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 type PerfPeriod = '1M' | '3M' | '6M' | 'YTD' | '1Y' | 'ALL'
 
@@ -114,6 +115,7 @@ export function SimPerformanceTab({ port, history }: { port: Portfolio; history:
       fontFamily: 'var(--font-mono)' }}>
 
       {/* ── KPI row (all-time) ────────────────────────────────────────────── */}
+      <WsSection id="ts_perf_kpis" value={fmtPct(port.total_return_pct, 1)} status={port.total_return >= 0 ? 'ok' : 'watch'}>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <StatBox label="Total Return"
           color={port.total_return >= 0 ? G : R}
@@ -130,6 +132,7 @@ export function SimPerformanceTab({ port, history }: { port: Portfolio; history:
         <StatBox label="Worst Day" color={R} value={fmtPct(worstDay, 2)} />
         <StatBox label="Seed" value={fmtMoneyFull(seed)} />
       </div>
+      </WsSection>
 
       {/* ── Period selector + chart type ─────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center',
@@ -161,6 +164,7 @@ export function SimPerformanceTab({ port, history }: { port: Portfolio; history:
       </div>
 
       {/* ── Main chart: portfolio + SPY ───────────────────────────────────── */}
+      <WsSection id="ts_perf_chart" value={period}>
       <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
           <span style={{ fontSize: 12, fontWeight: 500, color: A,
@@ -217,9 +221,11 @@ export function SimPerformanceTab({ port, history }: { port: Portfolio; history:
           </ResponsiveContainer>
         </div>
       </div>
+      </WsSection>
 
       {/* ── Monthly P&L bars ─────────────────────────────────────────────── */}
       {monthlyData.length > 0 && (
+        <WsSection id="ts_perf_monthly">
         <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: 12 }}>
           <div style={{ fontSize: 12, fontWeight: 500, color: A,
             textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8 }}>
@@ -248,10 +254,12 @@ export function SimPerformanceTab({ port, history }: { port: Portfolio; history:
             </ResponsiveContainer>
           </div>
         </div>
+        </WsSection>
       )}
 
       {/* ── Holding performance heatmap ───────────────────────────────────── */}
       {holdings.length > 0 && (
+        <WsSection id="ts_perf_heatmap" value={`${holdings.length} holdings`}>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: 12 }}>
           <div style={{ fontSize: 12, fontWeight: 500, color: A,
             textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>
@@ -319,6 +327,7 @@ export function SimPerformanceTab({ port, history }: { port: Portfolio; history:
             ))}
           </div>
         </div>
+        </WsSection>
       )}
 
     </div>

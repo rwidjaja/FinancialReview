@@ -8,6 +8,7 @@ import { InterpretationPanel, SequenceRiskMeter } from './SimSharedComponents'
 import type { SimDefaults } from './simTypes'
 import { runSim } from './simTypes'
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_CURSOR , TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTooltip'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 export function SequenceRiskPanel({ defaults }: { defaults: SimDefaults }) {
   const { mutate, data: result, isPending } = useMutation({ mutationFn: runSim })
@@ -32,6 +33,7 @@ export function SequenceRiskPanel({ defaults }: { defaults: SimDefaults }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <WsSection id="sm_seq_run" value={isPending ? 'Running' : result ? 'Done' : 'Not run'} status={result && !isPending ? 'ok' : 'info'}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <button onClick={run} style={{
           padding: '8px 20px',
@@ -57,9 +59,12 @@ export function SequenceRiskPanel({ defaults }: { defaults: SimDefaults }) {
           CLICK RUN TO COMPARE HISTORICAL SEQUENCE SCENARIOS
         </div>
       )}
+      </WsSection>
       {result && !isPending && (
         result.error ? (
+          <WsSection id="sm_seq_scenarios" value="Error" status="alert">
           <div style={{ color: R, fontSize: 12, padding: 12 }}>{result.error}</div>
+          </WsSection>
         ) : (() => {
           const scenarios = Object.entries(result.scenarios ?? {})
           const basePct = (result.scenarios?.normal?.overall_success ?? 0) * 100
@@ -79,6 +84,7 @@ export function SequenceRiskPanel({ defaults }: { defaults: SimDefaults }) {
 
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <WsSection id="sm_seq_scenarios" value={`${basePct.toFixed(0)}% base`} status={basePct >= 90 ? 'ok' : basePct >= 75 ? 'watch' : 'alert'}>
               <SequenceRiskMeter seqRiskPct={seqRiskPct} />
               <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: '10px 14px' }}>
                 <div className="bb-label" style={{ marginBottom: 8 }}>SUCCESS RATE BY SCENARIO (%)</div>
@@ -96,7 +102,9 @@ export function SequenceRiskPanel({ defaults }: { defaults: SimDefaults }) {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+              </WsSection>
 
+              <WsSection id="sm_seq_penalty" value={`−${penalty.toFixed(1)}%`} status={penalty > 20 ? 'alert' : penalty > 10 ? 'watch' : 'ok'}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: '10px 12px' }}>
                   <div className="bb-label">SEQUENCE RISK PENALTY (WORST CASE)</div>
@@ -114,7 +122,9 @@ export function SequenceRiskPanel({ defaults }: { defaults: SimDefaults }) {
                   { label: 'Max Penalty', value: `−${penalty.toFixed(1)}%`, color: penaltyColor, note: 'Retire into a bad sequence and success drops this much' },
                 ]} />
               </div>
+              </WsSection>
 
+              <WsSection id="sm_seq_detail" value={`${scenarios.length} scenarios`}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {scenarios.map(([key, s]: [string, any]) => {
                   const isBase = key === 'normal'
@@ -141,6 +151,7 @@ export function SequenceRiskPanel({ defaults }: { defaults: SimDefaults }) {
                   )
                 })}
               </div>
+              </WsSection>
             </div>
           )
         })()

@@ -36,12 +36,15 @@ import { RiskDashboardPanel }       from './RiskDashboardPanel'
 import { SandboxPanel }             from './SandboxPanel'
 import { PersistentActionChecklist } from './PersistentActionChecklist'
 import { PlainSummaryPanel }        from './PlainSummaryPanel'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWsSubTabs } from '../workspace/context'
 
 // ─── Main DrawdownTab ─────────────────────────────────────────────────────────
 interface Props { data: DashboardData }
 
 export function DrawdownTab({ data }: Props) {
   const [subTab, setSubTab] = useState<SubTab>('decision')
+  useWsSubTabs(subTab, setSubTab as (s: string) => void)
   const [mode] = useGlobalViewMode()
   // Editable inputs — shared via context so Tax tab's Sell & Rebalance section
   // sizes its plan to the same taxable withdrawal need shown here.
@@ -126,6 +129,7 @@ export function DrawdownTab({ data }: Props) {
       ]} />
 
       <Sections>
+        <WsSection id="dd_params" value={fmtMoney(inputs.income_target)} status="info">
         <Section title="Plan parameters" meta={`Return ${(inputs.expected_return * 100).toFixed(1)}% · yield ${(inputs.dividend_yield * 100).toFixed(1)}% · qualified ${Math.round(inputs.qualified_pct * 100)}% — from the portfolio`}>
           <div style={{ display: 'grid', gridTemplateColumns: '2.2fr 1fr 1fr 1.6fr', borderTop: '2px solid var(--fd-rule)', borderBottom: '1px solid var(--fd-hairline)' }}>
             <div style={param}>
@@ -177,6 +181,7 @@ export function DrawdownTab({ data }: Props) {
           </div>
           <span style={{ fontSize: 13, ...muted }}>Balances, return, yield and qualified share come live from Schwab and portfolio analytics · 2026 MFJ brackets · RMDs begin at {data.tax_data.rmd_start_age ?? RMD_START_AGE}. Change the other assumptions in the What-if sandbox.</span>
         </Section>
+        </WsSection>
 
         <PersistentActionChecklist data={data} />
 

@@ -19,6 +19,8 @@ import { WithdrawalPanel } from './WithdrawalPanel'
 import { SpendingRangePanel } from './SpendingRangePanel'
 import { SandboxPanel } from './SandboxPanel'
 import { SubTabBtn, SubTabBar } from '../ui/SubTabBtn'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWsSubTabs } from '../workspace/context'
 
 type SubTab = 'monte_carlo' | 'sequence_risk' | 'withdrawal' | 'spending_range' | 'sandbox'
 interface Props { data: DashboardData }
@@ -36,6 +38,7 @@ interface SharedParams {
 
 export function SimulationsTab({ data }: Props) {
   const [subTab, setSubTab] = useState<SubTab>('monte_carlo')
+  useWsSubTabs(subTab, setSubTab as (s: string) => void)
   const [mode] = useGlobalViewMode()
   const { data: w } = useWellnessData()
   const { data: defaults } = useQuery<SimDefaults>({
@@ -152,6 +155,7 @@ export function SimulationsTab({ data }: Props) {
           <span>Withdrawing {fmtMoneyFull(sharedParams.spending)} a year from {fmtMoneyFull(d.portfolio_value)}{withdrawalRate != null ? ` — a ${withdrawalRate.toFixed(1)}% rate` : ''} — at {sharedParams.ret}% expected return and {sharedParams.vol}% volatility.</span>
           <LeadMuted>The headline uses the plan's Monte Carlo (wellness engine); the panels below re-run live with the parameters on the right.</LeadMuted>
         </>}
+        asideTitle="Shared parameters"
         aside={
           <div style={{ background: 'var(--fd-card)', padding: 32, display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -194,11 +198,14 @@ export function SimulationsTab({ data }: Props) {
             {subTab === 'sandbox'        && <SandboxPanel       defaults={effectiveDefaults} />}
           </>}
           rail={<>
+            <WsSection id="sm_notes">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0 }}>What it means</h3>
               <p style={{ fontSize: 15, lineHeight: 1.5, margin: 0 }}>{NOTES[subTab]}</p>
             </div>
+            </WsSection>
             {w && (
+              <WsSection id="sm_wellness" value={`${(w.success_prob_100 * 100).toFixed(1)}%`} status={w.success_prob_100 >= 0.9 ? 'ok' : w.success_prob_100 >= 0.75 ? 'watch' : 'alert'}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0 }}>Financial wellness</h3>
                 <RuledList>
@@ -209,14 +216,17 @@ export function SimulationsTab({ data }: Props) {
                   <KeyValueRow k="Failure line" v={fmtMoney(w.ruin_threshold)} />
                 </RuledList>
               </div>
+              </WsSection>
             )}
           </>}
         />
 
         {mode === 'advanced' && data.summary.total_value > 0 && (
+          <WsSection id="sm_future">
           <TerminalSection id="future-strategy" title="Future strategy timeline">
             <FutureStrategyTimeline data={data} />
           </TerminalSection>
+          </WsSection>
         )}
       </Sections>
     </div>

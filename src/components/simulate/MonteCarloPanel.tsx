@@ -7,6 +7,7 @@ import { G, R, A, M, Y, roundTo2 } from './simTypes'
 import { StatBox, InterpretationPanel } from './SimSharedComponents'
 import type { SimDefaults } from './simTypes'
 import { runSim } from './simTypes'
+import { WsSection } from '../workspace/WorkspaceContext'
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS, TOOLTIP_CURSOR } from '../ui/chartTooltip'
 
 export function MonteCarloPanel({ defaults }: { defaults: SimDefaults }) {
@@ -67,6 +68,7 @@ export function MonteCarloPanel({ defaults }: { defaults: SimDefaults }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <WsSection id="sm_mc_run" value={isPending ? 'Running' : hasRun ? 'Done' : 'Not run'} status={hasRun && !isPending ? 'ok' : 'info'}>
       {/* Run button — params come from the shared parameter bar above */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <button onClick={run} style={{
@@ -112,12 +114,16 @@ export function MonteCarloPanel({ defaults }: { defaults: SimDefaults }) {
           <span style={{ marginLeft: 12, fontSize: 12, fontFamily: 'var(--font-mono)' }}>RUNNING 1,000 PATHS…</span>
         </div>
       )}
+      </WsSection>
       {result && !isPending && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {result.error ? (
+            <WsSection id="sm_mc_success" value="Error" status="alert">
             <div style={{ color: R, fontSize: 12, padding: 12 }}>{result.error}</div>
+            </WsSection>
           ) : (
             <>
+              <WsSection id="sm_mc_success" value={overallRate != null ? `${Math.round(overallRate)}%` : undefined} status={overallRate == null ? undefined : overallRate >= 90 ? 'ok' : overallRate >= 75 ? 'watch' : 'alert'}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
                 {[
                   { label: 'SUCCESS OVERALL', rate: overallRate },
@@ -136,6 +142,7 @@ export function MonteCarloPanel({ defaults }: { defaults: SimDefaults }) {
                 <StatBox label="25TH PERCENTILE" value={fmtMoneyFull(result.p25_ending ?? 0)} color={Y} metricId="sequence_risk" />
                 <StatBox label="75TH PERCENTILE" value={fmtMoneyFull(result.p75_ending ?? 0)} color={G} />
               </div>
+              </WsSection>
               {result.percentiles && (() => {
                 const p10Path = result.percentiles['10'] ?? []
                 const medPath = result.percentiles['50'] ?? []
@@ -148,6 +155,7 @@ export function MonteCarloPanel({ defaults }: { defaults: SimDefaults }) {
                   p90: p90Path[i] != null ? Math.round(p90Path[i] / 1000) : undefined,
                 }))
                 return (
+                  <WsSection id="sm_mc_bands">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: '10px 14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -174,6 +182,7 @@ export function MonteCarloPanel({ defaults }: { defaults: SimDefaults }) {
                       { label: 'Sequence Risk Penalty', value: result.sequence_risk_pct != null ? `${(result.sequence_risk_pct * 100).toFixed(1)}%` : '—', color: R, note: 'Reduction in success rate from bad early returns vs. average-return scenario' },
                     ]} />
                   </div>
+                  </WsSection>
                 )
               })()}
 
@@ -224,6 +233,7 @@ export function MonteCarloPanel({ defaults }: { defaults: SimDefaults }) {
                   },
                 ]
                 return (
+                  <WsSection id="sm_mc_whatif" value={fmtPctDelta(deltaRate)} status={deltaRate == null ? 'info' : deltaRate >= 0 ? 'ok' : 'watch'}>
                   <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: '10px 14px', borderLeft: '3px solid var(--amber)' }}>
                     <div style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.7px', color: M, marginBottom: 8 }}>
                       WHAT-IF COMPARISON — Baseline vs Scenario
@@ -248,6 +258,7 @@ export function MonteCarloPanel({ defaults }: { defaults: SimDefaults }) {
                       </tbody>
                     </table>
                   </div>
+                  </WsSection>
                 )
               })()}
             </>

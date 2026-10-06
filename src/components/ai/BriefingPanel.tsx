@@ -169,6 +169,7 @@ export function BriefingPanel({ onChipClick, showDetails = true }: Props & { sho
         eyebrow={`AI · today's briefing${hint ? ` · ${hint.toLowerCase()}` : ''}${data.as_of ? ` · ${data.as_of}` : ''}`}
         {...verdict(critCount, warnCount)}
         lead={<span>{data.narrative || '—'}</span>}
+        asideTitle="Signals and versus yesterday"
         aside={vyRows.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0 }}>Versus yesterday{vy?.as_of ? <span style={{ ...mono, ...muted, marginLeft: 8 }}>{vy.as_of}</span> : null}</h3>

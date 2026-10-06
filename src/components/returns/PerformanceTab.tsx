@@ -16,6 +16,7 @@ import { TaxablePortfolioValueChart } from './TaxablePortfolioValueChart'
 import { DrawdownHeatmap } from './DrawdownHeatmap'
 import { StressScenarioPanel } from './StressScenarioPanel'
 import { SymbolCharts } from './SymbolCharts'
+import { WsSection } from '../workspace/WorkspaceContext'
 import { RISK_FREE_RATE_PCT } from '../../utils/constants'
 import { AXIS, LINE_PROPS, TOOLTIP_CONTENT_STYLE, TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTheme'
 import {
@@ -345,6 +346,7 @@ export function PerformanceTab({ data }: Props) {
 
       <Sections>
         {chartSeries.length > 1 && (
+          <WsSection id="rt_vs_sp500" value={alphaSpy != null ? `${alphaSpy >= 0 ? '+' : '−'}${Math.abs(alphaSpy).toFixed(1)} pts` : undefined} status={alphaSpy == null ? 'info' : alphaSpy >= 0 ? 'ok' : 'watch'}>
           <Section title="Portfolio vs S&P 500" meta={
             <span style={{ display: 'flex', gap: 20, fontSize: 13 }}>
               <Legend color="var(--fd-accent)" label="Portfolio" /><Legend color="var(--fd-lilac-ink)" label="S&P 500" />
@@ -366,11 +368,13 @@ export function PerformanceTab({ data }: Props) {
               <span>{fmtShortDate(chartSeries[0].date)}</span><span>Indexed to 100</span><span>{fmtShortDate(chartSeries[chartSeries.length - 1].date)}</span>
             </div>
           </Section>
+          </WsSection>
         )}
 
         <MainRail split="7/5"
           main={<>
             {contribs.length > 0 && (
+              <WsSection id="rt_contribution" value={leader ? leader.sym : undefined} status="info">
               <Section title="Contribution by holding" meta={`${period.toUpperCase()} · portfolio points`}>
                 <div>
                   <div style={{ display: 'grid', gridTemplateColumns: '72px minmax(0,1fr) 72px 84px 120px', gap: 16, padding: '10px 0', borderTop: '2px solid var(--fd-rule)', borderBottom: '1px solid var(--fd-hairline)', ...mono, ...muted }}>
@@ -387,12 +391,17 @@ export function PerformanceTab({ data }: Props) {
                   ))}
                 </div>
               </Section>
+              </WsSection>
             )}
+            <WsSection id="rt_fund_vs_you">
             <Section title="Fund vs you" meta="Per-holding actual return">
               <FundVsYouTable data={data} perfData={perfData} period={period} totalValue={totalValue} />
             </Section>
+            </WsSection>
           </>}
           rail={<>
+            {accountCagrs.length > 0 && (
+            <WsSection id="rt_account_perf">
             <RailList title="Account performance" rows={[
               ...accountCagrs.map(am => ({
                 k: data.accounts.find(a => a.key === am.key)?.label ?? am.label,
@@ -400,12 +409,19 @@ export function PerformanceTab({ data }: Props) {
                 sub: am.key === 'rollover_ira' ? 'Includes a mid-year inflow · price return only · not comparable' : period !== '1y' ? `Annualised · raw ${signedPct(am.weightedReturn, 1)}` : 'Annualised',
               })),
             ]} note="Roth conversion flows move account-level CAGRs; benchmark with the portfolio return." />
+            </WsSection>
+            )}
+            {data.accounts.length > 0 && (
+            <WsSection id="rt_accounts" value={String(data.accounts.length)} status="info">
             <RailList title="Accounts" rows={[
               ...data.accounts.map(acct => ({
                 k: acct.label, v: fmtMoneyFull(acct.value),
                 sub: `${signedMoney(acct.pnl, fmtMoneyFull)} (${signedPct(acct.pnl_pct, 1)}) · cost ${fmtMoneyFull(acct.cost)} · ${acct.key?.includes('roth') ? 'tax-free' : acct.key?.includes('rollover') || acct.key?.includes('ira') ? 'tax-deferred' : 'taxable'} · ${((acct.value / totalValue) * 100).toFixed(1)}%`,
               })),
             ]} />
+            </WsSection>
+            )}
+            <WsSection id="rt_risk_context" value={displayVol != null ? `${displayVol.toFixed(1)}% vol` : undefined} status={displayVol == null ? 'info' : displayVol < 20 ? 'ok' : displayVol < 30 ? 'watch' : 'warn'}>
             <RailList title="Risk context" rows={[
               { k: 'Volatility', v: displayVol != null ? `${displayVol.toFixed(1)}%` : '—', sub: [displayVol == null ? null : displayVol < 20 ? 'Low' : displayVol < 30 ? 'Moderate' : displayVol < 40 ? 'High' : 'Extreme', vb != null && displayVol != null ? `${vb.toFixed(0)}% of budget · ${(displayVol / (vb / 100)).toFixed(1)}% target` : null, piVolPct != null ? 'Portfolio-level, same as Risk' : null].filter(Boolean).join(' · ') },
               { k: 'Sharpe', v: displaySharpe != null ? displaySharpe.toFixed(2) : '—', sub: `Trailing ${period} · 4.5% risk-free · ${displaySharpe == null ? '' : displaySharpe > 1 ? 'strong' : displaySharpe > 0.5 ? 'adequate' : 'weak'}` },
@@ -415,50 +431,59 @@ export function PerformanceTab({ data }: Props) {
               ...(riskRegime ? [{ k: 'Volatility regime', v: `${riskRegime.avgVol.toFixed(1)}%`, sub: riskRegime.label.charAt(0) + riskRegime.label.slice(1).toLowerCase() }] : []),
               { k: 'Concentration', v: `${concentrationRisk.top1.toFixed(1)}%`, sub: `Top holding · top 3 ${concentrationRisk.top3.toFixed(1)}% · top 5 ${concentrationRisk.top5.toFixed(1)}%` },
             ]} />
+            </WsSection>
             {wellness && (
+              <WsSection id="rt_plan_context" value={`${(wellness.success_prob_95 * 100).toFixed(1)}%`} status="info">
               <RailList title="Retirement plan context" rows={[
                 { k: 'Monte Carlo success', v: `${(wellness.success_prob_95 * 100).toFixed(1)}%`, sub: `Funded through age ${wellness.target_age}` },
                 { k: 'Withdrawal rate', v: wellness.withdrawal_rate != null ? `${(wellness.withdrawal_rate * 100).toFixed(2)}%` : '—', sub: wellness.withdrawal_rate != null && wellness.withdrawal_rate < 0.04 ? 'Below the 4% rule' : 'Above the 4% guideline' },
                 { k: 'Portfolio runway', v: wellness.buffer_years != null ? `${wellness.buffer_years.toFixed(1)} yrs` : '—', sub: `${fmtFull(wellness.estimated_spending ?? 0)}/yr plan spend` },
                 { k: 'Income coverage', v: wellness.income_coverage_pct != null ? `${wellness.income_coverage_pct.toFixed(1)}%` : '—', sub: `${fmtMoneyFull(data.income_analytics?.portfolio_fwd_12m ?? 0)}/yr income vs ${fmtMoneyFull(wellness.estimated_spending ?? 0)}/yr spending` },
               ]} />
+              </WsSection>
             )}
+            <WsSection id="rt_briefing">
             <div style={{ background: 'var(--fd-card)', padding: 24 }}>
               <TabBriefingPanel endpoint="/api/briefing/returns" title="Returns briefing" />
             </div>
+            </WsSection>
           </>}
         />
 
         {mode === 'advanced' && (<>
-          {data.market_context && <Section title="Market context" meta="Full detail"><MarketContext data={data} /></Section>}
+          {data.market_context && <WsSection id="rt_market_context"><Section title="Market context" meta="Full detail"><MarketContext data={data} /></Section></WsSection>}
           {(() => {
             const taxableAcct = data.accounts.find(a => a.key?.includes('taxable') && a.value > 0)
             if (!taxableAcct) return null
             const taxableSyms = taxableAcct.positions.filter(p => p.value > 0).map(p => p.symbol)
             return (<>
-              <TerminalSection id="taxable-value" title="Taxable — portfolio value vs S&P 500"><TaxablePortfolioValueChart data={data} perfData={perfData} period={period} /></TerminalSection>
-              {taxableSyms.length > 0 && <TerminalSection id="taxable-normalized" title="Taxable — symbol returns, base 100"><NormalizedReturnChart data={data} perfData={perfData} period={period} symbols={taxableSyms} /></TerminalSection>}
+              <WsSection id="rt_taxable_value"><TerminalSection id="taxable-value" title="Taxable — portfolio value vs S&P 500"><TaxablePortfolioValueChart data={data} perfData={perfData} period={period} /></TerminalSection></WsSection>
+              {taxableSyms.length > 0 && <WsSection id="rt_sym_taxable"><TerminalSection id="taxable-normalized" title="Taxable — symbol returns, base 100"><NormalizedReturnChart data={data} perfData={perfData} period={period} symbols={taxableSyms} /></TerminalSection></WsSection>}
             </>)
           })()}
           {(() => {
             const syms = (data.accounts.find(a => a.key?.includes('roth'))?.positions ?? []).filter(p => p.value > 0).map(p => p.symbol)
-            return syms.length ? <TerminalSection id="roth-normalized" title="Roth IRA — symbol returns, base 100"><NormalizedReturnChart data={data} perfData={perfData} period={period} symbols={syms} /></TerminalSection> : null
+            return syms.length ? <WsSection id="rt_sym_roth"><TerminalSection id="roth-normalized" title="Roth IRA — symbol returns, base 100"><NormalizedReturnChart data={data} perfData={perfData} period={period} symbols={syms} /></TerminalSection></WsSection> : null
           })()}
           {(() => {
             const syms = (data.accounts.find(a => a.key?.includes('rollover'))?.positions ?? []).filter(p => p.value > 0).map(p => p.symbol)
-            return syms.length ? <TerminalSection id="rollover-normalized" title="Rollover IRA — symbol returns, base 100"><NormalizedReturnChart data={data} perfData={perfData} period={period} symbols={syms} /></TerminalSection> : null
+            return syms.length ? <WsSection id="rt_sym_rollover"><TerminalSection id="rollover-normalized" title="Rollover IRA — symbol returns, base 100"><NormalizedReturnChart data={data} perfData={perfData} period={period} symbols={syms} /></TerminalSection></WsSection> : null
           })()}
+          <WsSection id="rt_contrib_lifetime">
           <TerminalSection id="contrib" title="Contribution table — lifetime, since buy">
             <ContributionTable data={data} perfData={perfData} period={period} totalValue={totalValue} />
           </TerminalSection>
+          </WsSection>
           {(benchSpy || benchQqq) && (
+            <WsSection id="rt_benchmark">
             <TerminalSection id="bench" title="Benchmark comparison">
               <BenchmarkComparison portfolio={weightedMetrics} spy={benchSpy ?? null} qqq={benchQqq ?? null} period={period} />
             </TerminalSection>
+            </WsSection>
           )}
-          <TerminalSection id="sym-charts" title="Per-symbol analysis"><SymbolCharts data={data} perfData={perfData} period={period} /></TerminalSection>
-          <TerminalSection id="drawdown" title="Drawdown heatmap — per symbol"><DrawdownHeatmap data={data} perfData={perfData} period={period} /></TerminalSection>
-          <TerminalSection id="stress" title="Stress scenario engine"><StressScenarioPanel data={data} perfData={perfData} period={period} totalValue={totalValue} /></TerminalSection>
+          <WsSection id="rt_symbol_charts"><TerminalSection id="sym-charts" title="Per-symbol analysis"><SymbolCharts data={data} perfData={perfData} period={period} /></TerminalSection></WsSection>
+          <WsSection id="rt_drawdown"><TerminalSection id="drawdown" title="Drawdown heatmap — per symbol"><DrawdownHeatmap data={data} perfData={perfData} period={period} /></TerminalSection></WsSection>
+          <WsSection id="rt_stress"><TerminalSection id="stress" title="Stress scenario engine"><StressScenarioPanel data={data} perfData={perfData} period={period} totalValue={totalValue} /></TerminalSection></WsSection>
         </>)}
       </Sections>
     </div>

@@ -3,7 +3,9 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceL
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS, TOOLTIP_CURSOR } from '../ui/chartTooltip'
 import { SectionHeader } from '../ui/SectionHeader'
 import { TerminalSection } from '../ui/Terminal'
-import { fmtMoneyFull, fmtFull } from '../../utils/formatters'
+import { fmtMoneyFull, fmtFull, fmtK } from '../../utils/formatters'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWorkspace, useWsSubTabs } from '../workspace/context'
 import { DEFAULT_BRACKET_RATE, DEFAULT_SAFETY_BUFFER, ROLLOVER_DEPLETED_THRESHOLD } from '../../utils/constants'
 import { RMD_START_AGE, RMD_FACTORS, IRMAA_TIERS_MFJ, IRMAA_TIERS_SINGLE, DRAWDOWN_DEFAULTS } from '../../utils/taxConfig'
 import { StatTile } from '../ui/StatTile'
@@ -64,6 +66,9 @@ function NoteRow({ label, value, color, note }: { label: string; value: string; 
 export function TaxTab({ data }: Props) {
   const [mode] = useGlobalViewMode()
   const [subView, setSubView] = useState<SubView>('tax')
+  // Advanced workspace: the three sub-views fold into the "On this tab" rail.
+  const ws = useWorkspace()
+  useWsSubTabs(subView, setSubView as (s: string) => void)
   const [_selectedSSAge, setSelectedSSAge] = useState<number | null>(null)
   const [isRecalculating, setIsRecalculating] = useState(false)
   const [dynamicTaxData, setDynamicTaxData] = useState(data.tax_data)
@@ -247,6 +252,7 @@ export function TaxTab({ data }: Props) {
         const VERB: Record<string, string> = { GO: 'Convert', WAIT: 'Wait', STOP: 'Stop', COMPLETE: 'Done' }
         return (
           <PageHero
+            asideTitle="Conversion verdict"
             eyebrow={`Tax · ${year} · ${tx.filing_status} · ${tx.target_bracket_rate ?? DEFAULT_BRACKET_RATE}% target bracket · federal only`}
             {...(actualRoom > 0
               ? { before: `${room.value}${room.unit ?? ''} of `, em: 'room', after: ' left.' }
@@ -306,17 +312,22 @@ export function TaxTab({ data }: Props) {
       {subView === 'tax' && (
       <div style={{ paddingTop: 56, display: 'flex', flexDirection: 'column', gap: 56 }}>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,7fr) minmax(0,5fr)', gap: 56, alignItems: 'start' }}>
-          <IncomeBanner data={data} />
+        <div style={ws.enabled ? { display: 'contents' } : { display: 'grid', gridTemplateColumns: 'minmax(0,7fr) minmax(0,5fr)', gap: 56, alignItems: 'start' }}>
+          <WsSection id="tx_income" value={grossActual != null ? fmtK(grossActual) : undefined} status={actualRoom > 20000 ? 'ok' : actualRoom > 0 ? 'warn' : 'alert'}>
+            <IncomeBanner data={data} />
+          </WsSection>
+          <WsSection id="tx_briefing">
           <div style={{ background: 'var(--fd-card)', padding: 32 }}>
             <TabBriefingPanel endpoint="/api/briefing/tax" title="Tax briefing" />
           </div>
+          </WsSection>
         </div>
 
         {/* ── Three ruled columns: tax position · account structure · forward planning ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 32 }}>
+        <div style={ws.enabled ? { display: 'contents' } : { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 32 }}>
 
           {/* Card 1: Tax Position */}
+          <WsSection id="tx_position" value={tx.eff_rate_no_ss != null ? `${tx.eff_rate_no_ss.toFixed(1)}% eff.` : undefined}>
           {(() => {
             const totalValue  = data.summary?.total_value ?? 0
             const estTax      = tx.eff_rate_no_ss != null && tx.gross_no_ss != null
@@ -398,8 +409,10 @@ export function TaxTab({ data }: Props) {
               </div>
             )
           })()}
+          </WsSection>
 
           {/* Card 2: Account Structure */}
+          <WsSection id="tx_accounts">
           {(() => {
             const taxableBkt = data.accounts.filter(a => a.key === 'taxable').reduce((s, a) => s + a.value, 0)
             const rothBkt    = data.accounts.filter(a => a.key === 'roth_ira').reduce((s, a) => s + a.value, 0)
@@ -514,8 +527,10 @@ export function TaxTab({ data }: Props) {
               </div>
             )
           })()}
+          </WsSection>
 
           {/* Card 3: Forward Planning */}
+          <WsSection id="tx_forward">
           {(() => {
             const is = data.income_summary
             // MAGI/IRMAA must use taxable-account-only dividends — full_year_div
@@ -609,9 +624,11 @@ export function TaxTab({ data }: Props) {
               </div>
             )
           })()}
+          </WsSection>
         </div>
 
         {/* Bracket meter — full width */}
+        <WsSection id="tx_meter" value={`${tx.bracket_pressure_pct.toFixed(1)}%`} status={tx.bracket_pressure_pct >= 90 ? 'alert' : tx.bracket_pressure_pct >= 70 ? 'warn' : 'ok'}>
         <BracketMeter
           pressurePct={tx.bracket_pressure_pct}
           convRoom={tx.conv_room_real}
@@ -621,7 +638,9 @@ export function TaxTab({ data }: Props) {
           targetBracketRate={tx.target_bracket_rate}
           stdDeduction={tx.std_deduction}
         />
+        </WsSection>
 
+        <WsSection id="tx_scores">
         <SectionHeader title="Portfolio tax scores" />
 
         {/* Personal info + scores */}
@@ -629,48 +648,63 @@ export function TaxTab({ data }: Props) {
           <PersonalInfo tx={tx} />
           <PortfolioScores tx={tx} bktColor={bktColor} />
         </div>
+        </WsSection>
 
         {/* Quarterly payments */}
         {(tx.quarterly_payments?.length ?? 0) > 0 && (
-          <QuarterlyPayments tx={tx} accounts={data.accounts} data={data} />
+          <WsSection id="tx_payments" value={tx.safe_harbor_met == null ? undefined : tx.safe_harbor_met ? 'Safe harbor' : 'Unmet'}
+            status={tx.safe_harbor_met == null ? 'info' : tx.safe_harbor_met ? 'ok' : 'alert'}>
+            <QuarterlyPayments tx={tx} accounts={data.accounts} data={data} />
+          </WsSection>
         )}
 
         {mode === 'advanced' && (
           <>
-            {/* ── GROUP A — Income Tax Analysis ── */}
-            <Label style={{ color: 'var(--fd-accent)' }}>Group A · Income tax analysis</Label>
+            {/* ── GROUP A — Income Tax Analysis ── (rail groups replace these labels in the workspace) */}
+            {!ws.enabled && <Label style={{ color: 'var(--fd-accent)' }}>Group A · Income tax analysis</Label>}
 
+            <WsSection id="tx_divchar">
             <TerminalSection id="divchar" title="◈ DIVIDEND TAX CHARACTER" defaultOpen={true}>
               <DividendCharacter tx={tx} />
             </TerminalSection>
+            </WsSection>
 
             {tx.div_tax_breakdown && Object.keys(tx.div_tax_breakdown).length > 0 && (
+              <WsSection id="tx_perfund">
               <TerminalSection id="div-breakdown" title="◈ PER-FUND DIVIDEND CHARACTER" defaultOpen={false}>
                 <DivBreakdownTable tx={tx} />
               </TerminalSection>
+              </WsSection>
             )}
 
             {tx.taxable_div_calendar && Object.keys(tx.taxable_div_calendar).length > 0 && (
+              <WsSection id="tx_calendar">
               <TerminalSection id="div-cal" title="◈ TAXABLE DIVIDEND CALENDAR" defaultOpen={false}>
                 <DividendCalendar tx={tx} />
               </TerminalSection>
+              </WsSection>
             )}
 
             {/* ── GROUP B — Tax Projections ── */}
-            <Label style={{ color: 'var(--fd-accent)' }}>Group B · Tax projections</Label>
+            {!ws.enabled && <Label style={{ color: 'var(--fd-accent)' }}>Group B · Tax projections</Label>}
 
+            <WsSection id="tx_realized">
             <TerminalSection id="realized-sales" title="◈ REALIZED SALES — CAPITAL GAINS TAX" defaultOpen={false} accent={R}>
               <RealizedSalesTaxPanel tx={tx} />
             </TerminalSection>
+            </WsSection>
 
             {/* ── GROUP C — Planning Tools ── */}
-            <Label style={{ color: 'var(--fd-accent)' }}>Group C · Planning tools</Label>
+            {!ws.enabled && <Label style={{ color: 'var(--fd-accent)' }}>Group C · Planning tools</Label>}
 
+            <WsSection id="tx_cashflow">
             <TerminalSection id="cashflow" title="◈ TAX-AWARE CASHFLOW" defaultOpen={true} accent={G}>
               <CashflowEngine tx={tx} />
             </TerminalSection>
+            </WsSection>
 
             {tx.ss_options && Object.keys(tx.ss_options).length > 0 && (
+              <WsSection id="tx_ss">
               <TerminalSection id="ss-options" title="◈ SOCIAL SECURITY OPTIONS" defaultOpen={false} accent={A}>
                 <SSOptions
                   tx={tx}
@@ -678,23 +712,30 @@ export function TaxTab({ data }: Props) {
                   isRecalculating={isRecalculating}
                 />
               </TerminalSection>
+              </WsSection>
             )}
 
             {tx.gross_with_ss != null && (
+              <WsSection id="tx_with_ss">
               <TerminalSection id="with-ss" title="◈ WITH SOCIAL SECURITY — TAX SCENARIO" defaultOpen={false}>
                 <WithSSScenario tx={tx} effRateColor={effRateColor} />
               </TerminalSection>
+              </WsSection>
             )}
 
             {((tx.exec_conv_target ?? 0) > 0 || (data.roth_target_analysis?.length ?? 0) > 0 || (data.taxable_target_analysis?.length ?? 0) > 0) && (
+              <WsSection id="tx_rebal_score">
               <TerminalSection id="rebalance-score" title="◈ TAX-EFFICIENT REBALANCE SCORE" defaultOpen={false} accent={G}>
                 <RebalanceScore data={data} tx={tx} />
               </TerminalSection>
+              </WsSection>
             )}
 
+            <WsSection id="tx_withdrawal">
             <TerminalSection id="withdrawal-state" title="◈ WITHDRAWAL TAX SEQUENCING" defaultOpen={false} accent={A}>
               <WithdrawalStrategyPanel data={data} />
             </TerminalSection>
+            </WsSection>
           </>
         )}
       </div>
@@ -704,9 +745,12 @@ export function TaxTab({ data }: Props) {
       {subView === 'roth' && tx && (
         <div style={{ paddingTop: 56, display: 'flex', flexDirection: 'column', gap: 56 }}>
 
+          <WsSection id="tx_r_income">
           <IncomeBanner data={data} />
+          </WsSection>
 
           {/* ── Roth Conversion Command Center ── */}
+          <WsSection id="tx_r_command" value={verdict?.status ?? convWin} status={verdict ? (verdict.status === 'GO' || verdict.status === 'COMPLETE' ? 'ok' : verdict.status === 'STOP' ? 'alert' : 'watch') : 'info'}>
           {(() => {
             // Use canonical verdict — same object used by Tax Planning sub-view.
             // Local derivation mapped isComplete → 'STOP' (red) instead of 'COMPLETE' (green).
@@ -792,8 +836,10 @@ export function TaxTab({ data }: Props) {
               </div>
             )
           })()}
+          </WsSection>
 
           {/* ── Roth Conversion Runway ── */}
+          <WsSection id="tx_r_runway" value={runwayDepletionAge != null ? `Age ${runwayDepletionAge}` : undefined}>
           {rolloverBal > 0 && annualTarget > 0 && (() => {
             const currentAge   = runwayCurrentAge
             const convAmt      = annualTarget
@@ -858,9 +904,11 @@ export function TaxTab({ data }: Props) {
               </div>
             )
           })()}
+          </WsSection>
 
           {/* ── BRACKET FILLING ENGINE ──────────────────────────────────────────── */}
           {/* Math → Rule → Action. This block explains WHY window status is what it is. */}
+          <WsSection id="tx_r_bracket" value={moneyUnit(actualRoom).value + (moneyUnit(actualRoom).unit ?? '')} status={actualRoom > 20000 ? 'ok' : actualRoom > 0 ? 'warn' : 'alert'}>
           <TerminalSection id="bracket-fill" title={`◈ BRACKET FILLING ENGINE · ${tx.target_bracket_rate ?? 24}% TARGET BRACKET`} defaultOpen={true} accent={A}>
             {(() => {
               const targetRate    = tx.target_bracket_rate ?? 24
@@ -1092,8 +1140,10 @@ export function TaxTab({ data }: Props) {
               )
             })()}
           </TerminalSection>
+          </WsSection>
 
           {/* ── STOP verdict info block — shown instead of execution checklist when verdict is STOP ── */}
+          <WsSection id="tx_r_stop" value="Stop" status="alert">
           {(isConversionMonth || (tx?.conversion_imminent ?? false)) && verdict?.status === 'STOP' && verdict && (
             <div style={{
               border: `1px solid ${R}`, borderLeft: `4px solid ${R}`,
@@ -1142,8 +1192,10 @@ export function TaxTab({ data }: Props) {
               </div>
             </div>
           )}
+          </WsSection>
 
           {/* ── EXECUTION MONTH ACTION BLOCK — only rendered in the configured conversion month ── */}
+          <WsSection id="tx_r_exec" status="watch">
           {showDecActionBlock && (() => {
             const netRoom     = Math.max(0, actualRoom - safetyBuf)
             const convAmt     = convRecommended   // already computed: min(annualTarget, netRoom)
@@ -1265,9 +1317,11 @@ export function TaxTab({ data }: Props) {
               </div>
             )
           })()}
+          </WsSection>
 
           {/* Roth summary — unique values only; ROLLOVER BAL / MAX ADDITIONAL / CONV SCORE / CONVERTED YTD
                all appear in ConversionStatusPanel below so they are omitted here */}
+          <WsSection id="tx_r_window" value={rolloverDepleted ? 'Complete' : convWin.toLowerCase()}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
             {/* Issue 4 fix: show all active blockers, not just income confidence */}
             <StatTile label="WINDOW STATUS" value={rolloverDepleted ? 'COMPLETE' : convWin}
@@ -1312,34 +1366,46 @@ export function TaxTab({ data }: Props) {
               {bannerText}
             </div>
           )}
+          </WsSection>
 
+          <WsSection id="tx_r_status" value={annualTarget > 0 ? `${progressPct.toFixed(0)}%` : undefined} status={isComplete ? 'ok' : convExceeded ? 'alert' : 'info'}>
           <TerminalSection id="conv-status" title="◈ CONVERSION STATUS & PROGRESS" defaultOpen={true} accent={A}>
             <ConversionStatusPanel {...statusProps} />
           </TerminalSection>
+          </WsSection>
 
           {/* ── LIFETIME STRATEGY label ── */}
+          {!ws.enabled && (
           <div style={{ padding: '3px 12px', background: 'transparent', borderTop: '1px solid var(--fd-hairline)', borderBottom: '1px solid var(--fd-hairline)', fontSize: 12, color: 'var(--fd-negative)', fontWeight: 500, letterSpacing: '1.5px' }}>
             LIFETIME STRATEGY (Age {Math.floor(tx?.current_age ?? 60)} → 90) — RMD · Partial · Full Conversion
           </div>
+          )}
 
           {rolloverBal > 0 && annualTarget > 0 && (
+            <WsSection id="tx_r_rmd">
             <TerminalSection id="rmd-scenario" title="◈ RMD-ONLY vs. CONVERSION — LIFETIME COMPARISON" defaultOpen={true} accent={R}>
               <RmdScenarioPanel tx={tx} rolloverBal={rolloverBal} rothBal={rothBal} annualTarget={annualTarget} />
             </TerminalSection>
+            </WsSection>
           )}
 
           {/* ── ANNUAL EXECUTION label ── */}
+          {!ws.enabled && (
           <div style={{ padding: '3px 12px', background: 'transparent', borderTop: '1px solid var(--fd-hairline)', borderBottom: '1px solid var(--fd-hairline)', fontSize: 12, color: 'var(--fd-ink)', fontWeight: 500, letterSpacing: '1.5px' }}>
             ANNUAL EXECUTION (This Year) — Conversion window · bracket math · YTD progress
           </div>
+          )}
 
+          <WsSection id="tx_r_scen">
           <TerminalSection id="conv-scen" title="◈ CONVERSION SCENARIOS" defaultOpen={true} accent={A}>
             <ConversionScenarios tx={tx} ytdConverted={ytdConverted} actualRoom={actualRoom} convWin={convWin} scenarios={scenarios}
               grossNoSS={grossNoSS} ceiling={ceiling} safetyBuf={safetyBuf} />
           </TerminalSection>
+          </WsSection>
 
           {mode === 'advanced' && (
             <>
+              <WsSection id="tx_r_logic">
               <TerminalSection id="conv-logic" title="◈ ROOM & AGI CALCULATION ENGINE" defaultOpen={false} accent={Y}>
                 <div style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -1359,8 +1425,12 @@ export function TaxTab({ data }: Props) {
                   </div>
                 </div>
               </TerminalSection>
+              </WsSection>
 
-              <TerminalSection id="conv-impact" title="◈ CONVERSION IMPACT" defaultOpen={false} accent={G}>
+              {(() => {
+                // In the workspace the four parts are separate sections; elsewhere they stay grouped.
+                const parts = (<>
+                <WsSection id="tx_r_calendar">
                 <TerminalSection id="conv-calendar" title="   A. Conversion Schedule — Multi-Year Rollover Depletion" defaultOpen={true}>
                   <ConversionCalendarPanel
                     tx={tx} data={data}
@@ -1372,6 +1442,8 @@ export function TaxTab({ data }: Props) {
                     windowBlockers={windowBlockers}
                     whyNotConvert={decision.why_not_convert?.reasons ?? []} />
                 </TerminalSection>
+                </WsSection>
+                <WsSection id="tx_r_acct">
                 <TerminalSection id="conv-acct" title="   B. Account Allocation Impact" defaultOpen={false}>
                   <AccountImpactPanel
                     convPlanBase={convPlanBase} convPlanDec={convPlanDec}
@@ -1380,15 +1452,24 @@ export function TaxTab({ data }: Props) {
                     annualTarget={annualTarget} ytdConverted={ytdConverted} remaining={remaining}
                     convWin={convWin} safeRoom={Math.max(0, actualRoom - safetyBuf)} />
                 </TerminalSection>
+                </WsSection>
+                <WsSection id="tx_r_taximpact">
                 <TerminalSection id="conv-tax" title="   C. Tax Impact" defaultOpen={false}>
                   <TaxImpactPanel tx={tx} rothPlan={rothPlan} />
                 </TerminalSection>
+                </WsSection>
                 {scenarios.recommended.rows.length > 0 && (
+                  <WsSection id="tx_r_proj">
                   <TerminalSection id="conv-proj" title="   D. Long-Term Projection" defaultOpen={false}>
                     <ProjectionPanel tx={tx} scenarios={scenarios} />
                   </TerminalSection>
+                  </WsSection>
                 )}
-              </TerminalSection>
+                </>)
+                return ws.enabled ? parts : (
+                  <TerminalSection id="conv-impact" title="◈ CONVERSION IMPACT" defaultOpen={false} accent={G}>{parts}</TerminalSection>
+                )
+              })()}
             </>
           )}
         </div>
@@ -1401,14 +1482,17 @@ export function TaxTab({ data }: Props) {
       {subView === 'sell' && (
         <div style={{ paddingTop: 56, display: 'flex', flexDirection: 'column', gap: 56 }}>
 
-          {/* ── 1. Lot-Level Tax Signals ── */}
-          <SectionHeader
-            title="Lot-level tax signals"
-            hint="STCG / LTCG · maturity · value of waiting"
-          />
+          {/* ── 1. Lot-Level Tax Signals ── (LotAdvisor titles its own sections in the workspace) */}
+          {!ws.enabled && (
+            <SectionHeader
+              title="Lot-level tax signals"
+              hint="STCG / LTCG · maturity · value of waiting"
+            />
+          )}
           <LotAdvisor data={data} mode={mode} />
 
           {/* ── 2. Multi-Year Rebalance Plan ── */}
+          <WsSection id="tx_s_plan">
           <div>
             <SectionHeader
               title="Multi-year rebalance plan"
@@ -1416,6 +1500,7 @@ export function TaxTab({ data }: Props) {
             />
             <RebalancePlanPanel data={data} mode={mode} />
           </div>
+          </WsSection>
 
         </div>
       )}

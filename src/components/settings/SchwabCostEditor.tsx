@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { PanelHeader } from './PanelHeader'
 import { SaveBar } from './SaveBar'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 const G = 'var(--green)'
 const R = 'var(--red)'
@@ -522,6 +523,7 @@ export function SchwabCostEditor({ data, accountMapping = {}, onSaved }: {
 
   return (
     <div>
+      <WsSection id="st_schwab_cost">
       <PanelHeader>Schwab Cost Basis — Edit Lots & Symbols</PanelHeader>
       
       <div style={{ fontSize: 12, color: A, marginBottom: 12, padding: '6px 10px',
@@ -813,6 +815,7 @@ export function SchwabCostEditor({ data, accountMapping = {}, onSaved }: {
         )}
       </div>
 
+      </WsSection>
       <SaveBar onSave={save} saving={saving} saved={saved} error={error} />
     </div>
   )

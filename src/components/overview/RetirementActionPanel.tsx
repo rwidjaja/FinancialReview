@@ -11,7 +11,10 @@ import { COMPLIANCE_GREEN, COMPLIANCE_AMBER } from '../../utils/retirementEngine
 import type { DashboardData } from '../../types/dashboard'
 import { tabLabel, type TabId } from '../layout/AppHeader'
 import { fmtMoneyFull } from '../../utils/formatters'
-import { Section, Capsule, StatusChip, StatusTag, Label, mono, muted, fmtShortDate, type Status } from '../ui/primitives'
+import type { ReactNode } from 'react'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWorkspace } from '../workspace/context'
+import { Section, SectionTitle, Capsule, StatusChip, StatusTag, Label, mono, muted, fmtShortDate, type Status } from '../ui/primitives'
 
 const card = { background: 'var(--fd-card)', padding: 24, display: 'flex', flexDirection: 'column' as const, gap: 10 }
 const kv = (k: string, v: string) => (
@@ -28,6 +31,23 @@ function ActionHeadline({ text }: { text: string }) {
     <span style={{ fontFamily: 'var(--font-display)', fontSize: 48, lineHeight: 0.95, letterSpacing: '-0.01em' }}>
       {i > 0 ? <>{t.slice(0, i + 1)}<em>{t.slice(i + 1)}</em>.</> : <em>{t}.</em>}
     </span>
+  )
+}
+
+/**
+ * In the Advanced workspace each sub-block is its own findable section
+ * (registry: overview › Action engine). Elsewhere it renders inline.
+ */
+function Blk({ id, title, meta, value, status, children }: {
+  id: string; title: string; meta?: string; value?: string; status?: Status; children: ReactNode
+}) {
+  const { enabled } = useWorkspace()
+  if (!enabled) return <>{children}</>
+  return (
+    <WsSection id={id} value={value} status={status}>
+      <SectionTitle title={title} meta={meta} />
+      {children}
+    </WsSection>
   )
 }
 
@@ -57,9 +77,11 @@ export function RetirementActionPanel({ decision, onNavigate }: {
     ['Readiness', decision.sub_scores.retirement_readiness],
   ] as const
 
-  return (
-    <Section title="Retirement action engine" meta="Deterministic · reads every tab" gap={24}>
+  const { enabled: inWorkspace } = useWorkspace()
+  const body = (<>
       {/* Primary action — lime plane */}
+      <Blk id="re_primary" title="Primary action" meta={`State ${decision.withdrawal_state}`}
+        value={decision.action_amount != null ? fmtMoneyFull(decision.action_amount) : decision.primary_action.replace(/_/g, ' ').toLowerCase()} status="ok">
       <div style={{ background: 'var(--as-lime)', color: 'var(--as-washed-black)', padding: 40, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 260px', gap: 40 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <span style={mono}>Primary action · {decision.primary_action.replace(/_/g, ' ').toLowerCase()} · State {decision.withdrawal_state}</span>
@@ -76,8 +98,10 @@ export function RetirementActionPanel({ decision, onNavigate }: {
           ))}
         </div>
       </div>
+      </Blk>
 
       {activeOverrides.length > 0 && (
+        <Blk id="re_overrides" title="Overrides" value={`${activeOverrides.length} blocking`} status="warn">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 24 }}>
           {activeOverrides.map(ov => (
             <div key={ov.id} style={{ ...card, borderLeft: '8px solid var(--fd-lilac-ink)' }}>
@@ -90,9 +114,12 @@ export function RetirementActionPanel({ decision, onNavigate }: {
             </div>
           ))}
         </div>
+        </Blk>
       )}
 
       {/* Cross-tab drivers */}
+      <Blk id="re_drivers" title="Cross-tab drivers" value={String(decision.cross_tab_drivers.length)}
+        status={decision.cross_tab_drivers.some(d => d.severity === 'alert') ? 'alert' : decision.cross_tab_drivers.some(d => d.severity === 'warn') ? 'warn' : 'info'}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 1, background: 'var(--fd-hairline)', border: '1px solid var(--fd-hairline)' }}>
         {decision.cross_tab_drivers.map((d, i) => (
           <button key={i} className="fd-row" title={`field: ${d.field}`} onClick={() => onNavigate?.(d.tab as TabId)} style={{
@@ -107,8 +134,10 @@ export function RetirementActionPanel({ decision, onNavigate }: {
           </button>
         ))}
       </div>
+      </Blk>
 
       {/* If–then triggers */}
+      <Blk id="re_triggers" title="If–then triggers" value={`${activeCount} active`} status={activeCount > 0 ? 'warn' : 'ok'}>
       <div style={{ display: 'flex', flexDirection: 'column', borderTop: '2px solid var(--fd-rule)' }}>
         <span style={{ ...mono, padding: '12px 0' }}>If–then triggers · {activeCount} active</span>
         {triggers.map(t => (
@@ -121,8 +150,10 @@ export function RetirementActionPanel({ decision, onNavigate }: {
           </div>
         ))}
       </div>
+      </Blk>
 
       {/* Outlook · next window · why not */}
+      <Blk id="re_outlook" title="Outlook and conversion window" value={nw.estimated_month ?? 'TBD'} status="watch">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 24 }}>
         <div style={card}>
           <Label>30-day outlook</Label>
@@ -146,8 +177,12 @@ export function RetirementActionPanel({ decision, onNavigate }: {
             : <span style={{ fontSize: 14 }}>Nothing is blocking a conversion.</span>}
         </div>
       </div>
+      </Blk>
 
       {(decision.risk_override_summary.active_count > 0 || decision.state_c_compliance) && (
+        <Blk id="re_compliance" title="Risk overrides and State C compliance"
+          value={decision.state_c_compliance ? `${(decision.state_c_compliance as StateCCompliance).score}%` : `${decision.risk_override_summary.active_count} active`}
+          status={decision.risk_override_summary.active_count > 0 ? 'alert' : 'info'}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 24 }}>
           {decision.risk_override_summary.active_count > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', borderTop: '2px solid var(--fd-rule)' }}>
@@ -180,8 +215,11 @@ export function RetirementActionPanel({ decision, onNavigate }: {
             )
           })()}
         </div>
+        </Blk>
       )}
 
+      {(tlc || (g && g.by_month.length > 0)) && (
+      <Blk id="re_taxlock" title="Tax-locked concentration" value={tlc?.value_per_day != null ? `${fmtMoneyFull(Math.round(tlc.value_per_day))}/day` : undefined} status="watch">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 24 }}>
         {tlc && (
           <div style={card}>
@@ -223,7 +261,11 @@ export function RetirementActionPanel({ decision, onNavigate }: {
           )
         })()}
       </div>
+      </Blk>
+      )}
 
+      <Blk id="re_forced" title="Forced-sale risk" value={f.risk_level.toLowerCase()}
+        status={f.risk_level === 'VERY LOW' || f.risk_level === 'LOW' ? 'ok' : f.risk_level === 'MODERATE' ? 'warn' : 'alert'}>
       <div style={{ display: 'flex', flexDirection: 'column', borderTop: '2px solid var(--fd-rule)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0' }}>
           <span style={mono}>Forced-sale risk</span>
@@ -235,6 +277,13 @@ export function RetirementActionPanel({ decision, onNavigate }: {
         </div>
         <span style={{ fontSize: 13, ...muted }}>{f.note}</span>
       </div>
+      </Blk>
+  </>)
+
+  if (inWorkspace) return body
+  return (
+    <Section title="Retirement action engine" meta="Deterministic · reads every tab" gap={24}>
+      {body}
     </Section>
   )
 }

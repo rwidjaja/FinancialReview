@@ -6,6 +6,7 @@
 
 import { useState } from 'react'
 import { SaveBar } from './SaveBar'
+import { WsSection } from '../workspace/WorkspaceContext'
 import { fmtMoneyFull } from '../../utils/formatters'
 
 const M  = 'var(--text2)'
@@ -172,6 +173,7 @@ export function TaxBracketsEditor({ data, onSaved, targetBracketRate }: {
 
   return (
     <div>
+      <WsSection id="st_tax_brackets" value={`${year}`}>
       {/* Header info */}
       <div style={{ marginBottom: 12, fontSize: 12, color: M, lineHeight: 1.6 }}>
         Edit the IRS ordinary income tax brackets. These are updated annually (usually October/November).
@@ -233,6 +235,7 @@ export function TaxBracketsEditor({ data, onSaved, targetBracketRate }: {
         The bracket ceiling shown in the Tax tab uses gross income (before deduction).
       </div>
 
+      </WsSection>
       <SaveBar onSave={save} saving={saving} saved={saved} error={error} />
     </div>
   )

@@ -28,6 +28,8 @@ import { useDrawdownPlan } from '../../context/DrawdownPlanContext'
 import { useYearActions } from '../drawdown/useYearActions'
 import { useGlobalViewMode } from '../ui/ModeToggle'
 import { YearActionChecklist } from './YearActionChecklist'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWorkspace } from '../workspace/context'
 import {
   PageHero, DecisionPlane, MainRail, RuledList, StatusChip, Label, mono, muted,
 } from '../ui/primitives'
@@ -59,6 +61,7 @@ function ActionHeadline({ text }: { text: string }) {
 
 export function RoadmapTab({ data, onNavigate }: { data: DashboardData; onNavigate?: (tab: TabId) => void }) {
   const [mode] = useGlobalViewMode()
+  const ws = useWorkspace()
   const asOf = useMemo(() => new Date(), [])
   const tx = data.tax_data
   const { data: wellness } = useWellnessData()
@@ -128,12 +131,13 @@ export function RoadmapTab({ data, onNavigate }: { data: DashboardData; onNaviga
       </PageHero>
 
       {/* Phase bar */}
+      <WsSection id="rm_phase_bar" value={`${currentPhase.index} of ${phases.length}`} status="info">
       <section style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 56 }}>
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${phases.length}, minmax(0,1fr))`, gap: 4 }}>
           {phases.map((p, i) => {
             const st = phaseState(i, p)
             return (
-              <button key={p.id} onClick={() => articleRefs.current[p.id]?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              <button key={p.id} onClick={() => ws.enabled ? ws.focusSection(`rm_phase_${p.id}`) : articleRefs.current[p.id]?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 style={{ display: 'flex', flexDirection: 'column', gap: 12, background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer' }}>
                 <div style={{
                   height: 14, width: '100%',
@@ -151,14 +155,18 @@ export function RoadmapTab({ data, onNavigate }: { data: DashboardData; onNaviga
         </div>
         <span style={{ fontSize: 13, ...muted }}>Outlined segments are estimates. Fixed boundaries come from Settings → Personal.</span>
       </section>
+      </WsSection>
 
       <MainRail
         main={phases.map((p, i) => (
-          <PhaseArticle key={p.id} phase={p} state={phaseState(i, p)} isCurrent={p.id === currentPhase.id}
+          <WsSection key={p.id} id={`rm_phase_${p.id}`} value={STATE_TAG[phaseState(i, p)]} status={p.id === currentPhase.id ? 'info' : undefined}>
+          <PhaseArticle phase={p} state={phaseState(i, p)} isCurrent={p.id === currentPhase.id}
             data={data} decision={decision} projYears={projYears} mode={mode} onNavigate={onNavigate}
             refEl={el => { articleRefs.current[p.id] = el }} />
+          </WsSection>
         ))}
         rail={<>
+          <WsSection id="rm_on_track" value={offTrack.length ? `${offTrack.length} flagged` : 'On track'} status={offTrack.length ? 'warn' : 'ok'}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0 }}>{offTrack.length ? 'Not fully on track' : 'On track'}</h3>
             <RuledList>
@@ -175,8 +183,10 @@ export function RoadmapTab({ data, onNavigate }: { data: DashboardData; onNaviga
                 ))}
             </RuledList>
           </div>
+          </WsSection>
 
           {sbp && sbp.extra_annual_tax_as_single > 0 && (
+            <WsSection id="rm_survivor" value={`+${fmtMoney(sbp.extra_annual_tax_as_single)}/yr`} status="watch">
             <div style={{ background: 'var(--as-lilac)', color: 'var(--as-washed-black)', padding: 28, display: 'flex', flexDirection: 'column', gap: 10 }}>
               <span style={mono}>Survivor bracket check · MFJ → single</span>
               <span style={{ fontSize: 36, fontWeight: 500, letterSpacing: '-0.005em' }}>+{fmtMoneyFull(sbp.extra_annual_tax_as_single)}/yr</span>
@@ -187,9 +197,11 @@ export function RoadmapTab({ data, onNavigate }: { data: DashboardData; onNaviga
                   : '. Single brackets are narrower at every rate.'}
               </span>
             </div>
+            </WsSection>
           )}
 
           {boundaries.length > 0 && (
+            <WsSection id="rm_boundaries">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0 }}>Forecast at each boundary</h3>
               <RuledList>
@@ -201,14 +213,17 @@ export function RoadmapTab({ data, onNavigate }: { data: DashboardData; onNaviga
               </RuledList>
               <span style={{ fontSize: 13, ...muted }}>Base case only — one deterministic path, not a range or probability.</span>
             </div>
+            </WsSection>
           )}
 
           {mode === 'advanced' && (
+            <WsSection id="rm_checklist" value={`${yearActions.length} items`}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0 }}>This year's checklist</h3>
               <YearActionChecklist key={`${currentPhase.id}-${asOf.getFullYear()}`} phaseId={currentPhase.id} year={asOf.getFullYear()}
                 actions={yearActions.map(a => ({ text: a.text, sub: a.sub }))} />
             </div>
+            </WsSection>
           )}
         </>}
       />

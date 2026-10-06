@@ -5,6 +5,8 @@
  * Per lot (expanded): tax consequence — sell now vs wait, savings, breakeven.
  */
 
+import { WsSection } from '../workspace/WorkspaceContext'
+import { WsBlock } from '../workspace/WsBlock'
 import React, { useState } from 'react'
 import { fmtMoneyFull } from '../../utils/formatters'
 import type { DashboardData, CostBasisSymbol, CostLot } from '../../types/dashboard'
@@ -1290,6 +1292,7 @@ export function LotAdvisor({ data, mode }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
+      <WsBlock id="tx_s_lots" title="Lot signals" meta="STCG / LTCG · maturity · value of waiting" value={totalSavings > 0 ? fmtMoneyFull(Math.round(totalSavings)) : undefined} status={totalStcgGain > 0 ? 'watch' : 'ok'}>
       {/* Taxable account scope note */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', background: 'var(--fd-card)', border: '1px solid var(--fd-hairline)', borderLeft: `3px solid ${A}` }}>
         <span style={{ fontSize: 12, fontWeight: 500, color: A, textTransform: 'uppercase', letterSpacing: '0.6px' }}>TAXABLE ACCOUNT ONLY</span>
@@ -1346,8 +1349,10 @@ export function LotAdvisor({ data, mode }: Props) {
 
       {/* Upcoming maturity calendar */}
       <MaturityCalendar events={tx.ltcg_maturity_calendar} stcgRate={stcgRate} ltcgRate={ltcgRate} />
+      </WsBlock>
 
       {/* Gain Planner — advanced mode only */}
+      <WsBlock id="tx_s_gain" title="Gain planner">
       {mode === 'advanced' && (
         <GainPlannerPanel
           lots={lots}
@@ -1363,7 +1368,9 @@ export function LotAdvisor({ data, mode }: Props) {
           stateLabel={ws.label}
         />
       )}
+      </WsBlock>
 
+      <WsBlock id="tx_s_detail" title="Lot details" value={`${Object.keys(lots).length} positions`}>
       {/* Data coverage strip — always visible */}
       {(missingSymbols.length > 0 || shareMismatches.length > 0) && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -1474,10 +1481,12 @@ export function LotAdvisor({ data, mode }: Props) {
         Estimates only — consult a tax advisor before selling.
       </div>
       </> }
+      </WsBlock>
 
       {/* ── Tax pipeline + lot maturity — relevant to LTCG/STCG sell decisions ── */}
       {tx && (
         <>
+          <WsSection id="tx_s_pipeline">
           <TerminalSection id="sell-pipeline" title="◈ TAX PIPELINE (ORDINARY vs CAPITAL GAINS)" defaultOpen={false} accent="var(--blue)">
             <div style={{ padding: '8px 12px' }}>
               <DualPipelinePanel
@@ -1488,12 +1497,15 @@ export function LotAdvisor({ data, mode }: Props) {
               />
             </div>
           </TerminalSection>
+          </WsSection>
 
+          <WsSection id="tx_s_maturity">
           <TerminalSection id="sell-lot-maturity" title="◈ LOT MATURITY & GAIN CLASSIFICATION" defaultOpen={false} accent="var(--cyan)">
             <div style={{ padding: '8px 12px' }}>
               <LotMaturityPanel tx={tx} />
             </div>
           </TerminalSection>
+          </WsSection>
         </>
       )}
     </div>

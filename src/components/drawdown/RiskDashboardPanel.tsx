@@ -7,6 +7,7 @@ import { useMemo } from 'react'
 import type { DashboardData } from '../../types/dashboard'
 import { runDrawdown, type DrawdownResult, type DrawdownInputs } from './drawdown.engine'
 import { G, R, A, M } from './drawdown.shared'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 export function RiskDashboardPanel({ result, inputs, data }: { result: DrawdownResult; inputs: DrawdownInputs; data: DashboardData }) {
   const fmt = (v: number) => {
@@ -115,6 +116,7 @@ export function RiskDashboardPanel({ result, inputs, data }: { result: DrawdownR
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Header */}
+      <WsSection id="dd_risk_overview" value={`${riskItems.filter(r => r.rating !== 'LOW').length} elevated`} status={riskItems.some(r => r.rating === 'HIGH') ? 'alert' : riskItems.some(r => r.rating !== 'LOW') ? 'watch' : 'ok'}>
       <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${R}`, overflow: 'hidden' }}>
         <div style={{ background: `${R}0c`, borderBottom: `1px solid ${R}`, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ fontSize: 12, fontWeight: 500, color: R }}>RISK DASHBOARD</span>
@@ -132,10 +134,12 @@ export function RiskDashboardPanel({ result, inputs, data }: { result: DrawdownR
           ))}
         </div>
       </div>
+      </WsSection>
 
       {/* Risk cards */}
       {riskItems.map(r => (
-        <div key={r.key} style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${r.color}`, overflow: 'hidden' }}>
+        <WsSection key={r.key} id={`dd_risk_${r.key}`} value={r.rating} status={r.rating === 'HIGH' ? 'alert' : r.rating === 'MODERATE' ? 'watch' : 'ok'}>
+        <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${r.color}`, overflow: 'hidden' }}>
           <div style={{ background: `${r.color}0c`, borderBottom: `1px solid ${r.color}`, padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 14 }}>{r.icon}</span>
             <span style={{ fontSize: 12, fontWeight: 500, color: r.color }}>{r.title}</span>
@@ -168,6 +172,7 @@ export function RiskDashboardPanel({ result, inputs, data }: { result: DrawdownR
             )}
           </div>
         </div>
+        </WsSection>
       ))}
     </div>
   )

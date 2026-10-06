@@ -4,6 +4,7 @@ import { fmtMoney, fmtMoneyFull } from '../../utils/formatters'
 import type { DashboardData } from '../../types/dashboard'
 import { useWellnessData } from '../../hooks/useDashboardData'
 import { BriefingPanel } from './BriefingPanel'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 import { buildTextContext, SUGGESTION_GROUPS } from './buildContext'
 import { useGlobalViewMode } from '../ui/ModeToggle'
@@ -236,15 +237,89 @@ export function AITab({ data, onNavigate, onNavigateToResearch }: Props) {
     <div style={{ paddingBottom: 64, display: 'flex', flexDirection: 'column' }}>
       <BriefingPanel onChipClick={handleChipClick} showDetails={mode === 'simple'} />
 
+      {/* ── Portfolio context tiles (advanced) ── */}
+      {mode === 'advanced' && (() => {
+        const pnl = data.summary.total_pnl
+        const conf = data.portfolio_intel?.system_confidence_score
+        const regime = data.portfolio_intel?.market_regime
+        const vix = data.vix_current
+        const convRoom = data.tax_data?.conv_room_real
+        const confBadge = conf == null ? 'none' : conf >= 70 ? 'green' : conf >= 50 ? 'yellow' : 'red'
+        const regimeBadge = regime === 'EXPANSION' ? 'green' : regime === 'RISK-OFF' ? 'red' : 'yellow'
+        const vixBadge = vix == null ? 'none' : vix > 25 ? 'red' : vix > 18 ? 'orange' : 'green'
+        return (
+          <WsSection id="ai_context" value={regime ?? undefined} status={regime === 'EXPANSION' ? 'ok' : regime === 'RISK-OFF' ? 'alert' : regime ? 'watch' : undefined}>
+          <div style={{ padding: '16px 0' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+              gap: 0,
+            }}>
+              <StatTile
+                label="PORTFOLIO VALUE"
+                value={fmtMoneyFull(data.summary.total_value)}
+                color="var(--text)"
+                badge="none"
+              />
+              <StatTile
+                label="ANNUAL INCOME"
+                value={`${fmtMoney(data.summary.total_income)}/yr`}
+                color={G}
+                badge="green"
+              />
+              <StatTile
+                label="TOTAL P&L"
+                value={`${pnl >= 0 ? '+' : ''}${fmtMoneyFull(pnl)}`}
+                color={pnl >= 0 ? G : R}
+                badge={pnl >= 0 ? 'green' : 'red'}
+                badgeLabel={pnl >= 0 ? '▲ GAIN' : '▼ LOSS'}
+                trend={pnl >= 0 ? 'up' : 'down'}
+              />
+              <StatTile
+                label="MARKET REGIME"
+                value={regime ?? '—'}
+                color={regime === 'EXPANSION' ? G : regime === 'RISK-OFF' ? R : A}
+                badge={regimeBadge}
+                metricId="market_regime"
+              />
+              <StatTile
+                label="CONFIDENCE"
+                value={`${conf?.toFixed(0) ?? '—'}/100`}
+                color={conf == null ? M : conf >= 70 ? G : conf >= 50 ? A : R}
+                badge={confBadge}
+                metricId="confidence"
+              />
+              {vix != null && (
+                <StatTile
+                  label="VIX"
+                  value={vix.toFixed(2)}
+                  color={vix > 25 ? R : vix > 18 ? A : G}
+                  badge={vixBadge}
+                />
+              )}
+              {convRoom != null && (
+                <StatTile
+                  label="CONV ROOM"
+                  value={fmtMoney(convRoom)}
+                  color={A}
+                  badge="orange"
+                  metricId="conv_room"
+                />
+              )}
+            </div>
+          </div>
+          </WsSection>
+        )
+      })()}
+
       {mode === 'advanced' && (
+      <WsSection id="ai_chat" value={messages.length > 0 ? `${messages.length} messages` : undefined} status="info">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 56, paddingBottom: 16 }}>
           <h2 style={{ fontSize: 24, fontWeight: 500, letterSpacing: '-0.005em', margin: 0 }}>Ask the portfolio</h2>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.03em', textTransform: 'uppercase', color: 'var(--fd-muted)' }}>Full portfolio context is attached to every question</span>
         </div>
-      )}
 
       {/* ── Top control bar (Advanced/chat only — Simple is briefing-only) ── */}
-      {mode === 'advanced' && (
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px',
         background: 'var(--surface)', borderBottom: '1px solid var(--border2)',
@@ -338,84 +413,8 @@ export function AITab({ data, onNavigate, onNavigateToResearch }: Props) {
           <span>COMPLETION: <span style={{ color: A, fontWeight: 500 }}>{totalCT.toLocaleString()}tk</span></span>
         </div>
       </div>
-      )}
-
-      {/* ── Portfolio context tiles (advanced) ── */}
-      {mode === 'advanced' && (() => {
-        const pnl = data.summary.total_pnl
-        const conf = data.portfolio_intel?.system_confidence_score
-        const regime = data.portfolio_intel?.market_regime
-        const vix = data.vix_current
-        const convRoom = data.tax_data?.conv_room_real
-        const confBadge = conf == null ? 'none' : conf >= 70 ? 'green' : conf >= 50 ? 'yellow' : 'red'
-        const regimeBadge = regime === 'EXPANSION' ? 'green' : regime === 'RISK-OFF' ? 'red' : 'yellow'
-        const vixBadge = vix == null ? 'none' : vix > 25 ? 'red' : vix > 18 ? 'orange' : 'green'
-        return (
-          <div style={{ padding: '16px 0' }}>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-              gap: 0,
-            }}>
-              <StatTile
-                label="PORTFOLIO VALUE"
-                value={fmtMoneyFull(data.summary.total_value)}
-                color="var(--text)"
-                badge="none"
-              />
-              <StatTile
-                label="ANNUAL INCOME"
-                value={`${fmtMoney(data.summary.total_income)}/yr`}
-                color={G}
-                badge="green"
-              />
-              <StatTile
-                label="TOTAL P&L"
-                value={`${pnl >= 0 ? '+' : ''}${fmtMoneyFull(pnl)}`}
-                color={pnl >= 0 ? G : R}
-                badge={pnl >= 0 ? 'green' : 'red'}
-                badgeLabel={pnl >= 0 ? '▲ GAIN' : '▼ LOSS'}
-                trend={pnl >= 0 ? 'up' : 'down'}
-              />
-              <StatTile
-                label="MARKET REGIME"
-                value={regime ?? '—'}
-                color={regime === 'EXPANSION' ? G : regime === 'RISK-OFF' ? R : A}
-                badge={regimeBadge}
-                metricId="market_regime"
-              />
-              <StatTile
-                label="CONFIDENCE"
-                value={`${conf?.toFixed(0) ?? '—'}/100`}
-                color={conf == null ? M : conf >= 70 ? G : conf >= 50 ? A : R}
-                badge={confBadge}
-                metricId="confidence"
-              />
-              {vix != null && (
-                <StatTile
-                  label="VIX"
-                  value={vix.toFixed(2)}
-                  color={vix > 25 ? R : vix > 18 ? A : G}
-                  badge={vixBadge}
-                />
-              )}
-              {convRoom != null && (
-                <StatTile
-                  label="CONV ROOM"
-                  value={fmtMoney(convRoom)}
-                  color={A}
-                  badge="orange"
-                  metricId="conv_room"
-                />
-              )}
-            </div>
-          </div>
-        )
-      })()}
-
 
       {/* ── Advanced mode = the natural-language Q&A surface (chat + sidebar) */}
-      {mode === 'advanced' && (
       <div style={{ height: '72vh', display: 'flex', gap: 0, overflow: 'hidden', borderTop: '2px solid var(--fd-rule)', borderBottom: '1px solid var(--fd-hairline)' }}>
 
         {/* ── Left sidebar: suggestion groups ─────────────────────────── */}
@@ -618,6 +617,7 @@ export function AITab({ data, onNavigate, onNavigateToResearch }: Props) {
           </div>
         </div>
       </div>
+      </WsSection>
       )}
 
     </div>

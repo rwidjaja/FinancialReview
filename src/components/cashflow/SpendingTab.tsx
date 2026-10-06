@@ -12,6 +12,7 @@ import { PageHero, LeadMuted, KpiStrip, Section, Sections, MainRail, RuledList, 
 import { TabBriefingPanel } from '../ui/TabBriefingPanel'
 import { MonthlyReviewModal } from '../ui/MonthlyReviewModal'
 import type { DashboardData } from '../../types/dashboard'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 const G = 'var(--green)'
 const R = 'var(--red)'
@@ -139,15 +140,18 @@ export function SpendingTab({ data }: Props) {
       ]} />
 
       <Sections>
+        <WsSection id="cf_monthly" value={`${fmtMoney(monthlySpendingAvg)}/mo`} status="info">
         <Section title="Monthly spending" meta={<span style={{ display: 'flex', gap: 16, fontSize: 13 }}>
           <Swatch c="var(--fd-accent)" t="At or below average" /><Swatch c="var(--fd-lilac-ink)" t="Above average" /><Swatch c="var(--fd-negative)" t="Over 1.5× average" />
         </span>}>
           <MonthlyTimeline si={si} showTable={mode === 'advanced'} />
         </Section>
+        </WsSection>
 
         <MainRail
           main={<>
             {cats.length > 0 && (
+              <WsSection id="cf_categories" value={`${cats.length} categories`}>
               <Section title="Categories" meta="Annualised · core vs discretionary">
                 <RuledList>
                   {cats.map(([name, c]) => (
@@ -163,16 +167,22 @@ export function SpendingTab({ data }: Props) {
                   ))}
                 </RuledList>
               </Section>
+              </WsSection>
             )}
+            <WsSection id="cf_bucket">
             <BucketPlan data={data} />
+            </WsSection>
           </>}
           rail={<>
             {data.income_analytics?.payout_calendar && (
+              <WsSection id="cf_div_calendar">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0 }}>Dividend payout calendar</h3>
                 <DividendCalendar data={data} />
               </div>
+              </WsSection>
             )}
+            <WsSection id="cf_core_disc" value={`${corePct.toFixed(0)}% core`} status="info">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0 }}>Core vs discretionary</h3>
               <div style={{ display: 'flex', height: 16 }}>
@@ -182,14 +192,18 @@ export function SpendingTab({ data }: Props) {
                 <span>Core {fmtMoneyFull(coreAmt)} · {corePct.toFixed(0)}%</span><span>Discretionary {fmtMoneyFull(ytdSpending - coreAmt)} · {(100 - corePct).toFixed(0)}%</span>
               </div>
             </div>
+            </WsSection>
+            <WsSection id="cf_briefing">
             <div style={{ background: 'var(--fd-card)', padding: 24 }}>
               <TabBriefingPanel endpoint="/api/briefing/cashflow" title="Cash flow briefing" />
             </div>
+            </WsSection>
           </>}
         />
 
         {mode === 'advanced' && (<>
           {coveragePct != null && (
+            <WsSection id="cf_coverage" value={`${coveragePct.toFixed(0)}%`} status={coveragePct >= COVERAGE_OK_PCT ? 'ok' : coveragePct >= COVERAGE_WARN_PCT ? 'warn' : 'alert'}>
             <Section title="YTD income coverage of spending" meta="Excludes Roth conversions · partial year">
               <div style={{ position: 'relative', height: 16, background: 'var(--fd-hairline)' }}>
                 <div style={{ position: 'absolute', inset: '0 auto 0 0', width: `${Math.min(100, coveragePct)}%`, background: coveragePct >= COVERAGE_OK_PCT ? 'var(--fd-accent)' : 'var(--fd-negative)' }} />
@@ -199,7 +213,9 @@ export function SpendingTab({ data }: Props) {
                 <span style={{ fontWeight: 500, color: gain(netFlow) }}>{coveragePct.toFixed(0)}% · {netFlow >= 0 ? `surplus +${fmtMoney(netFlow)}` : `deficit −${fmtMoney(Math.abs(netFlow))}`}</span>
               </div>
             </Section>
+            </WsSection>
           )}
+          <WsSection id="cf_profile" value={`${si.cashflow_vol_pct.toFixed(1)}% vol`} status={si.cashflow_vol_pct <= 20 ? 'ok' : si.cashflow_vol_pct <= 40 ? 'watch' : 'warn'}>
           <Section title="Spending profile" meta="Transaction-based">
             <TileGrid cols={4}>
               <GridTile label="Lifestyle spending" value={fmtMoneyFull(si.true_annual_spending)} sub={`${fmtMoney(si.true_annual_spending / 12)}/mo avg · transaction-based`} />
@@ -210,11 +226,12 @@ export function SpendingTab({ data }: Props) {
               <GridTile label="Savings rate" value={`${savingsRate.toFixed(1)}%`} sub="W2-era rate — post-retirement target is 0–10%" />
             </TileGrid>
           </Section>
-          {(si.w2_annual ?? 0) > 0 && <IncomeSourceBreakdown data={data} />}
-          {data.income_analytics?.payout_calendar && <TerminalSection id="seasonality" title="Income seasonality"><IncomeSeasonality data={data} /></TerminalSection>}
-          {cats.length > 0 && <TerminalSection id="categories" title="Category detail"><CategoryBreakdown si={si} /></TerminalSection>}
-          {(si.recurring?.length ?? 0) > 0 && <TerminalSection id="recurring" title="Recurring payments"><RecurringPayments si={si} /></TerminalSection>}
-          {(si.shock_events?.length ?? 0) > 0 && <TerminalSection id="shocks" title="Shock events"><ShockEvents si={si} /></TerminalSection>}
+          </WsSection>
+          {(si.w2_annual ?? 0) > 0 && <WsSection id="cf_income_sources"><IncomeSourceBreakdown data={data} /></WsSection>}
+          {data.income_analytics?.payout_calendar && <WsSection id="cf_seasonality"><TerminalSection id="seasonality" title="Income seasonality"><IncomeSeasonality data={data} /></TerminalSection></WsSection>}
+          {cats.length > 0 && <WsSection id="cf_category_detail"><TerminalSection id="categories" title="Category detail"><CategoryBreakdown si={si} /></TerminalSection></WsSection>}
+          {(si.recurring?.length ?? 0) > 0 && <WsSection id="cf_recurring" value={`${si.recurring?.length ?? 0} payees`}><TerminalSection id="recurring" title="Recurring payments"><RecurringPayments si={si} /></TerminalSection></WsSection>}
+          {(si.shock_events?.length ?? 0) > 0 && <WsSection id="cf_shocks" value={`${si.shock_events?.length ?? 0} events`} status="watch"><TerminalSection id="shocks" title="Shock events"><ShockEvents si={si} /></TerminalSection></WsSection>}
         </>)}
       </Sections>
     </div>

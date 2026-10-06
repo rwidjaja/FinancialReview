@@ -10,6 +10,7 @@ import {
   Cell, Legend,
 } from 'recharts'
 import { TerminalSection } from '../ui/Terminal'
+import { WsSection } from '../workspace/WorkspaceContext'
 import { fmtMoney } from '../../utils/formatters'
 import { RMD_START_AGE, DRAWDOWN_DEFAULTS } from '../../utils/taxConfig'
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_CURSOR, TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTooltip'
@@ -258,6 +259,7 @@ export function LongevityPanel({ result, data, inputs, mode }: { result: Drawdow
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
+      <WsSection id="dd_lon_questions" value={dynBracket ? (dynBracket.depleted_at_age != null ? `Age ${dynBracket.depleted_at_age}` : 'Lasts') : undefined} status={dynBracket ? (dynBracket.depleted_at_age != null ? 'alert' : 'ok') : undefined}>
       {/* ── 3 Key Questions ── */}
       {dynBracket && (() => {
         const totalPortfolioLon = inputs.taxable_balance + inputs.rollover_balance + inputs.roth_balance
@@ -363,8 +365,11 @@ export function LongevityPanel({ result, data, inputs, mode }: { result: Drawdow
         </div>
       )}
 
+      </WsSection>
+
       {/* Depletion table */}
       {mode === 'advanced' && (
+      <WsSection id="dd_depletion_ages">
       <TerminalSection id="depletion-table" title="Account Depletion Ages" defaultOpen accent={R}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 8 }}>
           {longevityRows.map(row => {
@@ -428,10 +433,11 @@ export function LongevityPanel({ result, data, inputs, mode }: { result: Drawdow
           })}
         </div>
       </TerminalSection>
+      </WsSection>
       )}
 
       {/* Portfolio trajectory — all strategies */}
-      {mode === 'advanced' && <TerminalSection id="total-trajectory" title="Portfolio Total — All Strategies" defaultOpen accent={A}>
+      {mode === 'advanced' && <WsSection id="dd_total_trajectory"><TerminalSection id="total-trajectory" title="Portfolio Total — All Strategies" defaultOpen accent={A}>
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={longevityData} margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
             <XAxis dataKey="age" tick={{ fontSize: 12, fill: M }}
@@ -451,10 +457,10 @@ export function LongevityPanel({ result, data, inputs, mode }: { result: Drawdow
             ))}
           </LineChart>
         </ResponsiveContainer>
-      </TerminalSection>}
+      </TerminalSection>
 
       {/* Rollover intentional depletion note */}
-      {mode === 'advanced' && dynRolloverDeplete != null && (
+      {dynRolloverDeplete != null && (
         <div style={{
           padding: '8px 12px', borderRadius: 0,
           background: 'var(--fd-card)', border: '1px solid var(--fd-hairline)',
@@ -469,9 +475,11 @@ export function LongevityPanel({ result, data, inputs, mode }: { result: Drawdow
           </span>
         </div>
       )}
+      </WsSection>}
 
       {/* Roth preservation comparison */}
       {mode === 'advanced' && (
+        <WsSection id="dd_roth_legacy" value={dynBracket ? fmt(dynBracket.ending_roth) : undefined} status="ok">
         <TerminalSection id="roth-preserved" title={`Roth IRA Legacy at Age ${result.inputs.target_age} — End of Plan Horizon`} defaultOpen accent={G}>
           <SectionLabel text={`Projected Roth balance at age ${result.inputs.target_age} — not near-term trajectory. For 5-year Roth path, see Tax → Roth Conversion → Roth vs Rollover Trajectory chart.`} color={G} />
           <ResponsiveContainer width="100%" height={120}>
@@ -511,9 +519,10 @@ export function LongevityPanel({ result, data, inputs, mode }: { result: Drawdow
             </div>
           )}
         </TerminalSection>
+        </WsSection>
       )}
 
-      {mode === 'advanced' && <DepletionScheduleSection result={result} data={data} inputs={inputs} />}
+      {mode === 'advanced' && <WsSection id="dd_depletion_schedule"><DepletionScheduleSection result={result} data={data} inputs={inputs} /></WsSection>}
     </div>
   )
 }

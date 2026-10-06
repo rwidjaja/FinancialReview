@@ -15,6 +15,7 @@ import {
 import { fmtK, fmtPct, MoneyTooltip } from './predictions.helpers'
 import { buildIncomeByType } from './predictions.engine'
 import { IncomeExpensesChart, CashflowChart } from './predictions.charts'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 // ─── Advanced Mode Sections ────────────────────────────────────────────────────
 
@@ -621,6 +622,7 @@ export function WhatChanged({ baseProj, horizon }: { baseProj: ProjYear[]; horiz
 
   if (!diffs.length) return null
   return (
+    <WsSection id="fc_what_changed" value={`${diffs.length} changed`} status="info">
     <div style={{ padding: '8px 12px', background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0 }}>
       <div style={{ fontSize: 12, fontWeight: 500, color: BASE_C, letterSpacing: '0.8px', marginBottom: 6 }}>
         ▲ WHAT CHANGED SINCE LAST RUN ({age}h ago) — {horizon}Y BASE
@@ -636,5 +638,6 @@ export function WhatChanged({ baseProj, horizon }: { baseProj: ProjYear[]; horiz
         ))}
       </div>
     </div>
+    </WsSection>
   )
 }

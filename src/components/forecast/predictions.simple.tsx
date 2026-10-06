@@ -9,6 +9,7 @@ import {
   type Scenario, type Horizon, type ProjYear,
 } from './predictions.constants'
 import { fmtK, MoneyTooltip } from './predictions.helpers'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 // ─── Simple Mode Components (new) ─────────────────────────────────────────────
 
@@ -71,6 +72,7 @@ export function ScenarioHero({ proj, scenario, horizon, todayVal, fwd12m }: {
   ]
 
   return (
+    <WsSection id="fc_scenario_hero" value={fmtK(yr.portfolioValue)} status={yr.netCashflow >= 0 ? 'ok' : 'warn'}>
     <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderLeft: `3px solid ${meta.color}80`, borderRadius: 0, overflow: 'hidden', flexShrink: 0 }}>
       {/* Header */}
       <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--fd-hairline)', background: `${meta.color}06`,
@@ -103,6 +105,7 @@ export function ScenarioHero({ proj, scenario, horizon, todayVal, fwd12m }: {
         {narrative}
       </div>
     </div>
+    </WsSection>
   )
 }
 

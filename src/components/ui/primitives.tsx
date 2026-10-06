@@ -8,8 +8,18 @@
  *
  * Every value below is lifted from prototype/*.dc.html.
  */
-import { useEffect, type CSSProperties, type ReactNode } from 'react'
+import { useContext, useEffect, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { WorkspaceContext, InsideSectionContext } from '../workspace/context'
+
+/** Advanced workspace: hero/KPI render compact into the band above the rail. */
+function useHeroSlot(): HTMLElement | null | false {
+  const ws = useContext(WorkspaceContext)
+  const inside = useContext(InsideSectionContext)
+  if (!ws.enabled || inside) return false
+  return ws.heroSlot
+}
 
 export type Status = 'ok' | 'watch' | 'warn' | 'alert' | 'info'
 
@@ -53,10 +63,40 @@ export function Label({ children, style }: { children: ReactNode; style?: CSSPro
  * (the App content wrapper has 48px side padding) so a Cobalt aside runs
  * edge-to-edge, as in prototype/Tab Overview.
  */
-export function PageHero({ eyebrow, eyebrowRight, before, em, after, lead, children, aside, bleed = false }: {
+export function PageHero({ eyebrow, eyebrowRight, before, em, after, lead, children, aside, bleed = false, asideTitle }: {
   eyebrow: ReactNode; eyebrowRight?: ReactNode; before?: string; em: string; after?: string
   lead?: ReactNode; children?: ReactNode; aside?: ReactNode; bleed?: boolean
+  /** Rail title for the hero's meta + aside in the Advanced workspace. */
+  asideTitle?: string
 }) {
+  const slot = useHeroSlot()
+  if (slot !== false) {
+    // Compact verdict band (§B). Hero meta + the decision plane become the
+    // first workspace section so nothing the hero showed is lost.
+    return (<>
+      {slot && createPortal(
+        <div style={{ flex: '1 1 420px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+            <span style={{ ...mono, color: 'var(--fd-accent)' }}>{eyebrow} · Advanced</span>
+            {eyebrowRight}
+          </div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 48, lineHeight: 0.9, letterSpacing: '-0.02em', margin: 0 }}>
+            {before}<em>{em}</em>{after}
+          </h1>
+          {lead && <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14, lineHeight: 1.35, maxWidth: 640 }}>{lead}</div>}
+        </div>,
+        slot,
+      )}
+      {(children || aside) && (
+        <WsSection id="__hero" title={asideTitle ?? 'At a glance'} group="Summary">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {children}
+            {aside}
+          </div>
+        </WsSection>
+      )}
+    </>)
+  }
   const text = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: bleed ? '64px 48px 56px' : undefined, minWidth: 0 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
@@ -118,6 +158,27 @@ export function CornerTriangle({ size = 40, color = 'var(--as-lime)' }: { size?:
 /** `unit` renders in Suffix Serif italic after the value ("$5.71" + "M"). */
 export interface Kpi { label: string; value: ReactNode; unit?: string; sub?: ReactNode; subColor?: string; status?: Status; valueColor?: string }
 export function KpiStrip({ items, size = 44, bleed = false }: { items: Kpi[]; size?: number; bleed?: boolean }) {
+  const slot = useHeroSlot()
+  if (slot !== false) {
+    return slot ? createPortal(
+      <div style={{ display: 'flex', flexWrap: 'wrap', rowGap: 16, marginLeft: -24 }}>
+        {items.map((k, i) => (
+          <div key={i} style={{ padding: '0 24px', borderLeft: '1px solid var(--fd-hairline)', display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, maxWidth: 280 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Label style={{ whiteSpace: 'nowrap' }}>{k.label}</Label>
+              {k.status && <StatusChip status={k.status} size={10} />}
+            </span>
+            <span style={{ fontSize: 28, fontWeight: 500, lineHeight: 1, letterSpacing: '-0.005em', whiteSpace: 'nowrap', color: k.valueColor }}>
+              {k.value}
+              {k.unit && <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 400 }}>{k.unit}</span>}
+            </span>
+            {k.sub && <span style={{ fontSize: 13, lineHeight: 1.35, color: k.subColor ?? 'var(--fd-muted)' }}>{k.sub}</span>}
+          </div>
+        ))}
+      </div>,
+      slot,
+    ) : null
+  }
   return (
     <section style={{
       display: 'grid', gridTemplateColumns: `repeat(${items.length}, minmax(0,1fr))`,
@@ -283,6 +344,12 @@ export function Section({ title, meta, index, level = 2, rule = false, children,
 /** Main + side rail, 8/4 (default) or 7/5, 56px gap. */
 export function MainRail({ main, rail, split = '8/4' }: { main: ReactNode; rail: ReactNode; split?: '8/4' | '7/5' }) {
   const [a, b] = split === '7/5' ? [7, 5] : [8, 4]
+  const inWorkspace = useContext(WorkspaceContext).enabled
+  // Advanced workspace shows one section at a time — a single column, so a
+  // rail-column section doesn't sit beside an empty main column.
+  if (inWorkspace) {
+    return <div style={{ display: 'flex', flexDirection: 'column', gap: 56, minWidth: 0 }}>{main}{rail}</div>
+  }
   return (
     <div style={{ display: 'grid', gridTemplateColumns: `minmax(0,${a}fr) minmax(0,${b}fr)`, gap: 56, alignItems: 'start' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 56, minWidth: 0 }}>{main}</div>

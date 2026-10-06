@@ -8,6 +8,9 @@ import { SchwabCostEditor } from './SchwabCostEditor'
 import { AlertManager } from './AlertManager'
 import { PersonalEditor } from './PersonalEditor'
 import { TaxBracketsEditor } from './TaxBracketsEditor'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWorkspace, useWsSubTabs } from '../workspace/context'
+import { PageHero } from '../ui/primitives'
 
 // ── palette ──────────────────────────────────────────────────────────────────
 const G  = 'var(--green)'
@@ -144,6 +147,7 @@ function AllocationEditor({ fileKey, data, onSaved }: {
 
   return (
     <div>
+      <WsSection id={`st_${fileKey}`} value={`${total.toFixed(1)}%`} status={totalOk ? 'ok' : 'alert'}>
       <PanelHeader>
         {fileKey === 'target_roth' ? 'Roth IRA Target Allocation' : 'Taxable Account Target Allocation'}
       </PanelHeader>
@@ -199,6 +203,7 @@ function AllocationEditor({ fileKey, data, onSaved }: {
           color: 'var(--text)', border: 'none', borderRadius: 0, cursor: 'pointer',
         }}>+ Add</button>
       </div>
+      </WsSection>
       <SaveBar onSave={save} saving={saving} saved={saved} error={error} />
     </div>
   )
@@ -252,6 +257,7 @@ function AIKeysEditor({ data, onSaved }: {
 
   return (
     <div>
+      <WsSection id="st_ai_keys">
       <PanelHeader>Ollama API Keys</PanelHeader>
       <div style={{ border: '1px solid var(--fd-hairline)', borderRadius: 0, overflow: 'hidden', maxHeight: 400, overflowY: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -306,6 +312,7 @@ function AIKeysEditor({ data, onSaved }: {
           background: 'var(--border2)', color: 'var(--text)', border: 'none',
           borderRadius: 0, cursor: 'pointer' }}>+ Add</button>
       </div>
+      </WsSection>
       <SaveBar onSave={save} saving={saving} saved={saved} error={error} />
     </div>
   )
@@ -358,6 +365,7 @@ function AccountMappingEditor({ data, onSaved }: {
 
   return (
     <div>
+      <WsSection id="st_account_mapping">
       <PanelHeader>Schwab Account Mapping</PanelHeader>
       <div style={{ fontSize: 12, color: M, marginBottom: 12, padding: '6px 10px',
         background: 'var(--amber)12', border: '1px solid var(--amber)40', borderRadius: 0 }}>
@@ -415,6 +423,7 @@ function AccountMappingEditor({ data, onSaved }: {
           background: 'var(--border2)', color: 'var(--text)', border: 'none',
           borderRadius: 0, cursor: 'pointer' }}>+ Add</button>
       </div>
+      </WsSection>
       <SaveBar onSave={save} saving={saving} saved={saved} error={error} />
     </div>
   )
@@ -435,6 +444,8 @@ const SECTIONS: { id: Section; label: string; group: string; file: string }[] = 
 // ── Main SettingsTab ──────────────────────────────────────────────────────────
 export function SettingsTab({ onRefresh }: { onRefresh?: () => void }) {
   const [active, setActive] = useState<Section>('personal_json')
+  useWsSubTabs(active, setActive as (s: string) => void)
+  const { enabled: inWorkspace } = useWorkspace()
   const [cfg, setCfg] = useState<SettingsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadErr, setLoadErr] = useState('')
@@ -463,10 +474,15 @@ export function SettingsTab({ onRefresh }: { onRefresh?: () => void }) {
   const page = SECTIONS.find(x => x.id === active)!
   return (
     <div style={{ paddingBottom: 64 }}>
+      {inWorkspace ? (
+        // Advanced workspace: same eyebrow + headline, compacted into the hero band.
+        <PageHero eyebrow="Settings · every save backs up the file" before="The " em="inputs" after=" behind every tab." />
+      ) : (
       <section style={{ padding: '56px 0 40px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, letterSpacing: '0.03em', textTransform: 'uppercase', color: 'var(--fd-accent)' }}>Settings · every save backs up the file</span>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 80, lineHeight: 0.85, letterSpacing: '-0.02em', margin: 0 }}>The <em>inputs</em> behind every tab.</h1>
       </section>
+      )}
 
       <section style={{ display: 'grid', gridTemplateColumns: '240px minmax(0,1fr)', gap: 56, alignItems: 'start', borderTop: '1px solid var(--fd-hairline)', paddingTop: 40 }}>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 28, position: 'sticky', top: 140 }}>

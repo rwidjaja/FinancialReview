@@ -4,6 +4,7 @@ import { fmtMoney, fmtMoneyFull } from '../../utils/formatters'
 import type { Portfolio, Dividend, LimitOrder } from './types'
 import { G, R, A, M, BASE } from './constants'
 import { Btn, fmtPct, fmtDate } from './shared'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 /**
  * Project future payment dates from a known base date + frequency.
@@ -348,6 +349,7 @@ export function HoldingsTab({ port, activeId, onMutate, divs = [], onLimitOrder:
       </div>
       {/* ── Income KPI banner ────────────────────────────────────────────── */}
       {totalAnnual > 0 && (
+        <WsSection id="ts_hold_income" value={`${portYield.toFixed(2)}%`} status="info">
         <div style={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           {[
             { label: 'Portfolio Yield',  value: `${portYield.toFixed(2)}%`,         color: 'var(--fd-accent)' },
@@ -368,9 +370,11 @@ export function HoldingsTab({ port, activeId, onMutate, divs = [], onLimitOrder:
             </div>
           ))}
         </div>
+        </WsSection>
       )}
 
       {/* ── Holdings table ────────────────────────────────────────────────── */}
+      <WsSection id="ts_hold_positions" value={`${holdings.length} positions`}>
       <div style={{ overflowX: 'auto' }}>
         <div style={{ fontSize: 12, fontWeight: 500, color: A,
           textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>
@@ -817,6 +821,7 @@ export function HoldingsTab({ port, activeId, onMutate, divs = [], onLimitOrder:
           </table>
         )}
       </div>
+      </WsSection>
 
     </div>
   )

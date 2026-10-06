@@ -18,6 +18,7 @@ import type { DashboardData } from '../../types/dashboard'
 import type { DrawdownInputs, DrawdownResult } from './drawdown.engine'
 import { useDrawdownPlan } from '../../context/DrawdownPlanContext'
 import { fmt, G, R, A, M, BL } from './drawdown.shared'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 interface Props {
   result: DrawdownResult
@@ -106,6 +107,7 @@ export function PlainSummaryPanel({ result, data, inputs }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
+      <WsSection id="dd_sum_picture" value={runsOut ? `Age ${bestLon.depleted_at_age}` : 'Lasts'} status={runsOut ? 'alert' : 'ok'}>
       <Card accent={BL}>
         <CardTitle>What this page is</CardTitle>
         <P>
@@ -145,7 +147,10 @@ export function PlainSummaryPanel({ result, data, inputs }: Props) {
         </P>
       </Card>
 
+      </WsSection>
+
       {/* ── 2. This year, in plain steps ───────────────────────────── */}
+      <WsSection id="dd_sum_this_year">
       <Card accent={A}>
         <CardTitle>What to actually do this year</CardTitle>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -190,7 +195,10 @@ export function PlainSummaryPanel({ result, data, inputs }: Props) {
         </div>
       </Card>
 
+      </WsSection>
+
       {/* ── 3. Simple chart ────────────────────────────────────────── */}
+      <WsSection id="dd_sum_chart">
       <Card accent={G}>
         <CardTitle>Your money over time, at a glance</CardTitle>
         <P>
@@ -218,7 +226,10 @@ export function PlainSummaryPanel({ result, data, inputs }: Props) {
         </ResponsiveContainer>
       </Card>
 
+      </WsSection>
+
       {/* ── 4. Tax situation, simply put ───────────────────────────── */}
+      <WsSection id="dd_sum_tax">
       <Card accent={BL}>
         <CardTitle>Your tax situation, simply put</CardTitle>
         <P>
@@ -249,7 +260,10 @@ export function PlainSummaryPanel({ result, data, inputs }: Props) {
         </P>
       </Card>
 
+      </WsSection>
+
       {/* ── 5. Will my money last / legacy ─────────────────────────── */}
+      <WsSection id="dd_sum_legacy">
       <Card accent={G}>
         <CardTitle>Will my money last, and what's left over?</CardTitle>
         <P>
@@ -263,7 +277,10 @@ export function PlainSummaryPanel({ result, data, inputs }: Props) {
         </P>
       </Card>
 
+      </WsSection>
+
       {/* ── 6. Safe spending recap ─────────────────────────────────── */}
+      <WsSection id="dd_sum_safe_spending">
       <Card accent={A}>
         <CardTitle>How "safe spending" works (Spending Plan section)</CardTitle>
         <P>
@@ -276,7 +293,10 @@ export function PlainSummaryPanel({ result, data, inputs }: Props) {
         </P>
       </Card>
 
+      </WsSection>
+
       {/* ── Glossary ────────────────────────────────────────────────── */}
+      <WsSection id="dd_sum_glossary">
       <Card>
         <CardTitle>Quick glossary</CardTitle>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px 24px' }}>
@@ -295,6 +315,7 @@ export function PlainSummaryPanel({ result, data, inputs }: Props) {
           ))}
         </div>
       </Card>
+      </WsSection>
 
     </div>
   )

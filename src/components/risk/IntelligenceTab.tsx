@@ -28,6 +28,8 @@ import { StressCorrelation } from './StressCorrelation'
 import { VolBudgetTrend } from './VolBudgetTrend'
 import { BetaDecomposition } from './BetaDecomposition'
 import { CorrelationMatrix } from './CorrelationMatrix'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWorkspace } from '../workspace/context'
 import { CrossSleeveMapPanel } from '../research/CrossSleevePanel'
 import { PortfolioHeatmap } from './PortfolioHeatmap'
 import {
@@ -38,6 +40,9 @@ const ALERT_STATUS: Record<string, Status> = { red: 'alert', orange: 'warn', yel
 
 export function IntelligenceTab({ data }: { data: DashboardData }) {
   const [mode] = useGlobalViewMode()
+  const { enabled: inWorkspace } = useWorkspace()
+  // In the workspace each half is its own section; let them flow as direct children.
+  const g2 = inWorkspace ? { display: 'contents' } as const : grid2
   const pi = data.portfolio_intel
   const si = data.spending_intelligence
   const ia = data.income_analytics
@@ -181,41 +186,52 @@ export function IntelligenceTab({ data }: { data: DashboardData }) {
       ]} />
 
       <Sections>
+        <WsSection id="rk_regime" value={regime ?? undefined} status={regime === 'RISK-OFF' ? 'alert' : regime === 'EXPANSION' ? 'ok' : 'watch'}>
         <Group n="01" title="Market regime and positioning" hint="Where the market is and how you are aligned">
           <GridTile label="Regime" value={regime ?? '—'} status={regime === 'RISK-OFF' ? 'alert' : regime === 'EXPANSION' ? 'ok' : 'watch'} sub={`${pi.positioning ?? '—'} positioning`} />
           <GridTile label="VIX" value={data.vix_current?.toFixed(1) ?? '—'} status={(data.vix_current ?? 0) > 30 ? 'alert' : (data.vix_current ?? 0) > 20 ? 'warn' : 'ok'} sub={pi.vol_regime ?? 'Volatility regime'} />
           <GridTile label="Alignment" value={`${alignScore}/100`} status={alignStatus} sub={alignScore >= 70 ? 'Aligned with the regime' : alignScore >= 45 ? 'Partially aligned' : 'Mismatched to the regime'} />
           <GridTile label="Growth vs income" value={`${techPct.toFixed(0)}% / ${incomePct.toFixed(0)}%`} status="info" sub="Tech-growth share vs income share" />
         </Group>
+        </WsSection>
 
+        <WsSection id="rk_attribution" value={topVol?.sym} status={topVol && topVol.share > 40 ? 'alert' : 'watch'}>
         <Group n="02" title="Return and risk attribution" hint="What drives the portfolio">
           <GridTile label="High-vol driver" value={topVol?.sym ?? '—'} status={topVol && topVol.share > 40 ? 'alert' : 'watch'} sub={topVol ? `${topVol.weightPct.toFixed(1)}% weight · ${topVol.share.toFixed(0)}% of volatility` : undefined} />
           <GridTile label="Sharpe (1y)" value={sharpe != null ? sharpe.toFixed(2) : '—'} status={sharpe == null ? 'info' : sharpe >= 1 ? 'ok' : sharpe >= 0.5 ? 'warn' : 'alert'} sub={`${(portRet * 100).toFixed(1)}% return · risk-adjusted`} />
           <GridTile label="Realised vol" value={`${(portVol * 100).toFixed(1)}%`} status={portVol > 0.2 ? 'alert' : portVol > 0.15 ? 'warn' : 'ok'} sub="Annualised, 30-day" />
           <GridTile label="1σ swing" value={`±${fmtK(dollarOneSD)}`} status="info" sub="68% of years land inside this" />
         </Group>
+        </WsSection>
 
+        <WsSection id="rk_structure" value={top1 ? fmtPctS(top1[1]) : undefined} status={(top1?.[1] ?? 0) > 20 ? 'alert' : (top1?.[1] ?? 0) > 15 ? 'warn' : 'ok'}>
         <Group n="03" title="Portfolio structure" hint="Concentration and overlap">
           <GridTile label="Top holding" value={top1 ? fmtPctS(top1[1]) : '—'} status={(top1?.[1] ?? 0) > 20 ? 'alert' : (top1?.[1] ?? 0) > 15 ? 'warn' : 'ok'} sub={top1?.[0]} />
           <GridTile label="Top 5 weight" value={fmtPctS(top5)} status={top5 > 85 ? 'alert' : top5 > 60 ? 'warn' : 'ok'} sub="Of total portfolio" />
           <GridTile label="Effective holdings" value={effHoldings != null ? effHoldings.toFixed(1) : '—'} status={effHoldings != null && effHoldings < 8 ? 'warn' : 'ok'} sub="1 ÷ Σ weight² (diversification count)" />
           <GridTile label="Correlation risk" value={pi.corr_risk ? pi.corr_risk.charAt(0) + pi.corr_risk.slice(1).toLowerCase() : '—'} status={pi.corr_risk === 'HIGH' ? 'alert' : pi.corr_risk === 'MODERATE' ? 'warn' : 'ok'} sub="Cross-holding correlation" />
         </Group>
+        </WsSection>
 
+        <WsSection id="rk_cash" value={cashRunwayMos != null ? `${cashRunwayMos.toFixed(0)} mo` : undefined} status={cashRunwayMos == null ? 'info' : cashRunwayMos >= 18 ? 'ok' : cashRunwayMos >= 6 ? 'warn' : 'alert'}>
         <Group n="04" title="Cash and execution" hint="Liquidity to act">
           <GridTile label="Cash runway" value={cashRunwayMos != null ? `${cashRunwayMos.toFixed(0)} mo` : '—'} status={cashRunwayMos == null ? 'info' : cashRunwayMos >= 18 ? 'ok' : cashRunwayMos >= 6 ? 'warn' : 'alert'} sub={`${fmtK(mmValue)} spendable · ${fmtK(mmValueTotal)} total MM`} />
           <GridTile label="Withdrawal mode" value={withdrawLabel} status={withdrawStatus} sub={withdrawSub} />
           <GridTile label="Monthly need" value={withdrawNeed > 0 ? fmtK(withdrawNeed) : '$0'} status="info" sub={`${fmtK(monthlySpend)} spend − ${fmtK(monthlyIncome)} income`} />
           <GridTile label="Active alerts" value={alerts.length === 0 ? 'Clear' : String(alerts.length)} status={alerts.length === 0 ? 'ok' : alerts.some(a => a.level === 'red') ? 'alert' : 'warn'} sub="Unified across every tab" />
         </Group>
+        </WsSection>
 
+        <WsSection id="rk_tax_income" value={`${pi.income_durability_score} / 100`} status={pi.income_durability_score >= 70 ? 'ok' : pi.income_durability_score >= 40 ? 'warn' : 'alert'}>
         <Group n="05" title="Tax and income" hint="Durability under stress">
           <GridTile label="Income durability" value={`${pi.income_durability_score}`} status={pi.income_durability_score >= 70 ? 'ok' : pi.income_durability_score >= 40 ? 'warn' : 'alert'} sub={pi.inc_stability_lbl ?? 'Out of 100'} />
           <GridTile label="Tax status" value={bracketStatus ? bracketStatus.charAt(0) + bracketStatus.slice(1).toLowerCase() : '—'} status={bracketStatus === 'OK' ? 'ok' : bracketStatus === 'CRITICAL' ? 'alert' : 'warn'} sub={tx.final_bracket_msg ?? tx.bracket_status_msg ?? ''} />
           <GridTile label="Income per month" value={fmtK(monthlyIncome)} status="info" sub="Forward 12 months ÷ 12" />
           <GridTile label="Spending per month" value={fmtK(monthlySpend)} status="info" sub="Tracked annual spending ÷ 12" />
         </Group>
+        </WsSection>
 
+        <WsSection id="rk_dollar_risk" value={`±${fmtK(dollarOneSD)}`} status={betaStatus}>
         <Section title="Dollar risk" meta={`β ${beta.toFixed(2)} · vol ${(portVol * 100).toFixed(1)}% · ${fmtMoneyFull(totalVal)}`} rule>
           <TileGrid cols={4}>
             {[
@@ -228,8 +244,10 @@ export function IntelligenceTab({ data }: { data: DashboardData }) {
             ))}
           </TileGrid>
         </Section>
+        </WsSection>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,7fr) minmax(0,5fr)', gap: 56, alignItems: 'start' }}>
+        <div style={inWorkspace ? { display: 'contents' } : { display: 'grid', gridTemplateColumns: 'minmax(0,7fr) minmax(0,5fr)', gap: 56, alignItems: 'start' }}>
+          <WsSection id="rk_vol_attribution" value={topVol ? `${topVol.sym} ${topVol.share.toFixed(0)}%` : undefined} status={topVol && topVol.share > 40 ? 'alert' : 'watch'}>
           <Section title="Volatility attribution" meta="Share of portfolio variance">
             <RuledList>
               {[...volShown, ...(volOther > 0 ? [{ sym: `Other ${volRows.length - 6}`, share: volOther, weightPct: NaN, volPct: NaN, contrib: 0 }] : [])].map((v, i) => (
@@ -244,6 +262,8 @@ export function IntelligenceTab({ data }: { data: DashboardData }) {
               ))}
             </RuledList>
           </Section>
+          </WsSection>
+          <WsSection id="rk_alerts" value={alerts.length === 0 ? 'Clear' : `${alerts.length} active`} status={alerts.length === 0 ? 'ok' : alerts.some(a => a.level === 'red') ? 'alert' : 'warn'}>
           <Section title="System alerts" meta={`${alerts.length} active`}>
             <RuledList>
               {alerts.length === 0
@@ -259,30 +279,33 @@ export function IntelligenceTab({ data }: { data: DashboardData }) {
                 ))}
             </RuledList>
           </Section>
+          </WsSection>
         </div>
 
+        <WsSection id="rk_execution">
         <Section title="Execution signals" meta="Per holding · decision engine + target drift">
           <ExecutionSignals data={data} />
         </Section>
+        </WsSection>
 
         {mode === 'advanced' && (<>
           <AdvGroup title="Market regime and positioning">
-            <RegimeTransition data={data} />
-            <div style={grid2}><RegimeAlignment data={data} /><RiskAdjustedReturns data={data} /></div>
+            <WsSection id="rk_regime_transition"><RegimeTransition data={data} /></WsSection>
+            <div style={g2}><WsSection id="rk_regime_alignment"><RegimeAlignment data={data} /></WsSection><WsSection id="rk_risk_adjusted"><RiskAdjustedReturns data={data} /></WsSection></div>
           </AdvGroup>
           <AdvGroup title="Return and risk attribution">
-            <div style={grid2}><BetaDecomposition data={data} /><DrawdownPath data={data} /></div>
+            <div style={g2}><WsSection id="rk_beta"><BetaDecomposition data={data} /></WsSection><WsSection id="rk_drawdown_path"><DrawdownPath data={data} /></WsSection></div>
           </AdvGroup>
           <AdvGroup title="Portfolio structure">
-            <div style={grid2}><StressCorrelation data={data} /><CorrelationMatrix data={data} /></div>
-            <CrossSleeveMapPanel data={data} />
-            <PortfolioHeatmap data={data} />
+            <div style={g2}><WsSection id="rk_stress_corr"><StressCorrelation data={data} /></WsSection><WsSection id="rk_corr_matrix"><CorrelationMatrix data={data} /></WsSection></div>
+            <WsSection id="rk_cross_sleeve"><CrossSleeveMapPanel data={data} /></WsSection>
+            <WsSection id="rk_heatmap"><PortfolioHeatmap data={data} /></WsSection>
           </AdvGroup>
           <AdvGroup title="Cash and execution">
-            <div style={grid2}><LiquidityPanel data={data} /><VolBudgetTrend data={data} /></div>
+            <div style={g2}><WsSection id="rk_liquidity"><LiquidityPanel data={data} /></WsSection><WsSection id="rk_vol_budget_trend"><VolBudgetTrend data={data} /></WsSection></div>
           </AdvGroup>
           <AdvGroup title="Tax and income">
-            <div style={grid2}><TaxDrift data={data} /><CashflowVolatility data={data} /></div>
+            <div style={g2}><WsSection id="rk_tax_drift"><TaxDrift data={data} /></WsSection><WsSection id="rk_cashflow_vol"><CashflowVolatility data={data} /></WsSection></div>
           </AdvGroup>
         </>)}
       </Sections>
@@ -300,7 +323,14 @@ function Group({ n, title, hint, children }: { n: string; title: string; hint: s
   )
 }
 
+/**
+ * Advanced deep-dive group. In the Advanced workspace each panel inside is its
+ * own WsSection (the rail supplies the grouping), so the group heading drops
+ * away; elsewhere it renders exactly as before.
+ */
 function AdvGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  const { enabled } = useWorkspace()
+  if (enabled) return <>{children}</>
   return (
     <Section title={title} meta="Advanced · full breakdown" gap={32}>
       {children}

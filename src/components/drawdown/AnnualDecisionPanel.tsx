@@ -25,6 +25,7 @@ import {
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_CURSOR, TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTooltip'
 import { DRAWDOWN_DEFAULTS } from '../../utils/taxConfig'
 import { computeBucketStatus } from '../../utils/retirementEngine'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 // ─── Colours (match codebase palette) ─────────────────────────────────────────
 const G  = 'var(--green)'
@@ -315,6 +316,7 @@ export function AnnualDecisionPanel({ data, engineSpending, doConversion, mode =
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
+      <WsSection id="dd_dec_overview" value={result.withdrawal_need === 0 ? 'Gap met' : fmt(result.withdrawal_need)} status={result.alerts.some(a => a.level === 'red') ? 'alert' : result.alerts.length > 0 ? 'watch' : result.withdrawal_need === 0 ? 'ok' : 'info'}>
       {/* ── Alerts ───────────────────────────────────────────────────── */}
       {result.alerts.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -595,6 +597,8 @@ export function AnnualDecisionPanel({ data, engineSpending, doConversion, mode =
         </div>
       </div>
 
+      </WsSection>
+
       {/* ── Advanced sections: Income Flow, Bracket, IRMAA, NIIT ──────── */}
       {mode === 'advanced' && (<>
       {(() => {
@@ -611,6 +615,7 @@ export function AnnualDecisionPanel({ data, engineSpending, doConversion, mode =
           ? <><strong style={{ color: A }}>State B — Hybrid</strong>. Dividends + controlled sales fund spending. Build 1-year SWVXX bucket.</>
           : <><strong style={{ color: G }}>State A — Income-Dominant</strong>. Dividends are the primary source — withdrawals only fill the gap.</>
         return (
+      <WsSection id="dd_income_flow" value={ws ? `State ${ws}` : undefined} status={ws === 'C' ? 'alert' : ws === 'B' ? 'watch' : 'ok'}>
       <TerminalSection id="div-first" title={flowTitle} defaultOpen accent={stateColor}>
         <div style={{ fontSize: 12, color: M, marginBottom: 10, lineHeight: 1.6 }}>
           {stateDesc}{' '}
@@ -659,9 +664,11 @@ export function AnnualDecisionPanel({ data, engineSpending, doConversion, mode =
         <SectionLabel text="Income sources breakdown" color={A} />
         <IncomeWaterfall result={result} />
       </TerminalSection>
+      </WsSection>
         )
       })()}
 
+      <WsSection id="dd_withdrawal_rec" value={fmt(result.from_taxable + result.from_rollover + result.from_roth)} status="info">
       {/* ── Key metric tiles ────────────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
         <MetricTile label="GUARANTEED INCOME"  value={fmt(result.guaranteed_income)}  color={G}
@@ -790,7 +797,10 @@ export function AnnualDecisionPanel({ data, engineSpending, doConversion, mode =
         </div>
       </div>
 
+      </WsSection>
+
       {/* ── Year-end Account Balance Impact ─────────────────────────── */}
+      <WsSection id="dd_balance_impact">
       <div style={{ background: 'var(--surface)', border: `1px solid ${BL}`, padding: '10px 14px' }}>
         <div style={{ fontSize: 12, fontWeight: 500, color: BL, letterSpacing: '0.8px', marginBottom: 10 }}>
           ◈ YEAR-END ACCOUNT BALANCE IMPACT
@@ -888,8 +898,10 @@ export function AnnualDecisionPanel({ data, engineSpending, doConversion, mode =
           )
         })()}
       </div>
+      </WsSection>
 
       {/* ── Tax & Bracket Position ───────────────────────────────────── */}
+      <WsSection id="dd_bracket" value={result.bracket_overflow ? `−${fmt(result.magi - baseInputs.bracket_ceiling_magi)}` : fmt(result.bracket_headroom)} status={result.bracket_overflow ? 'alert' : result.bracket_headroom < 20000 ? 'watch' : 'ok'}>
       <TerminalSection id="bracket-pos" title="Tax & Bracket Position" defaultOpen accent={Y}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {/* Left: bracket meter */}
@@ -1039,16 +1051,20 @@ export function AnnualDecisionPanel({ data, engineSpending, doConversion, mode =
           </div>
         )}
       </TerminalSection>
+      </WsSection>
 
       {/* ── IRMAA — only shown when Medicare is elected in personal.json ── */}
       {baseInputs.collect_medicare && (
+        <WsSection id="dd_irmaa" value={fmt(result.irmaa.annual_cost)} status={result.irmaa.crossover_warn ? 'warn' : result.irmaa.annual_cost > 0 ? 'watch' : 'ok'}>
         <TerminalSection id="irmaa" title="IRMAA — Medicare Surcharge"
           defaultOpen accent={result.irmaa.crossover_warn ? Y : BL}>
           <IrmaaPanel result={result} />
         </TerminalSection>
+        </WsSection>
       )}
 
       {/* ── NIIT ─────────────────────────────────────────────────────── */}
+      <WsSection id="dd_niit" value={result.niit_applies ? fmt(result.niit_amount) : 'None'} status={result.niit_applies ? 'alert' : 'ok'}>
       <TerminalSection id="niit" title="NIIT — Net Investment Income Tax"
         defaultOpen={result.niit_applies} accent={result.niit_applies ? R : M}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
@@ -1085,6 +1101,7 @@ export function AnnualDecisionPanel({ data, engineSpending, doConversion, mode =
         RMD auto-computed from rollover balance and current age (IRS Uniform Lifetime Table) ·
         SS from tax_data.ss_annual / ss_start_age · All values update live on income target change.
       </div>
+      </WsSection>
       </>)}
     </div>
   )

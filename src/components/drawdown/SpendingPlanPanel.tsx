@@ -3,13 +3,15 @@
  * Lines ~1572–2328 of the original DrawdownTab.tsx
  */
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, type ReactNode } from 'react'
 import {
   BarChart, Bar, LineChart, Line,
   XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine,
   Legend,
 } from 'recharts'
 import { TerminalSection } from '../ui/Terminal'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWorkspace } from '../workspace/context'
 import { fmtMoney, fmtMoneyFull } from '../../utils/formatters'
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_CURSOR, TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTooltip'
 import type { ViewMode } from '../ui/ModeToggle'
@@ -141,9 +143,11 @@ const GUARDRAIL_STATUS_LABEL: Record<GuardrailStatus, string> = {
 interface SSRBands { conservative: number; moderate: number; aggressive: number }
 
 // ─── SpendingRangePanel ───────────────────────────────────────────────────────
-function SpendingRangePanel({ result, inputs, mode, selectedTier, onSelectTier }: {
+function SpendingRangePanel({ result, inputs, mode, selectedTier, onSelectTier, heading }: {
   result: DrawdownResult; inputs: DrawdownInputs; mode: ViewMode
   selectedTier?: string; onSelectTier?: (id: string) => void
+  /** Workspace only: the part heading, rendered inside the first section. */
+  heading?: ReactNode
 }) {
   // Use dynamic_bracket as the reference strategy (most tax-optimal)
   const ref = result.strategies.find(s => s.id === 'dynamic_bracket') ?? result.strategies[0]
@@ -182,6 +186,8 @@ function SpendingRangePanel({ result, inputs, mode, selectedTier, onSelectTier }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
+      <WsSection id="dd_ssr_concepts" value={`${withdrawalRateSP.toFixed(1)}% WR`} status={isUnderspendingSP ? 'watch' : 'ok'}>
+      {heading}
       {/* ── Two concepts: Lifestyle Spending vs Income Target ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${G}`, padding: '12px 14px' }}>
@@ -247,7 +253,10 @@ function SpendingRangePanel({ result, inputs, mode, selectedTier, onSelectTier }
         Success rates are scenario-based (bear/base/bull), not full Monte Carlo — see Overview tab for probability-based analysis.
       </div>
 
+      </WsSection>
+
       {/* Tier cards */}
+      <WsSection id="dd_ssr_tiers" value={depletes == null ? 'Full plan' : `To age ${depletes}`} status={depletes == null ? 'ok' : depletes >= inputs.target_age - 2 ? 'watch' : 'alert'}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
         {tiers.map((t, i) => {
           const isSelected = selectedTier === t.id
@@ -346,8 +355,11 @@ function SpendingRangePanel({ result, inputs, mode, selectedTier, onSelectTier }
         </div>
       </div>
 
+      </WsSection>
+
       {/* Spending met vs shortfall chart */}
       {mode === 'advanced' && (
+        <WsSection id="dd_spending_coverage" value={`${ref.shortfall_years} short yrs`} status={ref.shortfall_years === 0 ? 'ok' : ref.shortfall_years < 3 ? 'watch' : 'alert'}>
         <TerminalSection id="spending-met" title="Spending Coverage — Met vs Shortfall" defaultOpen accent={G}>
           <SectionLabel text={`Annual spending (dynamic bracket, nominal $) — bars grow with inflation: $${Math.round(safeSpend/1000)}K today → ~$${Math.round(safeSpend * Math.pow(1 + inputs.inflation, horizon) / 1000)}K by age ${inputs.target_age}`} color={G} />
           <ResponsiveContainer width="100%" height={160}>
@@ -367,18 +379,21 @@ function SpendingRangePanel({ result, inputs, mode, selectedTier, onSelectTier }
             </BarChart>
           </ResponsiveContainer>
         </TerminalSection>
+        </WsSection>
       )}
     </div>
   )
 }
 
 // ─── SpendingGuardrailsPanel ──────────────────────────────────────────────────
-function SpendingGuardrailsPanel({ inputs, ssrBands, mode, initialSpendOverride }: {
+function SpendingGuardrailsPanel({ inputs, ssrBands, mode, initialSpendOverride, heading }: {
   inputs: DrawdownInputs
   data?: DashboardData
   ssrBands: SSRBands
   mode: ViewMode
   initialSpendOverride?: number
+  /** Workspace only: the part heading, rendered inside the first section. */
+  heading?: ReactNode
 }) {
   const initialPortfolio = inputs.taxable_balance + inputs.rollover_balance + inputs.roth_balance
   const initialSpending  = initialSpendOverride ?? inputs.annual_spending
@@ -436,6 +451,8 @@ function SpendingGuardrailsPanel({ inputs, ssrBands, mode, initialSpendOverride 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
+      <WsSection id="dd_guardrail_summary" value={currentStatus === 'safe' ? 'Within rails' : currentStatus === 'upper_crossed' ? 'Raise OK' : currentStatus === 'lower_crossed' ? 'Cut required' : currentStatus === 'approaching_upper' ? 'Near upper' : 'Near lower'} status={currentStatus === 'lower_crossed' ? 'alert' : currentStatus === 'approaching_lower' ? 'warn' : currentStatus === 'safe' ? 'ok' : 'info'}>
+      {heading}
       {/* Explainer */}
       <div style={{
         padding: '8px 14px', borderRadius: 0,
@@ -546,8 +563,11 @@ function SpendingGuardrailsPanel({ inputs, ssrBands, mode, initialSpendOverride 
         ))}
       </div>
 
+      </WsSection>
+
       {/* Guardrail parameter controls */}
       {mode === 'advanced' && (<>
+      <WsSection id="dd_guardrail_params">
       <TerminalSection id="guardrail-params" title="Guardrail Parameters" defaultOpen accent={TL}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
           <div>
@@ -597,8 +617,10 @@ function SpendingGuardrailsPanel({ inputs, ssrBands, mode, initialSpendOverride 
           illustrative only. For active management, reset parameters annually.
         </div>
       </TerminalSection>
+      </WsSection>
 
       {/* Portfolio vs rails chart */}
+      <WsSection id="dd_guardrail_portfolio">
       <TerminalSection id="guardrail-portfolio" title="Portfolio vs Guardrail Corridors" defaultOpen accent={TL}>
         <SectionLabel text="Portfolio total (solid) · Upper rail (green dashed) · Lower rail (red dashed) · Rails are fixed at initial values" color={TL} />
         <ResponsiveContainer width="100%" height={220}>
@@ -616,8 +638,10 @@ function SpendingGuardrailsPanel({ inputs, ssrBands, mode, initialSpendOverride 
           </LineChart>
         </ResponsiveContainer>
       </TerminalSection>
+      </WsSection>
 
       {/* Guardrail spending vs fixed spending */}
+      <WsSection id="dd_guardrail_spending" value={`${guardRaisedYears}↑ ${guardCutYears}↓`}>
       <TerminalSection id="guardrail-spending" title="Spending: Guardrail-Adaptive vs Fixed · $K/yr" defaultOpen accent={G}>
         <SectionLabel text="Adaptive spending (guardrails) vs fixed inflation-adjusted spending" color={G} />
         <ResponsiveContainer width="100%" height={160}>
@@ -646,8 +670,10 @@ function SpendingGuardrailsPanel({ inputs, ssrBands, mode, initialSpendOverride 
           ) : null
         })()}
       </TerminalSection>
+      </WsSection>
 
       {/* Year-by-year guardrail table */}
+      <WsSection id="dd_guardrail_table" value={`${rows.length} years`}>
       <TerminalSection id="guardrail-table" title="Year-by-Year Guardrail Status" defaultOpen={false} accent={M}>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'var(--font-mono)' }}>
@@ -725,6 +751,7 @@ function SpendingGuardrailsPanel({ inputs, ssrBands, mode, initialSpendOverride 
           This is the safety valve — a mechanical response that extends longevity without judgment calls.
         </div>
       </div>
+      </WsSection>
       </>)}
     </div>
   )
@@ -749,35 +776,51 @@ export function SpendingPlanPanel({ result, inputs, data, mode }: {
     : selectedTier === 'maximum' ? ssrBands.aggressive
     : ssrBands.moderate
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Purpose statement */}
+  // In the Advanced workspace the part headings (and purpose statement) move
+  // inside the first section of each part so they don't sit above every section.
+  const { enabled: inWorkspace } = useWorkspace()
+
+  const purpose = (
       <div style={{ fontSize: 12, color: M, lineHeight: 1.6, padding: '6px 10px',
         borderLeft: `3px solid ${TL}`, background: `${TL}0a` }}>
         <strong style={{ color: 'var(--text1)' }}>How much can you spend — and how do you adjust over time?</strong>{' '}
         Select a spending tier below. Guardrails will show how that starting level adjusts when the market moves.
       </div>
-
-      {/* ── Part 1: Safe Spending Range ────────────────────────────────── */}
-      <div>
+  )
+  const part1Heading = (
         <div style={{ fontSize: 12, fontWeight: 500, color: G, letterSpacing: '0.8px',
           textTransform: 'uppercase', marginBottom: 8, paddingBottom: 4,
           borderBottom: '1px solid var(--border2)' }}>
           SAFE SPENDING RANGE — Pick a starting level
         </div>
-        <SpendingRangePanel result={result} inputs={inputs} mode={mode}
-          selectedTier={selectedTier} onSelectTier={t => setSelectedTier(t as typeof selectedTier)} />
-      </div>
-
-      {/* ── Part 2: Spending Guardrails ────────────────────────────────── */}
-      <div>
+  )
+  const part2Heading = (
         <div style={{ fontSize: 12, fontWeight: 500, color: TL, letterSpacing: '0.8px',
           textTransform: 'uppercase', marginBottom: 8, paddingBottom: 4,
           borderBottom: '1px solid var(--border2)' }}>
           SPENDING GUARDRAILS — Adaptive policy starting from {selectedTier} ({fmtMoney(selectedSpend)}/yr)
         </div>
+  )
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Purpose statement */}
+      {!inWorkspace && purpose}
+
+      {/* ── Part 1: Safe Spending Range ────────────────────────────────── */}
+      <div>
+        {!inWorkspace && part1Heading}
+        <SpendingRangePanel result={result} inputs={inputs} mode={mode}
+          selectedTier={selectedTier} onSelectTier={t => setSelectedTier(t as typeof selectedTier)}
+          heading={inWorkspace ? <>{purpose}{part1Heading}</> : undefined} />
+      </div>
+
+      {/* ── Part 2: Spending Guardrails ────────────────────────────────── */}
+      <div>
+        {!inWorkspace && part2Heading}
         <SpendingGuardrailsPanel key={selectedTier} inputs={inputs} data={data} ssrBands={ssrBands}
-          mode={mode} initialSpendOverride={selectedSpend} />
+          mode={mode} initialSpendOverride={selectedSpend}
+          heading={inWorkspace ? part2Heading : undefined} />
       </div>
     </div>
   )

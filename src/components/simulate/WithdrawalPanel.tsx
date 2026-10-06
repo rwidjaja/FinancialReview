@@ -7,6 +7,7 @@ import { G, R, A, M } from './simTypes'
 import type { SimDefaults } from './simTypes'
 import { runSim } from './simTypes'
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_CURSOR , TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTooltip'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 export function WithdrawalPanel({ defaults }: { defaults: SimDefaults }) {
   const { mutate, data: result, isPending } = useMutation({ mutationFn: runSim })
@@ -32,6 +33,7 @@ export function WithdrawalPanel({ defaults }: { defaults: SimDefaults }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <WsSection id="sm_wd_run" value={isPending ? 'Running' : result ? 'Done' : 'Not run'} status={result && !isPending ? 'ok' : 'info'}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <button onClick={run} style={{
           padding: '8px 20px',
@@ -57,9 +59,12 @@ export function WithdrawalPanel({ defaults }: { defaults: SimDefaults }) {
           CLICK COMPARE TO EVALUATE WITHDRAWAL STRATEGIES
         </div>
       )}
+      </WsSection>
       {result && !isPending && (
         result.error ? (
+          <WsSection id="sm_wd_compare" value="Error" status="alert">
           <div style={{ color: R, fontSize: 12, padding: 12 }}>{result.error}</div>
+          </WsSection>
         ) : (() => {
           const strategies = Object.entries(result.strategies ?? {})
           const chartData = strategies.map(([key, s]: [string, any], i) => ({
@@ -74,6 +79,7 @@ export function WithdrawalPanel({ defaults }: { defaults: SimDefaults }) {
 
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <WsSection id="sm_wd_compare" value={winnerData ? `${((winnerData.overall_success ?? 0) * 100).toFixed(1)}%` : undefined} status="ok">
               <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: '10px 14px' }}>
                 <div className="bb-label" style={{ marginBottom: 8 }}>STRATEGY COMPARISON — SUCCESS RATE (%)</div>
                 <ResponsiveContainer width="100%" height={chartData.length * 34 + 16}>
@@ -109,7 +115,9 @@ export function WithdrawalPanel({ defaults }: { defaults: SimDefaults }) {
                   </div>
                 </div>
               )}
+              </WsSection>
 
+              <WsSection id="sm_wd_strategies" value={`${strategies.length} strategies`}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                 {strategies.map(([key, s]: [string, any], i) => {
                   const c = COLORS[i] ?? M
@@ -143,6 +151,7 @@ export function WithdrawalPanel({ defaults }: { defaults: SimDefaults }) {
                   )
                 })}
               </div>
+              </WsSection>
             </div>
           )
         })()

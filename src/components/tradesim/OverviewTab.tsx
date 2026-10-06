@@ -6,6 +6,8 @@ import type { Portfolio, SnapshotPoint } from './types'
 import { G, R, A, M, B, COLORS } from './constants'
 import { fmtPct, fmtDate } from './shared'
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_CURSOR , TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTooltip'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWorkspace } from '../workspace/context'
 
 // Internal helpers used only in OverviewTab (projectPayments, freqDivisor, effectiveNextDate are duplicated here
 // to keep OverviewTab self-contained; the canonical copies live in HoldingsTab.tsx)
@@ -60,6 +62,7 @@ export function OverviewTab({ port, history, portfolioId }: { port: Portfolio; h
   const holdings = port.holdings ?? []
   const tv = port.total_value || 1
   const [briefVisible, setBriefVisible] = useState(false)
+  const { enabled: inWorkspace } = useWorkspace()
   const briefMutation = useMutation({
     mutationFn: (pid: number) =>
       fetch(`/api/sim/portfolios/${pid}/narrate`).then(r => r.json()),
@@ -86,6 +89,7 @@ export function OverviewTab({ port, history, portfolioId }: { port: Portfolio; h
     <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
       {/* AI Brief */}
+      <WsSection id="ts_ov_brief">
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         {portfolioId != null && (
           <button
@@ -125,9 +129,11 @@ export function OverviewTab({ port, history, portfolioId }: { port: Portfolio; h
           </div>
         </div>
       )}
+      </WsSection>
 
       {/* Value chart */}
       {chartData.length > 1 && (
+        <WsSection id="ts_ov_value" value={fmtMoney(port.total_value)}>
         <div>
           <div style={{ fontSize: 12, fontWeight: 500, color: A,
             textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>
@@ -151,11 +157,13 @@ export function OverviewTab({ port, history, portfolioId }: { port: Portfolio; h
             </ResponsiveContainer>
           </div>
         </div>
+        </WsSection>
       )}
 
       {/* Allocation + stats side-by-side */}
-      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: inWorkspace ? '1fr' : '240px 1fr', gap: 12 }}>
         {/* Pie */}
+        <WsSection id="ts_ov_alloc" value={`${alloc.length} slices`}>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: 12 }}>
           <div style={{ fontSize: 12, fontWeight: 500, color: A,
             textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8 }}>
@@ -184,8 +192,10 @@ export function OverviewTab({ port, history, portfolioId }: { port: Portfolio; h
             </div>
           ))}
         </div>
+        </WsSection>
 
         {/* Top holdings table */}
+        <WsSection id="ts_ov_top" value={`${holdings.length} held`}>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: 12 }}>
           <div style={{ fontSize: 12, fontWeight: 500, color: A,
             textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8 }}>
@@ -239,6 +249,7 @@ export function OverviewTab({ port, history, portfolioId }: { port: Portfolio; h
             </table>
           )}
         </div>
+        </WsSection>
       </div>
 
       {/* ── Projected Income Calendar ─────────────────────────────────────── */}
@@ -278,6 +289,7 @@ export function OverviewTab({ port, history, portfolioId }: { port: Portfolio; h
         const maxMonth = Math.max(...Object.values(byMonth))
 
         return (
+          <WsSection id="ts_ov_income" value={fmtMoney(totalProjected12m)} status="info">
           <div>
             <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--fd-lilac-ink)',
               textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8,
@@ -361,6 +373,7 @@ export function OverviewTab({ port, history, portfolioId }: { port: Portfolio; h
               })}
             </div>
           </div>
+          </WsSection>
         )
       })()}
     </div>

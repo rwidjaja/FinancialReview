@@ -6,6 +6,7 @@
 import type { DashboardData } from '../../types/dashboard'
 import { G, R, A, M, Y } from './drawdown.shared'
 import { useYearActions } from './useYearActions'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 export function PersistentActionChecklist({ data }: { data: DashboardData }) {
   const currentYear = new Date().getFullYear()
@@ -20,6 +21,7 @@ export function PersistentActionChecklist({ data }: { data: DashboardData }) {
   const confColor = hasUrgent ? R : hasHigh ? A : G
 
   return (
+    <WsSection id="dd_checklist" value={`${actions.length} action${actions.length === 1 ? '' : 's'}`} status={hasUrgent ? 'alert' : hasHigh ? 'watch' : 'ok'}>
     <div style={{ background: 'var(--surface)', border: `1px solid ${confColor}`,
       borderTop: `3px solid ${confColor}`, padding: '10px 14px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -63,5 +65,6 @@ export function PersistentActionChecklist({ data }: { data: DashboardData }) {
         })}
       </div>
     </div>
+    </WsSection>
   )
 }

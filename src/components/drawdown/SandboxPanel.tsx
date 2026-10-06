@@ -10,6 +10,7 @@ import {
   Legend,
 } from 'recharts'
 import { TerminalSection } from '../ui/Terminal'
+import { WsSection } from '../workspace/WorkspaceContext'
 import { fmtMoney, fmtMoneyFull } from '../../utils/formatters'
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_CURSOR, TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTooltip'
 import type { DashboardData } from '../../types/dashboard'
@@ -155,6 +156,7 @@ export function SandboxPanel({ baseInputs, data }: { baseInputs: DrawdownInputs;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
+      <WsSection id="dd_sandbox_impact" value={scenTags.length > 0 ? `${scenTags.length} change${scenTags.length > 1 ? 's' : ''}` : 'Baseline'} status={scenTags.length > 0 ? 'watch' : 'info'}>
       {/* ── Action Impact Card ───────────────────────────────────────────── */}
       <div style={{ background: 'var(--fd-card)', border: `1px solid ${A}`,
         borderTop: `3px solid ${A}`, padding: '12px 14px' }}>
@@ -350,7 +352,10 @@ export function SandboxPanel({ baseInputs, data }: { baseInputs: DrawdownInputs;
         })()}
       </div>
 
+      </WsSection>
+
       {/* ── Scenario Controls ─────────────────────────────────────────────── */}
+      <WsSection id="dd_sandbox_controls">
       <TerminalSection id="sandbox-controls" title="Scenario Controls — adjust parameters to stress-test your plan · all changes update the impact summary above" defaultOpen accent={A}>
         {/* Preset scenario buttons */}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
@@ -453,8 +458,10 @@ export function SandboxPanel({ baseInputs, data }: { baseInputs: DrawdownInputs;
           </div>
         )}
       </TerminalSection>
+      </WsSection>
 
       {/* ── Outcome comparison cards ─────────────────────────────────────── */}
+      <WsSection id="dd_sandbox_outcomes">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {scenarios.map(({ label, result }) => {
           const best = result.strategies.find(s => s.id === result.best_longevity)!
@@ -486,7 +493,10 @@ export function SandboxPanel({ baseInputs, data }: { baseInputs: DrawdownInputs;
         })}
       </div>
 
+      </WsSection>
+
       {/* ── Comparison chart ──────────────────────────────────────────────── */}
+      <WsSection id="dd_sandbox_chart">
       <TerminalSection id="sandbox-chart" title={`Portfolio Total — Baseline vs Scenario (${baseSel.label})`} defaultOpen accent={A}>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={compData} margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
@@ -501,6 +511,7 @@ export function SandboxPanel({ baseInputs, data }: { baseInputs: DrawdownInputs;
           </LineChart>
         </ResponsiveContainer>
       </TerminalSection>
+      </WsSection>
 
     </div>
   )

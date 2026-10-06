@@ -10,6 +10,7 @@ import {
   Cell, Legend,
 } from 'recharts'
 import { TerminalSection } from '../ui/Terminal'
+import { WsSection } from '../workspace/WorkspaceContext'
 import { fmtMoney } from '../../utils/formatters'
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_CURSOR, TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTooltip'
 import type { ViewMode } from '../ui/ModeToggle'
@@ -115,6 +116,7 @@ export function OptimizerPanel({ result, inputs, data, incomeTarget, mode }: {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
+      <WsSection id="dd_opt_action_plan" value={`${(liveAnnual.marginal_rate * 100).toFixed(0)}% marginal`} status={bucketShortfall > 0 ? 'watch' : 'info'}>
       {/* ── THIS YEAR ACTION PLAN — powered by live portfolio state ── */}
       <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${A}`, overflow: 'hidden' }}>
 
@@ -369,7 +371,10 @@ export function OptimizerPanel({ result, inputs, data, incomeTarget, mode }: {
         </div>
       )}
 
+      </WsSection>
+
       {/* ── Year-by-year table with milestone annotations ── */}
+      <WsSection id="dd_withdrawal_table" value={`${plan.years.length} years`}>
       <TerminalSection id="withdrawal-table" title="Full Year-by-Year Withdrawal Schedule" defaultOpen accent={A}>
         <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 400 }}>
           <table style={{ borderCollapse: 'collapse', fontSize: 12, fontFamily: 'var(--font-mono)', minWidth: '100%' }}>
@@ -481,9 +486,11 @@ export function OptimizerPanel({ result, inputs, data, incomeTarget, mode }: {
           </table>
         </div>
       </TerminalSection>
+      </WsSection>
 
       {/* Account balance trajectory */}
       {mode === 'advanced' && (
+        <WsSection id="dd_balance_trajectory">
         <TerminalSection id="balance-trajectory" title="Account Balance Trajectory" defaultOpen accent={A}>
           <SectionLabel text="Account balances over time — Dynamic Bracket · $K" color={A} />
           <ResponsiveContainer width="100%" height={200}>
@@ -522,10 +529,12 @@ export function OptimizerPanel({ result, inputs, data, incomeTarget, mode }: {
             </BarChart>
           </ResponsiveContainer>
         </TerminalSection>
+        </WsSection>
       )}
 
       {/* Strategy comparison — read-only, explains why Dynamic Bracket is the recommendation */}
       {mode === 'advanced' && (
+        <WsSection id="dd_strategy_compare" value={isConverged ? 'Converged' : fmt(taxSavings)} status={isConverged ? 'info' : 'ok'}>
         <TerminalSection id="strategy-compare" title="Why Dynamic Bracket — Strategy Comparison" defaultOpen={false} accent={MU}>
           <div style={{ fontSize: 12, color: M, marginBottom: 10, lineHeight: 1.6 }}>
             {isConverged
@@ -612,6 +621,7 @@ export function OptimizerPanel({ result, inputs, data, incomeTarget, mode }: {
             </BarChart>
           </ResponsiveContainer>
         </TerminalSection>
+        </WsSection>
       )}
     </div>
   )

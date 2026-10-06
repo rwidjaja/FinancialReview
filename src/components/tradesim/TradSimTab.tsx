@@ -27,6 +27,8 @@ import { WatchlistTab } from './WatchlistTab'
 import { SwingTradeTab } from './SwingTradeTab'
 import { EditModal, CreateModal, ImportModal } from './PortfolioModals'
 import { OrderModal } from './OrderModal'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWsSubTabs } from '../workspace/context'
 
 // ── Main component ─────────────────────────────────────────────────────────────
 interface Props {
@@ -40,6 +42,7 @@ export function TradSimTab({ data }: Props) {
   const qc = useQueryClient()
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [subTab,     setSubTab]     = useState<SubTab>('overview')
+  useWsSubTabs(subTab, setSubTab as (s: string) => void)
   const [showCreate, setShowCreate] = useState(false)
   const [showImport, setShowImport] = useState(false)
   const [showEdit,   setShowEdit]   = useState(false)
@@ -311,7 +314,7 @@ export function TradSimTab({ data }: Props) {
               {subTab === 'holdings'    && <HoldingsTab    port={port} activeId={activeId} onMutate={invalidate} divs={divs}
                                             onLimitOrder={limitOrders.addOrder}
                                             onOpenOrder={openOrderModal} />}
-              {subTab === 'orders'      && <OrdersTab
+              {subTab === 'orders'      && <WsSection id="ts_orders" value={openOrderCount > 0 ? `${openOrderCount} open` : undefined} status={openOrderCount > 0 ? 'watch' : undefined}><OrdersTab
                                             orders={limitOrders.orders.filter(o => o.portfolioId === activeId)}
                                             onCancel={limitOrders.cancelOrder}
                                             priceMap={(() => {
@@ -322,11 +325,11 @@ export function TradSimTab({ data }: Props) {
                                               port?.holdings?.forEach(h => { m[h.symbol] = h.current_price })
                                               return m
                                             })()}
-                                          />}
-              {subTab === 'trades'      && <TradesTab      txns={txns} activeId={activeId} onMutate={invalidate} port={port} />}
+                                          /></WsSection>}
+              {subTab === 'trades'      && <WsSection id="ts_trades" value={`${txns.length} trades`}><TradesTab      txns={txns} activeId={activeId} onMutate={invalidate} port={port} /></WsSection>}
               {subTab === 'income'      && <IncomeTab      divs={divs} activeId={activeId} port={port} onMutate={invalidate} />}
               {subTab === 'performance' && <SimPerformanceTab port={port} history={history} />}
-              {subTab === 'watchlist'   && <WatchlistTab   port={port} activeId={activeId} onMutate={invalidate} />}
+              {subTab === 'watchlist'   && <WsSection id="ts_watchlist" value={`${port.watchlist?.length ?? 0} symbols`}><WatchlistTab   port={port} activeId={activeId} onMutate={invalidate} /></WsSection>}
               {subTab === 'swing'       && <SwingTradeTab
                                             port={port}
                                             regime={data.portfolio_intel?.market_regime ?? 'CONSOLIDATION'}

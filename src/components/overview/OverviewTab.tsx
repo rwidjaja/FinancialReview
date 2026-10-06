@@ -14,6 +14,8 @@
 import { useState, useMemo } from 'react'
 import { useWellnessData } from '../../hooks/useDashboardData'
 import { useGlobalViewMode } from '../ui/ModeToggle'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWorkspace } from '../workspace/context'
 import { computeRetirementDecision, computeBucketStatus } from '../../utils/retirementEngine'
 import { buildUnifiedAlerts, type UnifiedAlert } from '../../utils/unifiedAlerts'
 import { RetirementActionPanel } from './RetirementActionPanel'
@@ -258,7 +260,11 @@ export function OverviewTab({ data, onNavigate }: Props) {
     },
   ]
   const diagSorted = [...diagnostics].sort((a, b) => SEVERITY_ORDER[a.status] - SEVERITY_ORDER[b.status])
-  const diagShown = showAllDiag ? diagSorted : diagSorted.slice(0, 4)
+  // Advanced workspace shows one section at a time, so all 9 diagnostics fit.
+  const { enabled: inWorkspace } = useWorkspace()
+  const diagShown = showAllDiag || inWorkspace ? diagSorted : diagSorted.slice(0, 4)
+  const diagAlerts = diagnostics.filter(d => d.status === 'alert').length
+  const diagWarn = diagnostics.filter(d => d.status === 'warn').length
 
   const sc = decision.retirement_scorecard
   const SC_WORD: Record<string, string> = { ok: 'Pass', warn: 'Watch', alert: 'Alert' }
@@ -266,7 +272,7 @@ export function OverviewTab({ data, onNavigate }: Props) {
   return (
     <div style={{ paddingBottom: 64 }}>
       <PageHero
-        bleed
+        bleed asideTitle="Next decision"
         eyebrow={`Overview · State ${stateLetter} — ${stateName}`}
         eyebrowRight={<button className="fd-link" onClick={() => setShowPlainSummary(true)} style={{ ...mono, ...muted, background: 'none', border: 'none' }}>In plain English →</button>}
         {...verdict}
@@ -326,6 +332,8 @@ export function OverviewTab({ data, onNavigate }: Props) {
         <MainRail
           main={<>
             {topAlerts.length > 0 && (
+              <WsSection id="attention" value={`${unifiedAll.length} alerts`}
+                status={unifiedAll.some(a => a.level === 'red') ? 'alert' : unifiedAll.some(a => a.level === 'orange') ? 'warn' : 'watch'}>
               <Section title="Needs attention" meta={`${unifiedAll.length} alerts${unifiedAll.length > topAlerts.length ? ` · top ${topAlerts.length}` : ''}`}>
                 <RuledList>
                   {topAlerts.map((a, i) => {
@@ -338,17 +346,28 @@ export function OverviewTab({ data, onNavigate }: Props) {
                   })}
                 </RuledList>
               </Section>
+              </WsSection>
             )}
 
-            <IncomeSection data={data} stateIdx={stateIdx} />
+            <WsSection id="income" value={fwd12m > 0 ? `${dv.value}${dv.unit ?? ''}` : undefined}
+              status={incomeCovPct == null ? 'info' : incomeCovPct >= 100 ? 'ok' : incomeCovPct >= 75 ? 'warn' : 'alert'}>
+              <IncomeSection data={data} stateIdx={stateIdx} />
+            </WsSection>
 
-            <WhatChangedToday data={data} />
+            <WsSection id="changed" value={signedMoney(dayChange, fmtK)} status={dayChange >= 0 ? 'ok' : 'watch'}>
+              <WhatChangedToday data={data} />
+            </WsSection>
 
-            <WellnessSnapshot data={data} />
+            <WsSection id="wellness" value={w ? `${successAt100.toFixed(1)}%` : undefined}
+              status={!w ? 'info' : successAt100 >= 90 ? 'ok' : successAt100 >= 80 ? 'watch' : 'alert'}>
+              <WellnessSnapshot data={data} />
+            </WsSection>
 
             {mode === 'advanced' && <RetirementActionPanel decision={decision} data={data} onNavigate={onNavigate} />}
           </>}
           rail={<>
+            <WsSection id="scorecard" value={`${sc.items.filter(i => i.status === 'ok').length} / ${sc.items.length}`}
+              status={sc.items.some(i => i.status === 'alert') ? 'alert' : sc.items.some(i => i.status !== 'ok') ? 'warn' : 'ok'}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0 }}>Scorecard</h3>
@@ -369,11 +388,14 @@ export function OverviewTab({ data, onNavigate }: Props) {
                 ))}
               </RuledList>
             </div>
+            </WsSection>
 
+            <WsSection id="diagnostics" value={diagAlerts ? `${diagAlerts} alert` : diagWarn ? `${diagWarn} warn` : 'All ok'}
+              status={diagAlerts ? 'alert' : diagWarn ? 'warn' : 'ok'}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <button onClick={() => setShowAllDiag(v => !v)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', border: 'none', background: 'transparent', cursor: 'pointer', padding: 0 }}>
                 <span style={{ fontSize: 18, fontWeight: 500 }}>Diagnostics</span>
-                <span style={mono}>{showAllDiag ? `Show 4` : `All ${diagnostics.length}`}</span>
+                {!inWorkspace && <span style={mono}>{showAllDiag ? `Show 4` : `All ${diagnostics.length}`}</span>}
               </button>
               <RuledList>
                 {diagShown.map(t => (
@@ -387,10 +409,17 @@ export function OverviewTab({ data, onNavigate }: Props) {
                 ))}
               </RuledList>
             </div>
+            </WsSection>
 
-            <HoldingsToday data={data} />
+            <WsSection id="holdings" status="info">
+              <HoldingsToday data={data} />
+            </WsSection>
 
-            {mode === 'advanced' && <MarketCharacterRail data={data} />}
+            {mode === 'advanced' && (
+              <WsSection id="market">
+                <MarketCharacterRail data={data} />
+              </WsSection>
+            )}
           </>}
         />
       </div>

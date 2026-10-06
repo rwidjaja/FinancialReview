@@ -1,9 +1,12 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AppHeader, type TabId, resolveLegacyTabId } from './components/layout/AppHeader'
 import { ViewModeContext, type ViewMode } from './components/ui/ModeToggle'
 import { PaletteBar, mono } from './components/ui/primitives'
 import { AlertNotification } from './components/alerts/AlertNotification'
+import { AdvancedWorkspace } from './components/workspace/AdvancedWorkspace'
+import { FindPalette } from './components/workspace/FindPalette'
+import type { AdvLayout } from './components/workspace/context'
 
 // Tab components are lazy-loaded so each tab becomes its own chunk instead of
 // shipping the entire app in one bundle.
@@ -143,6 +146,40 @@ function Dashboard() {
   }, [ground])
   const mainRef = useRef<HTMLElement>(null)
 
+  // Advanced workspace (design_handoff_advanced_workspace): focus/scroll
+  // layout, last section per tab, and the global Find palette.
+  const [advLayout, setAdvLayoutState] = useState<AdvLayout>(() => {
+    try { return localStorage.getItem('advLayout') === 'scroll' ? 'scroll' : 'focus' } catch { return 'focus' }
+  })
+  const setAdvLayout = (l: AdvLayout) => {
+    setAdvLayoutState(l)
+    try { localStorage.setItem('advLayout', l) } catch { /* private mode */ }
+  }
+  const [advSections, setAdvSections] = useState<Partial<Record<TabId, string>>>({})
+  const advSectionFor = (tab: TabId): string | null => {
+    if (advSections[tab]) return advSections[tab]!
+    try { return localStorage.getItem(`advSection:${tab}`) } catch { return null }
+  }
+  const setAdvSection = useCallback((tab: TabId, id: string) => {
+    setAdvSections(prev => (prev[tab] === id ? prev : { ...prev, [tab]: id }))
+    try { localStorage.setItem(`advSection:${tab}`, id) } catch { /* private mode */ }
+  }, [])
+  const onAdvActive = useCallback((id: string) => setAdvSection(activeTab, id), [activeTab, setAdvSection])
+  const [find, setFind] = useState<{ q: string } | null>(null)
+  const openFind = useCallback((q?: string) => setFind({ q: q ?? '' }), [])
+
+  // ⌘K / Ctrl+K anywhere, "/" when not typing
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null
+      const typing = !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); setFind(f => (f ? null : { q: '' })) }
+      else if (e.key === '/' && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); setFind({ q: '' }) }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   // Sync the auto-refresh ref with the tab restored from localStorage/URL —
   // otherwise it stays at its 'summary' default until the first manual tab change.
   useEffect(() => {
@@ -233,6 +270,24 @@ function Dashboard() {
     mainRef.current?.scrollTo({ top: 0 })
   }
 
+  function handleFindPick(tab: TabId, sectionId: string, adv: boolean) {
+    setAdvSection(tab, sectionId)
+    if (tab !== activeTab) handleTabChange(tab)
+    // Simple mode has no pager: advanced-only sections need Advanced; others
+    // are scrolled to in place once the tab has rendered.
+    if (mode === 'simple' && adv) setMode('advanced')
+    else if (mode === 'simple') {
+      let tries = 0
+      const tryScroll = () => {
+        const el = document.querySelector(`[data-ws-id="${sectionId}"]`)?.firstElementChild as HTMLElement | null | undefined
+        const sc = mainRef.current
+        if (el && sc) sc.scrollBy({ top: el.getBoundingClientRect().top - 140 })
+        else if (tries++ < 20) setTimeout(tryScroll, 100)   // lazy tab chunk still loading
+      }
+      requestAnimationFrame(tryScroll)
+    }
+  }
+
   function handleNavigateToResearch(symbol: string) {
     setResearchSymbol(symbol)
     handleTabChange('research')
@@ -268,7 +323,12 @@ function Dashboard() {
         updatedTitle={data?.timestamp ? `Data updated ${data.timestamp}` : undefined}
         schwabLive={data?.schwab_status ? data.schwab_status === 'live' : undefined}
         onRefresh={handleRefresh} isRefreshing={isRefreshing}
+        onFind={() => openFind()}
       />
+
+      {find && (
+        <FindPalette initialQuery={find.q} currentTab={activeTab} onPick={handleFindPick} onClose={() => setFind(null)} />
+      )}
 
       {/* Refresh progress banner — only during manual refresh, not initial load */}
       {isRefreshing && <RefreshBanner status={serverStatus} />}
@@ -300,28 +360,41 @@ function Dashboard() {
           </div>
         )}
 
-        <Suspense fallback={<TabLoadingFallback />}>
-          {activeTab === 'settings' && <SettingsTab onRefresh={handleRefresh} />}
-          {activeTab === 'balance_history' && data && <BalanceHistoryTab data={data} />}
-
-          {data && activeTab !== 'settings' && activeTab !== 'balance_history' && (
-            <DrawdownPlanProvider data={data}>
-              {activeTab === 'overview'   && <OverviewTab  data={data} onNavigate={handleTabChange} />}
-              {activeTab === 'roadmap'    && <RoadmapTab   data={data} onNavigate={handleTabChange} />}
-              {activeTab === 'portfolio'  && <PortfolioTab data={data} />}
-              {activeTab === 'returns'    && <ReturnsTab   data={data} />}
-              {activeTab === 'tax'        && <TaxTab       data={data} />}
-              {activeTab === 'cashflow'   && <CashFlowTab  data={data} />}
-              {activeTab === 'research'   && stableData && <ResearchTab  data={stableData} initialSymbol={researchSymbol} />}
-              {activeTab === 'forecast'   && <ForecastTab  data={data} />}
-              {activeTab === 'risk'       && <RiskTab      data={data} />}
-              {activeTab === 'simulate'   && stableData && <SimulateTab  data={stableData} />}
-              {activeTab === 'drawdown'   && <DrawdownTab  data={data} />}
-              {activeTab === 'trade_sim'  && <TradSimTab   data={data} onNavigateToResearch={handleNavigateToResearch} />}
-              {activeTab === 'ai'         && stableData && <AITab        data={stableData} onNavigate={handleTabChange} onNavigateToResearch={handleNavigateToResearch} />}
-            </DrawdownPlanProvider>
-          )}
-        </Suspense>
+        {(() => {
+          const tabs = (
+          <Suspense fallback={<TabLoadingFallback />}>
+            {activeTab === 'settings' && <SettingsTab onRefresh={handleRefresh} />}
+            {activeTab === 'balance_history' && data && <BalanceHistoryTab data={data} />}
+  
+            {data && activeTab !== 'settings' && activeTab !== 'balance_history' && (
+              <DrawdownPlanProvider data={data}>
+                {activeTab === 'overview'   && <OverviewTab  data={data} onNavigate={handleTabChange} />}
+                {activeTab === 'roadmap'    && <RoadmapTab   data={data} onNavigate={handleTabChange} />}
+                {activeTab === 'portfolio'  && <PortfolioTab data={data} />}
+                {activeTab === 'returns'    && <ReturnsTab   data={data} />}
+                {activeTab === 'tax'        && <TaxTab       data={data} />}
+                {activeTab === 'cashflow'   && <CashFlowTab  data={data} />}
+                {activeTab === 'research'   && stableData && <ResearchTab  data={stableData} initialSymbol={researchSymbol} />}
+                {activeTab === 'forecast'   && <ForecastTab  data={data} />}
+                {activeTab === 'risk'       && <RiskTab      data={data} />}
+                {activeTab === 'simulate'   && stableData && <SimulateTab  data={stableData} />}
+                {activeTab === 'drawdown'   && <DrawdownTab  data={data} />}
+                {activeTab === 'trade_sim'  && <TradSimTab   data={data} onNavigateToResearch={handleNavigateToResearch} />}
+                {activeTab === 'ai'         && stableData && <AITab        data={stableData} onNavigate={handleTabChange} onNavigateToResearch={handleNavigateToResearch} />}
+              </DrawdownPlanProvider>
+            )}
+          </Suspense>
+          )
+          return mode === 'advanced' && (data || activeTab === 'settings') ? (
+            <AdvancedWorkspace
+              key={activeTab} tab={activeTab}
+              requestedId={advSectionFor(activeTab)} onActive={onAdvActive}
+              layout={advLayout} onLayout={setAdvLayout} scroller={mainRef} onOpenFind={openFind}
+            >
+              {tabs}
+            </AdvancedWorkspace>
+          ) : tabs
+        })()}
       </div>
 
       <footer style={{ maxWidth: 1440, margin: '0 auto', padding: '0 48px' }}>

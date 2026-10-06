@@ -6,6 +6,8 @@ import { fmtMoney, fmtMoneyFull } from '../../utils/formatters'
 import type { Dividend, Portfolio } from './types'
 import { G, R, A, M, B, BASE, POST, COLORS } from './constants'
 import { Btn, Input, StatBox, fmtDate } from './shared'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWorkspace } from '../workspace/context'
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_CURSOR , TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTooltip'
 
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -32,6 +34,7 @@ export function IncomeTab({ divs, activeId, port, onMutate }:
   const years = [...new Set(divs.map(d => Number(d.payment_date.slice(0, 4))))].sort((a, b) => b - a)
   const [selYear, setSelYear] = useState<number | 'ALL'>(years[0] ?? curYr)
   const [showForm, setShowForm] = useState(false)
+  const { enabled: inWorkspace } = useWorkspace()
   const [form, setForm] = useState({ symbol: '', amount: '', date: '', reinvest: false })
   const [err, setErr]   = useState('')
   const [ok,  setOk]    = useState('')
@@ -136,6 +139,7 @@ export function IncomeTab({ divs, activeId, port, onMutate }:
       fontFamily: 'var(--font-mono)' }}>
 
       {/* ── Top KPI banner (Snowball style) ───────────────────────────────── */}
+      <WsSection id="ts_inc_summary" value={`${portYield.toFixed(2)}%`} status="info">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {/* Yield block */}
         <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)',
@@ -180,8 +184,10 @@ export function IncomeTab({ divs, activeId, port, onMutate }:
           <StatBox label="# Payments"   value={String(divs.length)} />
         </div>
       </div>
+      </WsSection>
 
       {/* ── Record dividend toggle ────────────────────────────────────────── */}
+      <WsSection id="ts_inc_record">
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <Btn onClick={() => setShowForm(f => !f)} variant="green" small>
           {showForm ? '▲ Hide Form' : '+ Record Dividend'}
@@ -224,6 +230,7 @@ export function IncomeTab({ divs, activeId, port, onMutate }:
           {ok  && <div style={{ fontSize: 12, color: G, marginTop: 6 }}>✓ {ok}</div>}
         </div>
       )}
+      </WsSection>
 
       {!hasData ? (
         <div style={{ padding: 32, textAlign: 'center', color: M, fontSize: 12 }}>
@@ -232,9 +239,10 @@ export function IncomeTab({ divs, activeId, port, onMutate }:
       ) : (<>
 
         {/* ── Diversification donut + Yield/Payout bars ─────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: inWorkspace ? '1fr' : '1fr 1fr', gap: 12 }}>
 
           {/* Passive Income Diversification */}
+          <WsSection id="ts_inc_diversification" value={`${ltmBySymSorted.length} payers`}>
           <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: 12 }}>
             <div style={{ fontSize: 12, fontWeight: 500, color: A,
               textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>
@@ -294,8 +302,10 @@ export function IncomeTab({ divs, activeId, port, onMutate }:
               </div>
             )}
           </div>
+          </WsSection>
 
           {/* Yield/Payout per symbol */}
+          <WsSection id="ts_inc_yield">
           <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
               <span style={{ fontSize: 12, fontWeight: 500, color: A,
@@ -344,6 +354,7 @@ export function IncomeTab({ divs, activeId, port, onMutate }:
               </div>
             )}
           </div>
+          </WsSection>
         </div>
 
         {/* ── Year selector ─────────────────────────────────────────────── */}
@@ -360,6 +371,7 @@ export function IncomeTab({ divs, activeId, port, onMutate }:
         </div>
 
         {/* ── Monthly income + cumulative (ComposedChart) ───────────────── */}
+        <WsSection id="ts_inc_monthly">
         <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center',
             justifyContent: 'space-between', marginBottom: 8 }}>
@@ -398,9 +410,11 @@ export function IncomeTab({ divs, activeId, port, onMutate }:
             </ResponsiveContainer>
           </div>
         </div>
+        </WsSection>
 
         {/* ── Annual income bar ─────────────────────────────────────────── */}
         {annualData.length > 1 && (
+          <WsSection id="ts_inc_annual">
           <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: 12 }}>
             <div style={{ fontSize: 12, fontWeight: 500, color: A,
               textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8 }}>
@@ -427,9 +441,11 @@ export function IncomeTab({ divs, activeId, port, onMutate }:
               </ResponsiveContainer>
             </div>
           </div>
+          </WsSection>
         )}
 
         {/* ── Dividend history table ────────────────────────────────────── */}
+        <WsSection id="ts_inc_history" value={`${viewDivs.length} payments`}>
         <div>
           <div style={{ fontSize: 12, fontWeight: 500, color: A,
             textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>
@@ -492,6 +508,7 @@ export function IncomeTab({ divs, activeId, port, onMutate }:
             </table>
           )}
         </div>
+        </WsSection>
 
       </>)}
     </div>

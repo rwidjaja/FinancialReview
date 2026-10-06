@@ -40,6 +40,7 @@ import {
   ScenarioToggle, HorizonToggle,
 } from './predictions.controls'
 import { useGlobalViewMode } from '../ui/ModeToggle'
+import { WsSection } from '../workspace/WorkspaceContext'
 import { PageHero, LeadMuted, HeroMeta, KpiStrip, Section, Sections, MainRail, RuledList, Label, SegGroup, SegBtn, mono, muted, moneyUnit } from '../ui/primitives'
 
 // ─── Main ──────────────────────────────────────────────────────────────────────
@@ -151,6 +152,7 @@ export function PredictionsTab({ data }: Props) {
           <span>{pctChange >= 0 ? 'Up' : 'Down'} {Math.abs(pctChange).toFixed(0)}% from {fmtS(todayVal)} today. Annual dividends reach {fmtS(annDiv)} against {fmtS(fwd12mDisplay)} today.</span>
           <LeadMuted>{SCENARIO_META[scenario].desc}. Mechanical and deterministic — no AI in the projection.</LeadMuted>
         </>}
+        asideTitle="Scenario, horizon and stress"
         aside={
           <div style={{ background: 'var(--fd-card)', padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
             <Label>Scenario</Label><ScenarioToggle value={scenario} onChange={setScenario} />
@@ -183,26 +185,35 @@ export function PredictionsTab({ data }: Props) {
       <Sections>
         <WhatChanged baseProj={baseProj} horizon={horizon} />
 
+        <WsSection id="fc_growth" value={`${endVal.value}${endVal.unit ?? ''}`} status={pctChange >= 0 ? 'ok' : 'warn'}>
         <Section title="Portfolio growth projection" meta={<span style={{ display: 'flex', gap: 16, fontSize: 13 }}>
           {(['base', 'bull', 'bear'] as Scenario[]).map(s => <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, opacity: s === scenario ? 1 : 0.6 }}><span style={{ width: 20, height: 3, background: SCENARIO_META[s].color }} />{s}</span>)}
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><span style={{ width: 20, height: 0, borderTop: '2px dashed var(--fd-muted)' }} />target</span>
         </span>}>
           <ScenarioFanChart chartData={growthChartData} scenario={scenario} horizon={horizon} todayYr={todayYr} />
         </Section>
+        </WsSection>
 
+        <WsSection id="fc_milestones" value={`${horizon}-year`}>
         <YearMilestones projs={projsMax} scenario={scenario} horizon={horizon} onHorizonChange={setHorizon} />
+        </WsSection>
 
         <MainRail
           main={<>
+            <WsSection id="fc_year_by_year" value={`${scenarioProj.length} years`}>
             <Section title="Year by year" meta={`${scenario} scenario`}>
               <YearProjectionTable proj={scenarioProj} scenario={scenario} />
             </Section>
+            </WsSection>
+            <WsSection id="fc_scenario_compare">
             <Section title="Scenario comparison" meta={`${horizon}-year`}>
               <ScenarioComparison projs={projs} horizon={horizon} scenario={scenario} todayVal={todayVal} />
             </Section>
+            </WsSection>
           </>}
           rail={<>
             {ssOpts.length > 0 && (
+              <WsSection id="fc_ss_timing" value={ssAge != null ? `Age ${ssAge}` : undefined}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0 }}>Social Security timing</h3>
                 <RuledList>
@@ -218,11 +229,15 @@ export function PredictionsTab({ data }: Props) {
                   })}
                 </RuledList>
               </div>
+              </WsSection>
             )}
+            <WsSection id="fc_briefing">
             <div style={{ background: 'var(--fd-card)', padding: 24 }}>
               <TabBriefingPanel endpoint="/api/briefing/forecast" title="Forecast briefing" />
             </div>
+            </WsSection>
             {mode === 'advanced' && (
+              <WsSection id="fc_assumptions">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, lineHeight: 1.5 }}>
                 <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0 }}>Assumptions</h3>
                 <RuledList>
@@ -242,24 +257,41 @@ export function PredictionsTab({ data }: Props) {
                   ))}
                 </RuledList>
               </div>
+              </WsSection>
             )}
           </>}
         />
 
         {mode === 'advanced' && (<>
           <ScenarioHero proj={scenarioProj} scenario={scenario} horizon={horizon} todayVal={todayVal} fwd12m={fwd12m} />
+          <WsSection id="fc_growth_all">
           <TerminalSection id="pred-a" title="Portfolio growth projection — all scenarios">
             <GrowthChart chartData={growthChartData} regime={regime} />
           </TerminalSection>
+          </WsSection>
+          <WsSection id="fc_status" value={regime ?? undefined}>
           <SummaryStatusBar baseProj={baseProj} data={data} />
+          </WsSection>
+          <WsSection id="fc_income">
           <Label style={{ color: 'var(--fd-accent)' }}>Portfolio and income projection</Label>
           <SectionB_Advanced allChartData={incomeChartData} baseProj={baseProj} data={data} />
+          </WsSection>
+          <WsSection id="fc_nav">
           <Label style={{ color: 'var(--fd-accent)' }}>Structural risk — factors that could change the projection</Label>
           <SectionC_Advanced data={data} scenario={scenario} horizon={horizon} />
+          </WsSection>
+          <WsSection id="fc_tax" value={`${effTaxPct.toFixed(0)}% eff`} status={effTaxPct > 22 ? 'alert' : effTaxPct > 17 ? 'warn' : 'ok'}>
           <SectionD_Advanced baseProj={baseProj} bullProj={bullProj} bearProj={bearProj} />
+          </WsSection>
+          <WsSection id="fc_cashflow" value={last ? `${surplus >= 0 ? '+' : '−'}${fmtS(Math.abs(surplus))}` : undefined} status={last ? (surplus >= 0 ? 'ok' : 'warn') : undefined}>
           <SectionE_Advanced baseProj={baseProj} bullProj={bullProj} bearProj={bearProj} expBase={expBase} />
+          </WsSection>
+          <WsSection id="fc_symbols">
           <SectionG_Advanced data={data} scenario={scenario} horizon={horizon} />
+          </WsSection>
+          <WsSection id="fc_signals">
           <SectionH_Advanced data={data} baseProj={baseProj} bullProj={bullProj} bearProj={bearProj} />
+          </WsSection>
         </>)}
       </Sections>
     </div>

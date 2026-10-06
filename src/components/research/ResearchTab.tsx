@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWorkspace, useWsSubTabs } from '../workspace/context'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { TOOLTIP_STYLE, TOOLTIP_LABEL_STYLE } from '../ui/chartTooltip'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
@@ -51,6 +53,9 @@ export function ResearchTab({ data, initialSymbol }: Props) {
   const [mode] = useGlobalViewMode()
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('1y')
   const [advTab, setAdvTab] = useState<'action' | 'fit' | 'deep' | 'swing'>('action')
+  // Advanced workspace: the four module tabs fold into the "On this tab" rail.
+  const ws = useWorkspace()
+  useWsSubTabs(advTab, setAdvTab as (s: string) => void)
   const [compareSymbols, setCompareSymbols] = useState<string[]>([])
   const [compareInput, setCompareInput] = useState('')
   const [showAlertModal, setShowAlertModal] = useState(false)
@@ -225,7 +230,7 @@ export function ResearchTab({ data, initialSymbol }: Props) {
 
   const actions = active && r && !r.error ? (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-      <button className="fd-ghost" style={ghost} onClick={() => { setNarrativeVisible(v => !v); if (!narrativeVisible) narrateMutation.mutate(active) }} title={`AI summary for ${active}`}>
+      <button className="fd-ghost" style={ghost} onClick={() => { setNarrativeVisible(v => !v); if (!narrativeVisible) { narrateMutation.mutate(active); ws.focusSection('rs_narrative') } }} title={`AI summary for ${active}`}>
         {narrateMutation.isPending ? 'Analysing…' : narrativeVisible ? 'Hide analysis' : 'Analyse'}
       </button>
       {price > 0 && <button className="fd-ghost" style={ghost} onClick={() => setShowAlertModal(true)} title={`Set price alert for ${active}`}>Alert</button>}
@@ -256,6 +261,7 @@ export function ResearchTab({ data, initialSymbol }: Props) {
 
       {active && r && !r.error && (
         <PageHero
+          asideTitle="Quote"
           eyebrow={`${sc?.display_label ?? r.profile?.asset_type ?? 'Security'}${r.profile?.name ? ` · ${r.profile.name}` : ''} · ${held && weightPct != null ? `${weightPct.toFixed(1)}% of portfolio` : 'Not in portfolio'}`}
           eyebrowRight={actions}
           before={`${active} is `} em={verdictWord} after="."
@@ -309,6 +315,7 @@ export function ResearchTab({ data, initialSymbol }: Props) {
             <>
               {/* ── AI Narrative ── */}
               {narrativeVisible && (
+                <WsSection id="rs_narrative" value={narrateMutation.isPending ? '…' : undefined}>
                 <div style={{
                   padding: '10px 14px',
                   background: 'var(--surface)',
@@ -336,10 +343,12 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                     }
                   </div>
                 </div>
+                </WsSection>
               )}
 
               {/* ── Guardrails ── */}
               {(r.guardrails?.length ?? 0) > 0 && (
+                <WsSection id="rs_guardrails" value={String(r.guardrails!.length)} status={r.guardrails!.some(g => g.level === 'WARN') ? 'warn' : 'info'}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {r.guardrails!.map((g, i) => (
                     <div key={i} style={{ padding: '6px 10px', background: g.level === 'WARN' ? 'var(--fd-card)' : 'var(--fd-card)', border: g.level === 'WARN' ? '1px solid rgba(214,48,49,0.35)' : '1px solid var(--border2)', display: 'flex', gap: 8 }}>
@@ -351,12 +360,18 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                     </div>
                   ))}
                 </div>
+                </WsSection>
               )}
 
               {/* ══════════ YOUR POSITION — shown first when holding this symbol ══════════ */}
-              <PositionBlock snap={snap} pf={pf} advanced positions={activePositions} />
+              {activePositions.reduce((t, p) => t + (p.value ?? 0), 0) > 0 && (
+                <WsSection id="rs_position" value={weightPct != null ? `${weightPct.toFixed(1)}%` : undefined} status="info">
+                  <PositionBlock snap={snap} pf={pf} advanced positions={activePositions} />
+                </WsSection>
+              )}
 
               {/* ══════════ MODULE 1: SYMBOL SNAPSHOT (always shown) ══════════ */}
+              <WsSection id="rs_snapshot" value={price > 0 ? `$${price.toFixed(2)}` : undefined} status={changePct >= 0 ? 'ok' : 'watch'}>
               <SnapshotModule
                 r={r} data={data} symbol={active}
                 price={price} change={change} changePct={changePct}
@@ -366,12 +381,16 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                 isForeignQuote={isForeignQuote} quoteCurrency={quoteCurrency}
                 nativePrice={nativePrice} nativeChange={nativeChange}
                 />
+              </WsSection>
 
               {/* ══════════ ACTION PLAN (always shown) ══════════ */}
-              <SimpleActionSummary ae={ae} qe={qe} tl={tl} ece={ece} price={price} r={r} />
+              <WsSection id="rs_action_plan" value={ae?.action ? ae.action.toLowerCase() : undefined}>
+                <SimpleActionSummary ae={ae} qe={qe} tl={tl} ece={ece} price={price} r={r} />
+              </WsSection>
 
               {/* ══════════ ETF COMPONENT ENGINE (top-heavy ETFs only) ══════════ */}
-              {r.etf_component_eligible && (
+              {r.etf_component_eligible && (eceLoading || eceError || ece?.error || ece?.is_top_heavy) && (
+                <WsSection id="rs_etf">{
                 eceLoading
                   ? <div style={{ padding: '12px 16px', fontSize: 12, color: M, border: '1px solid var(--fd-hairline)', borderRadius: 0, background: 'var(--surface)', flexShrink: 0 }}>
                       ◈ ETF COMPONENT ENGINE — loading component data…
@@ -383,6 +402,7 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                     : ece?.is_top_heavy
                       ? <ETFComponentEngine ece={ece} onSymbolClick={sym => setActive(sym)} />
                       : null
+                }</WsSection>
               )}
 
               {/* ══════════ ADVANCED MODE — tabbed modules ══════════ */}
@@ -402,27 +422,32 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                   </nav>
 
                   {/* ── Tab content — minHeight prevents scroll jump when switching to short tabs ── */}
-                  <div style={{ minHeight: '72vh' }}>
+                  <div style={ws.enabled ? { display: 'contents' } : { minHeight: '72vh' }}>
 
                   {/* ── Tab: ACTION ENGINE ── */}
                   {advTab === 'action' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <WsSection id="rs_quality" value={qe?.quality_score != null ? `${qe.quality_score.toFixed(0)} / 100` : undefined}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
                         <QualityEnginePanel qe={qe} yieldPct={r?.distributions?.ttm_yield} />
                         <SignalDetailPanel r={r} price={price} tl={tl} showTech={showTech} />
                       </div>
+                      </WsSection>
                       {/* Phase 1 — Intraday Pressure, Volatility Structure, Torque */}
+                      <WsSection id="rs_cycle">
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
                         <CyclePositionPanel r={r} />
                         <IntradayPressurePanel r={r} />
                         <VolatilityStructurePanel r={r} />
                         <TorqueEnginePanel r={r} />
                       </div>
+                      </WsSection>
                     </div>
                   )}
 
                   {/* ── Tab: PORTFOLIO FIT ── */}
                   {advTab === 'fit' && (
+                    <WsSection id="rs_fit">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
                         <PortfolioRolePanel pf={pf} />
@@ -458,6 +483,7 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                         </div>
                       )}
                     </div>
+                    </WsSection>
                   )}
 
                   {/* ── Tab: DEEP ANALYTICS ── */}
@@ -467,10 +493,13 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                           (Volatility Structure already appears in the Action
                           Engine tab alongside its sibling technical panels —
                           not repeated here.) */}
+                      <WsSection id="rs_flow">
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10, marginBottom: 8 }}>
                         <LiquidityFlowPanel r={r} />
                       </div>
+                      </WsSection>
                       {/* A. Price Performance */}
+                      <WsSection id="rs_perf">
                       <TerminalSection id="perf" title="A. PRICE PERFORMANCE" defaultOpen={true} accent={A}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 4px' }}>
 
@@ -540,35 +569,43 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                           />
                         </div>
                       </TerminalSection>
+                      </WsSection>
 
                       {/* A2. CANDLESTICK CHART */}
+                      <WsSection id="rs_candle">
                       <TerminalSection id="candlestick" title="CANDLESTICK CHART" defaultOpen={false} accent={A}>
                         <div style={{ padding: '8px 4px' }}>
                           <CandlestickChart symbol={active} />
                         </div>
                       </TerminalSection>
+                      </WsSection>
 
                       {/* B. Trend & Momentum */}
                       {showTech && r.technicals && (
+                        <WsSection id="rs_tech">
                         <TerminalSection id="tech" title="B. TREND & MOMENTUM" defaultOpen={false} accent={A}>
                           <div style={{ padding: '8px 4px' }}>
                             <TechPanelAdvanced r={r} />
                           </div>
                         </TerminalSection>
+                        </WsSection>
                       )}
 
                       {/* C. Volatility & Risk */}
                       {r.risk_stats && (
+                        <WsSection id="rs_risk">
                         <TerminalSection id="risk" title="C. VOLATILITY & RISK" defaultOpen={false} accent={A}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 4px' }}>
                             <RiskPanelAdvanced r={r} />
                             {r.risk_stats.beta != null && <DrawdownPanel beta={r.risk_stats.beta} maxDD={r.risk_stats.max_drawdown} />}
                           </div>
                         </TerminalSection>
+                        </WsSection>
                       )}
 
                       {/* D. NAV & Premium/Discount (CEF only) */}
                       {isCef && sc?.show_nav_analysis && r.nav_metrics && (
+                        <WsSection id="rs_nav">
                         <TerminalSection id="nav" title="D. NAV & PREMIUM/DISCOUNT" defaultOpen={false} accent={A}>
                           <div style={{ padding: '8px 4px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                             <NavTrendPanel nm={r.nav_metrics} />
@@ -621,9 +658,11 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                             })()}
                           </div>
                         </TerminalSection>
+                        </WsSection>
                       )}
 
                       {/* E. Distribution */}
+                      <WsSection id="rs_dist">
                       <TerminalSection id="dist" title="E. DISTRIBUTION & INCOME" defaultOpen={false} accent={A}>
                         <div style={{ padding: '8px 4px' }}>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 8 }}>
@@ -698,9 +737,11 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                           })()}
                         </div>
                       </TerminalSection>
+                      </WsSection>
 
                       {/* F. Peer Comparison */}
                       {r.peers && r.peers.length > 0 && (
+                        <WsSection id="rs_peers">
                         <TerminalSection id="peers" title="F. PEER COMPARISON" defaultOpen={false} accent={A}>
                           <div style={{ padding: '8px 4px', display: 'flex', flexDirection: 'column', gap: 8 }}>
 
@@ -731,9 +772,11 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                             </div>
                           </div>
                         </TerminalSection>
+                        </WsSection>
                       )}
 
                       {/* G. Fund Health Analysis — runs live evaluation engine for any symbol */}
+                      <WsSection id="rs_health">
                       <TerminalSection id="fund-analysis" title="G. FUND HEALTH ANALYSIS" defaultOpen={true} accent={A}>
                         <div style={{ padding: '8px 4px' }}>
                           <FundAnalysis
@@ -744,9 +787,11 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                           />
                         </div>
                       </TerminalSection>
+                      </WsSection>
 
                       {/* Analysis text */}
                       {r.analysis && Object.values(r.analysis).some(Boolean) && (
+                        <WsSection id="rs_qual">
                         <TerminalSection id="analysis" title="QUALITATIVE ANALYSIS" defaultOpen={false} accent={A}>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 6, padding: '8px 4px' }}>
                             {[{ k: 'trend', icon: '' }, { k: 'momentum', icon: '' }, { k: 'volume', icon: '' }, { k: 'volatility', icon: '〰' }]
@@ -759,12 +804,14 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                               ))}
                           </div>
                         </TerminalSection>
+                        </WsSection>
                       )}
                     </div>
                   )}
 
                   {/* ── Tab: SWING SIGNAL ── */}
                   {advTab === 'swing' && (
+                    <WsSection id="rs_swing">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <SwingSignalPanel
                         symbol={active}
@@ -775,12 +822,17 @@ export function ResearchTab({ data, initialSymbol }: Props) {
                         vix={data.vix_current ?? 0}
                       />
                     </div>
+                    </WsSection>
                   )}
 
                   </div>{/* end minHeight tab content wrapper */}
 
                   {/* System decision */}
-                  <FundDecision data={data} symbol={active} r={r} />
+                  {data.decisions.some(d => d.symbol === active) && (
+                    <WsSection id="rs_decision">
+                      <FundDecision data={data} symbol={active} r={r} />
+                    </WsSection>
+                  )}
                 </>
               )}
             </>

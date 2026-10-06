@@ -8,6 +8,7 @@ import { StatBox } from './SimSharedComponents'
 import type { SimDefaults } from './simTypes'
 import { runSim } from './simTypes'
 import { TOOLTIP_CONTENT_STYLE, TOOLTIP_CURSOR , TOOLTIP_LABEL_RECHARTS, TOOLTIP_ITEM_RECHARTS } from '../ui/chartTooltip'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 export function SpendingRangePanel({ defaults }: { defaults: SimDefaults }) {
   const { mutate, data: result, isPending } = useMutation({ mutationFn: runSim })
@@ -32,6 +33,7 @@ export function SpendingRangePanel({ defaults }: { defaults: SimDefaults }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <WsSection id="sm_sr_run" value={isPending ? 'Running' : result ? 'Done' : 'Not run'} status={result && !isPending ? 'ok' : 'info'}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <button onClick={run} style={{
           padding: '8px 20px',
@@ -57,11 +59,15 @@ export function SpendingRangePanel({ defaults }: { defaults: SimDefaults }) {
           CLICK COMPUTE TO FIND SAFE SPENDING THRESHOLDS
         </div>
       )}
+      </WsSection>
       {result && !isPending && (
         result.error ? (
+          <WsSection id="sm_sr_thresholds" value="Error" status="alert">
           <div style={{ color: R, fontSize: 12, padding: 12 }}>{result.error}</div>
+          </WsSection>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <WsSection id="sm_sr_thresholds" value={result.thresholds?.safe?.spending != null ? fmtMoney(result.thresholds.safe.spending) : undefined} status={result.current_prob == null ? 'info' : result.current_prob >= 0.95 ? 'ok' : result.current_prob >= 0.85 ? 'watch' : 'alert'}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
               <StatBox label="SAFE SPENDING (≥95%)"    value={fmtMoneyFull(result.thresholds?.safe?.spending ?? 0)}        color={G} metricId="safe_spending" />
               <StatBox label="COMFORTABLE (≥85%)"      value={fmtMoneyFull(result.thresholds?.comfortable?.spending ?? 0)} color={Y} metricId="withdrawal_rate" />
@@ -69,6 +75,7 @@ export function SpendingRangePanel({ defaults }: { defaults: SimDefaults }) {
               <StatBox label="CURRENT SUCCESS RATE"    value={result.current_prob != null ? `${(result.current_prob * 100).toFixed(1)}%` : '—'}
                 color={result.current_prob != null ? (result.current_prob >= 0.95 ? G : result.current_prob >= 0.85 ? Y : R) : M} metricId="win_rate" />
             </div>
+            </WsSection>
 
             {(result.spending_levels ?? []).length > 0 && (() => {
               const levels = result.spending_levels ?? []
@@ -81,6 +88,7 @@ export function SpendingRangePanel({ defaults }: { defaults: SimDefaults }) {
               }))
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <WsSection id="sm_sr_curve">
                   <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: '10px 14px' }}>
                     <div className="bb-label" style={{ marginBottom: 8 }}>SPENDING vs SUCCESS CURVE ($K/yr)</div>
                     <ResponsiveContainer width="100%" height={140}>
@@ -102,7 +110,9 @@ export function SpendingRangePanel({ defaults }: { defaults: SimDefaults }) {
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
+                  </WsSection>
 
+                  <WsSection id="sm_sr_levels" value={`${levels.length} levels`}>
                   <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)', borderRadius: 0, padding: '10px 14px' }}>
                     <div className="bb-label" style={{ marginBottom: 8 }}>SUCCESS RATE BY SPENDING LEVEL</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -123,6 +133,7 @@ export function SpendingRangePanel({ defaults }: { defaults: SimDefaults }) {
                       })}
                     </div>
                   </div>
+                  </WsSection>
                 </div>
               )
             })()}

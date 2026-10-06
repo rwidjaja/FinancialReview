@@ -17,6 +17,7 @@ import type { DashboardData, BalanceSnapshot } from '../../types/dashboard'
 import { fmtMoney, fmtMoneyFull, fmtK } from '../../utils/formatters'
 import { directionInfo, dayScore, dayScoreColor } from '../../utils/sessionMetrics'
 import { PlainBalanceSummary } from './PlainBalanceSummary'
+import { WsSection } from '../workspace/WorkspaceContext'
 import {
   TOOLTIP_CONTENT_STYLE,
   TOOLTIP_LABEL_RECHARTS,
@@ -857,6 +858,7 @@ export function BalanceHistoryTab({ data }: Props) {
             })()}
 
             {/* ── 6 Summary tiles ────────────────────────────────────────────── */}
+            <WsSection id="bh_summary" value={periodPct != null ? `${periodPct >= 0 ? '+' : ''}${periodPct.toFixed(1)}%` : undefined} status={periodDelta == null ? 'info' : periodDelta >= 0 ? 'ok' : 'watch'}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
               {/* Balance Change */}
               <div style={{ ...tileStyle }}>
@@ -962,9 +964,11 @@ export function BalanceHistoryTab({ data }: Props) {
                 )}
               </div>
             </div>
+            </WsSection>
 
             {/* ── Balance Milestones ──────────────────────────────────────────── */}
             {milestones.length > 0 && (
+              <WsSection id="bh_milestones" value={`${milestones.length} reached`} status="ok">
               <div style={{ ...cardStyle }}>
                 <div style={{ fontSize: 12, fontWeight: 500, color: M, textTransform: 'uppercase',
                   letterSpacing: '0.8px', marginBottom: 10 }}>Balance Milestones</div>
@@ -987,10 +991,12 @@ export function BalanceHistoryTab({ data }: Props) {
                   </div>
                 )}
               </div>
+              </WsSection>
             )}
 
             {/* ── Account Distribution ────────────────────────────────────────── */}
             {latestWithAccts && Object.keys(latestWithAccts.accounts ?? {}).length > 0 && latestTotal > 0 && (
+              <WsSection id="bh_accounts" value={`${acctKeys.length} accounts`}>
               <div style={{ ...cardStyle }}>
                 <div style={{ fontSize: 12, fontWeight: 500, color: M, textTransform: 'uppercase',
                   letterSpacing: '0.8px', marginBottom: 10 }}>Account Distribution</div>
@@ -1024,10 +1030,12 @@ export function BalanceHistoryTab({ data }: Props) {
                   })}
                 </div>
               </div>
+              </WsSection>
             )}
 
             {/* ── 5-Session Open→Close Bar Chart ─────────────────────────────── */}
             {last5Sessions.length > 0 && (
+              <WsSection id="bh_sessions">
               <div style={{ ...cardStyle }}>
                 <div style={{ fontSize: 12, fontWeight: 500, color: M, textTransform: 'uppercase',
                   letterSpacing: '0.8px', marginBottom: 10 }}>
@@ -1050,6 +1058,7 @@ export function BalanceHistoryTab({ data }: Props) {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+              </WsSection>
             )}
 
             {/* ════════════════════════════════════════════════════════════════
@@ -1058,6 +1067,7 @@ export function BalanceHistoryTab({ data }: Props) {
             {mode === 'advanced' && (<>
 
               {/* ── Chart 1: Monthly Performance ─────────────────────────────── */}
+              <WsSection id="bh_monthly">
               <div style={{ ...cardStyle }}>
                 <div style={{ marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
@@ -1148,9 +1158,11 @@ export function BalanceHistoryTab({ data }: Props) {
                   </ResponsiveContainer>
                 </>)}
               </div>
+              </WsSection>
 
               {/* ── Chart 2: Account Growth Comparison ───────────────────────── */}
               {acctKeys.length >= 2 && normalizedMonths.some(r => acctKeys.some(k => r[k] != null)) && (
+                <WsSection id="bh_acct_growth">
                 <div style={{ ...cardStyle }}>
                   <div style={{ marginBottom: 10 }}>
                     <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -1246,9 +1258,11 @@ export function BalanceHistoryTab({ data }: Props) {
                     </ResponsiveContainer>
                   </>)}
                 </div>
+                </WsSection>
               )}
 
               {/* ── Chart 3A: Daily Price-Action ─────────────────────────────── */}
+              <WsSection id="bh_daily_price">
               <div style={{ ...cardStyle }}>
                 <div style={{ marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
@@ -1296,9 +1310,11 @@ export function BalanceHistoryTab({ data }: Props) {
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
+              </WsSection>
 
               {/* ── Chart 3B: Daily P&L Full History ──────────────────────────── */}
               {days.filter(d => d.dovDelta != null).length >= 2 && (
+                <WsSection id="bh_daily_pnl">
                 <div style={{ ...cardStyle }}>
                   <div style={{ marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
@@ -1331,10 +1347,12 @@ export function BalanceHistoryTab({ data }: Props) {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
+                </WsSection>
               )}
 
               {/* ── Monthly Summary Table ────────────────────────────────────── */}
               {monthsWithHwm.length >= 1 && (
+                <WsSection id="bh_monthly_table" value={`${monthsWithHwm.length} months`}>
                 <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)',
                   borderRadius: 0, overflowX: 'auto' }}>
                   <div style={{ fontSize: 12, fontWeight: 500, color: M, textTransform: 'uppercase',
@@ -1389,9 +1407,11 @@ export function BalanceHistoryTab({ data }: Props) {
                     ¹ MoM Δ = this month's last close − prior month's last close (not within-month open → close)
                   </div>
                 </div>
+                </WsSection>
               )}
 
               {/* ── Daily Detail Table with Gap Analysis & Pressure Classification ── */}
+              <WsSection id="bh_daily_detail" value={`${displayDays.length} days`}>
               <div style={{ background: 'var(--surface)', border: '1px solid var(--fd-hairline)',
                 borderRadius: 0, overflowX: 'auto', maxHeight: 400, overflowY: 'auto' }}>
                 <div style={{ fontSize: 12, fontWeight: 500, color: M, textTransform: 'uppercase',
@@ -1595,9 +1615,11 @@ export function BalanceHistoryTab({ data }: Props) {
                   </tbody>
                 </table>
               </div>
+              </WsSection>
 
               {/* ── Trend Projection ────────────────────────────────────────── */}
               {trendSlope != null && proj30d != null && proj90d != null && (
+                <WsSection id="bh_trend" value={trendMonthly != null ? `${trendMonthly >= 0 ? '+' : '−'}${fmtMoney(Math.abs(trendMonthly))}/mo` : undefined} status={(trendMonthly ?? 0) >= 0 ? 'ok' : 'watch'}>
                 <div style={{ ...cardStyle }}>
                   <div style={{ fontSize: 12, fontWeight: 500, color: M, textTransform: 'uppercase',
                     letterSpacing: '0.8px', marginBottom: 10 }}>Trend Projection</div>
@@ -1626,6 +1648,7 @@ export function BalanceHistoryTab({ data }: Props) {
                     Linear regression over last {displayDays.length} sessions — not a forecast. Recent strong performance is embedded in the slope; results may not persist.
                   </div>
                 </div>
+                </WsSection>
               )}
 
             </>)}

@@ -86,6 +86,7 @@ interface Props {
   ground: 'light' | 'dark'; onGround: () => void
   updatedTitle?: string; schwabLive?: boolean
   onRefresh: () => void; isRefreshing: boolean
+  onFind?: () => void
 }
 
 export function AppHeader(p: Props) {
@@ -93,9 +94,17 @@ export function AppHeader(p: Props) {
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--fd-page)', padding: '0 48px', borderBottom: '5px solid var(--fd-rule)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, height: 64 }}>
-        <span style={{ fontSize: 18, fontWeight: 500, letterSpacing: '-0.005em', whiteSpace: 'nowrap' }}>Financial Dashboard</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, ...mono, color: 'var(--fd-muted)', whiteSpace: 'nowrap' }}>
-          <span title={p.updatedTitle}>{clock}</span>
+        <span style={{ fontSize: 18, fontWeight: 500, letterSpacing: '-0.005em', whiteSpace: 'nowrap', flexShrink: 0 }}>Financial Dashboard</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, ...mono, color: 'var(--fd-muted)', whiteSpace: 'nowrap', minWidth: 0 }}>
+          {p.onFind && (
+            <button className="fd-ws-fill" onClick={p.onFind} aria-label="Find a section or metric (⌘K)" style={{
+              height: 32, padding: '0 10px 0 14px', border: '1px solid var(--fd-ink)', background: 'transparent', color: 'var(--fd-ink)',
+              ...mono, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 24,
+            }}>
+              Find<span style={{ border: '1px solid var(--fd-hairline)', padding: '2px 6px', color: 'var(--fd-muted)' }}>⌘K</span>
+            </button>
+          )}
+          <span title={p.updatedTitle} className="fd-hide-narrow">{clock}</span>
           <span style={{ color: 'var(--fd-ink)' }}>{market}</span>
           {p.schwabLive !== undefined && <span>Schwab {p.schwabLive ? 'live' : 'config'}</span>}
           <HeaderButton onClick={p.onRefresh} disabled={p.isRefreshing}>{p.isRefreshing ? 'Refreshing…' : 'Refresh'}</HeaderButton>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { PanelHeader } from './PanelHeader'
 import { SaveBar } from './SaveBar'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 const G = 'var(--green)'
 const R = 'var(--red)'
@@ -79,6 +80,7 @@ export function AlertManager({ data, onSaved }: {
 
   return (
     <div>
+      <WsSection id="st_price_alerts">
       <PanelHeader>Price Alerts — Manage</PanelHeader>
       <div style={{ fontSize: 12, color: M, marginBottom: 10 }}>
         Create, edit, or remove price alerts. Alerts fire when price crosses the threshold.
@@ -190,6 +192,7 @@ export function AlertManager({ data, onSaved }: {
         </button>
       </div>
 
+      </WsSection>
       <SaveBar onSave={save} saving={saving} saved={saved} error={error} />
     </div>
   )

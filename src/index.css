@@ -304,3 +304,16 @@ input[type="range"] { accent-color: var(--fd-accent); }
 .fd-settings td input:not([type="checkbox"]) { min-height: 36px !important; text-align: right; }
 .fd-settings input:focus, .fd-settings select:focus, .fd-settings textarea:focus { outline: 2px solid var(--fd-focus) !important; outline-offset: 0; }
 .fd-settings label { font-size: 13px; }
+
+/* ── Advanced workspace (design_handoff_advanced_workspace) ── */
+.fd-hero-slot:empty { display: none; }
+.fd-ws-row:hover:not(:disabled) .fd-ws-title { text-decoration: underline; text-underline-offset: 4px; }
+.fd-ws-next:hover .fd-ws-title { text-decoration: underline; text-underline-offset: 4px; }
+.fd-ws-fill { transition: background-color 140ms var(--ease); }
+.fd-ws-fill:hover:not(:disabled) { background: var(--fd-card); }
+.fd-ws-filter::placeholder, .fd-find-input::placeholder {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--fd-muted);
+}
+.fd-find-input::placeholder { font-family: var(--font-sans); font-size: 20px; letter-spacing: 0; text-transform: none; }
+.fd-ws-scroll { scrollbar-width: thin; }
+@media (max-width: 1200px) { .fd-hide-narrow { display: none; } }

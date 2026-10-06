@@ -10,6 +10,7 @@ import {
   Legend,
 } from 'recharts'
 import { TerminalSection } from '../ui/Terminal'
+import { WsSection } from '../workspace/WorkspaceContext'
 import { fmtMoney } from '../../utils/formatters'
 import { DEFAULT_BRACKET_RATE } from '../../utils/constants'
 import { RMD_START_AGE } from '../../utils/taxConfig'
@@ -76,6 +77,7 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
+      <WsSection id="dd_tax_summary" value={fmt(taxActionSavings)} status="ok">
       {/* ── Tax Strategy Summary + Key Future Events ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
 
@@ -134,7 +136,10 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
         </div>
       </div>
 
+      </WsSection>
+
       {/* ── Why Dynamic Bracket Wins ── */}
+      <WsSection id="dd_tax_why" value={highBracketYears === 0 ? '0 yrs 32%+' : `${highBracketYears} yrs 32%+`} status={highBracketYears === 0 ? 'ok' : 'warn'}>
       <div style={{ background: 'var(--surface)', borderRadius: 0, border: `1px solid ${MU}`, overflow: 'hidden' }}>
         <div style={{ background: `${MU}0c`, borderBottom: `1px solid ${MU}`, padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 12, fontWeight: 500, color: MU }}>WHY DYNAMIC BRACKET WINS</span>
@@ -180,7 +185,10 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
         </div>
       </div>
 
+      </WsSection>
+
       {/* ── Strategy tiles — lead with the comparison, same as Optimizer ─── */}
+      <WsSection id="dd_tax_strategies" value={fmt(sel.total_taxes)}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 8 }}>
         {sortedStrategies.map(s => (
           <div key={s.id} onClick={() => setFocused(s.id)} style={{
@@ -229,8 +237,11 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
         </div>
       )}
 
+      </WsSection>
+
       {/* ── Multi-year charts — for selected strategy ───────────────────── */}
       {mode === 'advanced' && (
+        <WsSection id="dd_annual_tax">
         <TerminalSection id="annual-tax" title={`Annual Tax Breakdown — ${sel.label}`} defaultOpen accent={R}>
           <SectionLabel text={`Ordinary income tax + LTCG tax by year · reference lines at SS start and RMD onset (${rmdStartAge})`} color={R} />
           <ResponsiveContainer width="100%" height={180}>
@@ -248,9 +259,11 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
             </BarChart>
           </ResponsiveContainer>
         </TerminalSection>
+        </WsSection>
       )}
 
       {mode === 'advanced' && (
+        <WsSection id="dd_bracket_drift">
         <TerminalSection id="bracket-drift" title="Bracket Drift — Effective Rate vs Marginal Rate" defaultOpen accent={Y}>
           <SectionLabel text="Solid = effective rate (% of all income paid in tax) · Dashed = highest bracket reached that year (last-dollar marginal rate)" color={Y} />
           <ResponsiveContainer width="100%" height={160}>
@@ -266,9 +279,11 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
             </LineChart>
           </ResponsiveContainer>
         </TerminalSection>
+        </WsSection>
       )}
 
       {mode === 'advanced' && (
+        <WsSection id="dd_tax_table" value={`${sel.years.length} years`}>
         <TerminalSection id="tax-table" title="Year-by-Year Tax Detail" defaultOpen={false} accent={M}>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'var(--font-mono)' }}>
@@ -302,6 +317,7 @@ export function TaxPanel({ result, data, incomeTarget, mode }: { result: Drawdow
             </table>
           </div>
         </TerminalSection>
+        </WsSection>
       )}
 
     </div>

@@ -13,6 +13,7 @@ import { G, R, A, M, B, BASE, GET } from './constants'
 import { Btn, Input } from './shared'
 import { fmtMoney } from '../../utils/formatters'
 import { SwingCalendarPanel } from '../research/SwingCalendarPanel'
+import { WsSection } from '../workspace/WorkspaceContext'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -324,6 +325,7 @@ export function SwingTradeTab({ port, regime = 'CONSOLIDATION', vix = 0, onOpenO
         {result && !loading && (
           <>
             {/* Price header */}
+            <WsSection id="ts_sw_setup" value={`$${result.price.toFixed(2)}`} status={result.change_pct >= 0 ? 'ok' : 'watch'}>
             <div style={{ ...PANEL, display: 'flex', alignItems: 'center',
               gap: 12, flexWrap: 'wrap' }}>
               <div>
@@ -397,8 +399,10 @@ export function SwingTradeTab({ port, regime = 'CONSOLIDATION', vix = 0, onOpenO
                 </div>
               )}
             </div>
+            </WsSection>
 
             {/* Symbol score */}
+            <WsSection id="ts_sw_signal" value={`${result.symbol_score}/5`}>
             <div style={PANEL}>
               <SL>Symbol Worthiness</SL>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
@@ -437,8 +441,10 @@ export function SwingTradeTab({ port, regime = 'CONSOLIDATION', vix = 0, onOpenO
                 )}
               </div>
             </div>
+            </WsSection>
 
             {/* Suggested levels */}
+            <WsSection id="ts_sw_levels" value={`${result.setup_score}/100`} status={result.is_buyable ? 'ok' : result.setup_score >= 45 ? 'watch' : 'alert'}>
             <div style={PANEL}>
               <SL>Engine Suggestions — Score {result.setup_score}/100</SL>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)',
@@ -545,8 +551,10 @@ export function SwingTradeTab({ port, regime = 'CONSOLIDATION', vix = 0, onOpenO
                 )}
               </div>
             </div>
+            </WsSection>
 
             {/* Indicators + context */}
+            <WsSection id="ts_sw_indicators" value={`RSI ${result.rsi.toFixed(0)}`}>
             <div style={{ ...PANEL, display: 'grid',
               gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div>
@@ -591,9 +599,11 @@ export function SwingTradeTab({ port, regime = 'CONSOLIDATION', vix = 0, onOpenO
                 {result.recommendation}
               </div>
             </div>
+            </WsSection>
 
             {/* Chart */}
             {result.bars.length > 0 && (
+              <WsSection id="ts_sw_chart">
               <div style={PANEL}>
                 <SL>
                   Candlestick — {Math.min(result.bars.length, 60)} {result.timeframe} bars
@@ -606,9 +616,11 @@ export function SwingTradeTab({ port, regime = 'CONSOLIDATION', vix = 0, onOpenO
                   current={result.price}
                 />
               </div>
+              </WsSection>
             )}
 
             {/* ── Buying Calendar ─────────────────────────────────────────── */}
+            <WsSection id="ts_sw_calendar">
             <div style={{ ...PANEL, border: `1px solid ${A}` }}>
               <SL> Buying Calendar</SL>
               <div style={{ fontSize: 12, color: M, marginBottom: 8, lineHeight: 1.6 }}>
@@ -625,6 +637,7 @@ export function SwingTradeTab({ port, regime = 'CONSOLIDATION', vix = 0, onOpenO
                 ].filter((v, i, a) => a.indexOf(v) === i)}
               />
             </div>
+            </WsSection>
           </>
         )}
     </div>

@@ -6,6 +6,8 @@ import { G, R, A, M, roundTo2 } from './simTypes'
 import { Slider } from './SimSharedComponents'
 import type { SimDefaults } from './simTypes'
 import { runSim } from './simTypes'
+import { WsSection } from '../workspace/WorkspaceContext'
+import { useWorkspace } from '../workspace/context'
 
 // Compact read-only display row
 function BaselineRow({ label, value }: { label: string; value: string }) {
@@ -76,6 +78,7 @@ export function SandboxPanel({ defaults }: { defaults: SimDefaults }) {
     ? custom.median_ending - baseline.median_ending : null
 
   // Check how different custom is from baseline
+  const { enabled: inWorkspace } = useWorkspace()
   const hasChanges = (
     customSpending !== defaults.spending ||
     Math.abs(customRet - roundTo2(defaults.expected_return * 100)) > 0.01 ||
@@ -84,10 +87,11 @@ export function SandboxPanel({ defaults }: { defaults: SimDefaults }) {
   )
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 8 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: inWorkspace ? '1fr' : '280px 1fr', gap: 8 }}>
 
       {/* ── Left: Baseline summary + Custom scenario sliders ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <WsSection id="sm_sb_inputs" value={hasChanges ? 'Modified' : 'Baseline'} status={hasChanges ? 'watch' : 'info'}>
 
         {/* Baseline (read-only) */}
         <div style={{
@@ -141,10 +145,12 @@ export function SandboxPanel({ defaults }: { defaults: SimDefaults }) {
             {isPending ? '⟳ RUNNING…' : '▶ COMPARE VS BASELINE'}
           </button>
         </div>
+        </WsSection>
       </div>
 
       {/* ── Right: Results ── */}
       <div>
+        <WsSection id="sm_sb_results" value={deltaPct != null ? `${deltaPct >= 0 ? '+' : ''}${deltaPct.toFixed(1)}%` : undefined} status={deltaPct == null ? undefined : deltaPct >= 0 ? 'ok' : 'warn'}>
         {result && !isPending && (
           result.error ? (
             <div style={{ color: R, fontSize: 12, padding: 12 }}>{result.error}</div>
@@ -251,6 +257,7 @@ export function SandboxPanel({ defaults }: { defaults: SimDefaults }) {
             <div style={{ fontSize: 12, color: M, opacity: 0.6 }}>Baseline uses shared simulation parameters · What-if overrides specific assumptions</div>
           </div>
         )}
+        </WsSection>
       </div>
     </div>
   )

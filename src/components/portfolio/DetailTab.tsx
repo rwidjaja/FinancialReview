@@ -34,6 +34,7 @@ import { FundAnalysis } from './FundAnalysis'
 import { EnhancedTargetAllocationTable } from './EnhancedTargetAllocationTable'
 import { PositionNarrative } from './PositionNarrative'
 import { DecisionRationale } from './DecisionRationale'
+import { WsSection } from '../workspace/WorkspaceContext'
 import {
   PageHero, LeadMuted, HeroMeta, Section, Sections, MainRail, RuledList, TileGrid, GridTile, StatusChip,
   Segmented, Label, Callout, mono, muted, gain, moneyUnit, signedMoney, signedPct, type Status,
@@ -192,6 +193,7 @@ export function DetailTab({ data }: Props) {
       </PageHero>
 
       {/* Account strip */}
+      <WsSection id="pf_accounts" value={String(sleeveHoldings.length)} status="info">
       <section style={{ display: 'grid', gridTemplateColumns: `repeat(${sleeveHoldings.length || 1}, minmax(0,1fr))`, borderTop: '1px solid var(--fd-hairline)', borderBottom: '1px solid var(--fd-hairline)' }}>
         {sleeveHoldings.map((a, i) => {
           const share = totalValue > 0 ? (a.totalValue / totalValue) * 100 : 0
@@ -210,10 +212,12 @@ export function DetailTab({ data }: Props) {
           )
         })}
       </section>
+      </WsSection>
 
       <Sections>
         <MainRail
           main={<>
+            <WsSection id="pf_holdings" value={String(holdings.length)} status={outOfBand > 0 ? 'watch' : 'ok'}>
             <Section title="Holdings" meta="Sorted by weight · all accounts">
               <div>
                 <div style={{ display: 'grid', gridTemplateColumns: HOLD_COLS, gap: 12, padding: '10px 0', borderTop: '2px solid var(--fd-rule)', borderBottom: '1px solid var(--fd-hairline)', ...mono, ...muted }}>
@@ -257,7 +261,9 @@ export function DetailTab({ data }: Props) {
               </div>
               <span style={{ fontSize: 13, ...muted }}>Bar shows current weight; the tick marks the target weight. Vermillion = more than 2 points over target, or held without a target.</span>
             </Section>
+            </WsSection>
 
+            <WsSection id="pf_concentration" value={`${topConc.toFixed(1)}%`} status={healthStatus}>
             <Section title="Concentration" meta={`${topSym} · ${topConc.toFixed(1)}% of portfolio`}>
               <TileGrid cols={3}>
                 <GridTile label="Diversification score" status={healthStatus} value={<>{healthScore}<span style={{ fontSize: 16, ...muted }}> /100</span></>}
@@ -286,8 +292,10 @@ export function DetailTab({ data }: Props) {
                 </RuledList>
               )}
             </Section>
+            </WsSection>
 
             {hist && (
+              <WsSection id="pf_income_history" value={fmtMoneyFull(hist.ytd_total ?? 0)} status="info">
               <Section title={`Income history — ${yr}`} meta={<span style={{ fontSize: 18, fontWeight: 500 }}>{fmtMoneyFull(hist.ytd_total ?? 0)} received</span>}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, minmax(0,1fr))', gap: 8, alignItems: 'end', height: 180, borderBottom: '1px solid var(--fd-hairline)' }}>
                   {months.map((x, i) => (
@@ -302,15 +310,19 @@ export function DetailTab({ data }: Props) {
                 </div>
                 <span style={{ fontSize: 13, ...muted }}>Solid bars received. Lilac bars projected from forward 12-month income ({fmtFull(projMonthly)}/mo).</span>
               </Section>
+              </WsSection>
             )}
 
             {data.decisions.length > 0 && (
+              <WsSection id="pf_fund_signals" value={String(data.decisions.length)} status="info">
               <Section title="Fund signals" meta="Portfolio fit · decision engine">
                 <DecisionActionStrip data={data} />
               </Section>
+              </WsSection>
             )}
 
             {mode === 'advanced' && (<>
+              <WsSection id="pf_allocation">
               <Section title="Allocation" meta={<Segmented size="sm" value={vizMode} onChange={setVizMode} options={[{ id: 'donut', label: 'Donut' }, { id: 'list', label: 'List' }]} />}>
                 {sleeveHoldings.map(sleeve => (
                   <div key={sleeve.key} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -330,39 +342,62 @@ export function DetailTab({ data }: Props) {
                   </div>
                 ))}
               </Section>
+              </WsSection>
+              <WsSection id="pf_all_columns" value={String(holdings.length)} status="info">
               <Section title="All columns" meta={`${holdings.length} holdings`}>
                 <HoldingsTable holdings={holdings} totalValue={totalValue} data={data} />
               </Section>
-              <IncomeTTMSection data={data} />
-              <Section title="Position detail by account"><PositionDetail data={data} /></Section>
-              {ia && <Section title="Income intelligence"><IncomeIntelligence ia={ia} data={data} /></Section>}
+              </WsSection>
+              {ia && <WsSection id="pf_income_ttm" value={fwd12 > 0 ? fmtMoneyFull(fwd12) : undefined} status="info"><IncomeTTMSection data={data} /></WsSection>}
+              <WsSection id="pf_position_detail"><Section title="Position detail by account"><PositionDetail data={data} /></Section></WsSection>
+              {ia && <WsSection id="pf_income_intel"><Section title="Income intelligence"><IncomeIntelligence ia={ia} data={data} /></Section></WsSection>}
               {(hist?.transactions?.length ?? 0) > 0 && (
+                <WsSection id="pf_income_tx" value={`${hist!.transactions.length}`} status="info">
                 <Section title="Income transactions" meta={`${hist!.transactions.length} received`}><TransactionHistory data={data} /></Section>
+                </WsSection>
               )}
               {(data.roth_conversions?.length ?? 0) > 0 && (
+                <WsSection id="pf_conversion_alloc">
                 <Section title="Rollover conversion allocation"><RothConversionBanner data={data} ia={ia} /><RothConversionTable data={data} /></Section>
+                </WsSection>
               )}
               {(data.roth_target_analysis?.length ?? 0) > 0 && (
+                <WsSection id="pf_roth_target_alloc">
                 <Section title="Roth IRA target allocation"><EnhancedTargetAllocationTable rows={data.roth_target_analysis} data={data} accountType="roth" /></Section>
+                </WsSection>
               )}
               {(data.taxable_target_analysis?.length ?? 0) > 0 && (
+                <WsSection id="pf_taxable_target_alloc">
                 <Section title="Taxable target allocation"><EnhancedTargetAllocationTable rows={data.taxable_target_analysis} data={data} accountType="taxable" /></Section>
+                </WsSection>
               )}
-              <Section title="Portfolio risk budget"><PortfolioRiskBudget holdings={holdings} totalValue={totalValue} data={data} /></Section>
-              <Section title="Per-fund analysis"><FundAnalysis data={data} pi={pi} /></Section>
+              <WsSection id="pf_risk_budget"><Section title="Portfolio risk budget"><PortfolioRiskBudget holdings={holdings} totalValue={totalValue} data={data} /></Section></WsSection>
+              <WsSection id="pf_fund_analysis"><Section title="Per-fund analysis"><FundAnalysis data={data} pi={pi} /></Section></WsSection>
+              <WsSection id="pf_income_analytics">
               <Section title="Income analytics" meta="By account · tax composition · stress">
                 <IncomeHistory data={data} months={['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']} ia={ia} />
               </Section>
+              </WsSection>
             </>)}
           </>}
           rail={<>
-            <TargetRail title="Taxable target" rows={pi?.taxable_target_vs_actual ?? []} />
-            <TargetRail title="Roth target" rows={pi?.roth_target_vs_actual ?? []} />
+            {hasTargetRows(pi?.taxable_target_vs_actual) && (
+              <WsSection id="pf_taxable_target" value={driftValue(pi?.taxable_target_vs_actual)} status={driftStatus(pi?.taxable_target_vs_actual)}>
+                <TargetRail title="Taxable target" rows={pi?.taxable_target_vs_actual ?? []} />
+              </WsSection>
+            )}
+            {hasTargetRows(pi?.roth_target_vs_actual) && (
+              <WsSection id="pf_roth_target" value={driftValue(pi?.roth_target_vs_actual)} status={driftStatus(pi?.roth_target_vs_actual)}>
+                <TargetRail title="Roth target" rows={pi?.roth_target_vs_actual ?? []} />
+              </WsSection>
+            )}
             {notInTarget.length > 0 && (
+              <WsSection id="pf_not_in_target" value={String(notInTarget.length)} status="watch">
               <Callout>
                 <span style={{ ...mono, display: 'block', marginBottom: 6 }}>Not in target · sell to 0%</span>
                 {notInTarget.join(', ')} {notInTarget.length === 1 ? 'sits' : 'sit'} in Taxable without a target. The rebalance plan in Tax schedules {notInTarget.length === 1 ? 'its' : 'their'} exit.
               </Callout>
+              </WsSection>
             )}
           </>}
         />
@@ -372,6 +407,11 @@ export function DetailTab({ data }: Props) {
 }
 
 const HOLD_COLS = '72px minmax(0,1.2fr) 104px 72px 96px 64px minmax(0,1.5fr)'
+
+const hasTargetRows = (rows: TargetVsActual[] | undefined) => (rows ?? []).some(r => r.in_target || r.in_acct)
+const offBand = (rows: TargetVsActual[] | undefined) => (rows ?? []).filter(r => r.in_acct && Math.abs(r.delta_pct) > 2).length
+const driftValue = (rows: TargetVsActual[] | undefined) => `${offBand(rows)} off band`
+const driftStatus = (rows: TargetVsActual[] | undefined): Status => offBand(rows) > 0 ? 'watch' : 'ok'
 
 function TargetRail({ title, rows }: { title: string; rows: TargetVsActual[] }) {
   const shown = rows.filter(r => r.in_target || r.in_acct)

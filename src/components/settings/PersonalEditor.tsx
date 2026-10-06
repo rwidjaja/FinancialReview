@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react'
 import { PanelHeader } from './PanelHeader'
 import { SaveBar } from './SaveBar'
+import { WsSection } from '../workspace/WorkspaceContext'
 import { DEFAULT_SAFETY_BUFFER } from '../../utils/constants'
 import { useDashboardData } from '../../hooks/useDashboardData'
 import { fmtMoneyFull } from '../../utils/formatters'
@@ -286,6 +287,7 @@ export function PersonalEditor({ data, onSaved, taxBracketsData }: {
       <PanelHeader>Personal Configuration</PanelHeader>
 
       <div style={{ border: '1px solid var(--fd-hairline)', borderRadius: 0, overflow: 'hidden' }}>
+        <WsSection id="st_personal_profile">
         <table style={tableStyle}>
           <colgroup>
             <col style={{ width: 200 }} />
@@ -553,8 +555,10 @@ export function PersonalEditor({ data, onSaved, taxBracketsData }: {
             ))}
           </tbody>
         </table>
+        </WsSection>
 
         {/* Back to main table */}
+        <WsSection id="st_personal_lifestyle">
         <table style={{ ...tableStyle }}>
           <colgroup>
             <col style={{ width: 200 }} />
@@ -583,8 +587,10 @@ export function PersonalEditor({ data, onSaved, taxBracketsData }: {
 
           </tbody>
         </table>
+        </WsSection>
 
         {/* Roth conversion + External */}
+        <WsSection id="st_personal_roth">
         <table style={{ ...tableStyle }}>
           <colgroup>
             <col style={{ width: 200 }} />
@@ -626,6 +632,7 @@ export function PersonalEditor({ data, onSaved, taxBracketsData }: {
 
           </tbody>
         </table>
+        </WsSection>
       </div>
 
       <SaveBar onSave={save} saving={saving} saved={saved} error={error} />
