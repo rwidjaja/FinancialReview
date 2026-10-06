@@ -24,7 +24,13 @@ import os
 import sqlite3
 import threading
 import time
+from datetime import datetime, timezone
 from typing import Any, Optional
+
+
+def _utc_now_iso() -> str:
+    """Naive UTC ISO timestamp — same format datetime.utcnow().isoformat() produced."""
+    return datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
 
 _DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard.db")
 _SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -250,8 +256,7 @@ def upsert_schwab_transactions(account_type: str, transactions: list) -> int:
     Returns the number of newly inserted rows.
     """
     import json as _json
-    from datetime import datetime as _dt
-    fetched_at = _dt.utcnow().isoformat()
+    fetched_at = _utc_now_iso()
     inserted = 0
     c = _conn()
     for tx in transactions:
@@ -337,7 +342,7 @@ def realized_txns_upsert(rows: list) -> int:
     if not rows:
         return 0
     c = _conn()
-    now = __import__('datetime').datetime.utcnow().isoformat()
+    now = _utc_now_iso()
     c.executemany(
         """INSERT OR IGNORE INTO realized_trade_txns
                (activity_id, trade_date, symbol, shares, net_amount, raw_json, fetched_at)
@@ -355,7 +360,7 @@ def realized_txns_upsert_replace(rows: list) -> int:
     if not rows:
         return 0
     c = _conn()
-    now = __import__('datetime').datetime.utcnow().isoformat()
+    now = _utc_now_iso()
     c.executemany(
         """INSERT OR REPLACE INTO realized_trade_txns
                (activity_id, trade_date, symbol, shares, net_amount, raw_json, fetched_at)
@@ -387,7 +392,7 @@ def realized_txns_period_logged(period_key: str) -> bool:
 
 def realized_txns_mark_period(period_key: str) -> None:
     c = _conn()
-    now = __import__('datetime').datetime.utcnow().isoformat()
+    now = _utc_now_iso()
     c.execute(
         "INSERT OR REPLACE INTO realized_trade_fetch_log (period_key, fetched_at) VALUES (?, ?)",
         (period_key, now),
