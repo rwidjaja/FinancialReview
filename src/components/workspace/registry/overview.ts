@@ -4,6 +4,8 @@ const T = 'Today', P = 'Plan health', E = 'Action engine'
 
 export const sections: SectionMeta[] = [
   { id: 'attention', group: T, title: 'Needs attention', keys: ['alerts', 'NVDA concentration', 'volatility budget', 'fragility', 'cash bucket', 'NIIT', 'short-term gains'] },
+  { id: 'markets', group: T, title: 'Markets today', keys: ['S&P 500', 'Dow Jones', 'Dow', 'Nasdaq', 'VIX', 'index', 'market'] },
+  { id: 'sessions10', group: T, title: 'Last 10 sessions', keys: ['portfolio value', 'daily P&L', '10 days', 'trend', 'up days', 'down days'] },
   { id: 'changed', group: T, title: 'What changed today', keys: ['day change', 'movers', 'top movers', 'account change'] },
   { id: 'holdings', group: T, title: 'Holdings today', keys: ['ticker', 'price', 'day %', 'symbols'] },
   { id: 'market', group: T, title: 'Market character', adv: true, keys: ['buyer pressure', 'buyer wins', 'intraday', 'gap overnight', 'avg up day', 'avg down day', 'close to close', 'position in range', 'rolling 5 sessions'] },

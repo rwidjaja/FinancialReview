@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import type { DashboardData, WellnessData, PerformanceData, ServerStatus, MarketStatus, BalanceSnapshot } from '../types/dashboard'
+import type { DashboardData, WellnessData, PerformanceData, ServerStatus, MarketStatus, BalanceSnapshot, MarketIndices } from '../types/dashboard'
 
 /**
  * Mutable ref that App.tsx writes on every tab change.
@@ -161,6 +161,21 @@ export function useBalanceHistory(days: number) {
     // all day (staleTime alone never triggers a refetch while the tab sits open).
     refetchInterval: 5 * 60_000,
     retry: 2,
+  })
+}
+
+/** S&P 500 · Dow · Nasdaq · VIX — last price, day change, last 10 closes (server caches 5 min). */
+export function useMarketIndices() {
+  return useQuery<MarketIndices>({
+    queryKey: ['market-indices'],
+    queryFn: async () => {
+      const res = await fetch('/api/market-indices')
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      return res.json()
+    },
+    staleTime: 5 * 60_000,
+    refetchInterval: 5 * 60_000,
+    retry: 1,
   })
 }
 

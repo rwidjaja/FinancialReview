@@ -51,6 +51,17 @@ export interface MarketIndex {
   total_return_1y: number
 }
 
+/** /api/market-indices */
+export interface MarketIndexQuote {
+  name: string
+  ticker: string
+  price: number
+  change: number
+  change_pct: number
+  history: { date: string; close: number }[]
+}
+export interface MarketIndices { indices: MarketIndexQuote[]; as_of: string }
+
 export interface MarketContext {
   'S&P 500': MarketIndex
   'Dow Jones': MarketIndex

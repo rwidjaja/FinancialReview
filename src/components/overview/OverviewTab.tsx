@@ -5,7 +5,7 @@
  *   → KPI strip (value · dividends · lasts to 100 · confidence)
  *   → main: Needs attention · Income · What changed today · Financial wellness
  *           · [adv] Retirement action engine
- *   → rail: Scorecard · Diagnostics · Holdings today · [adv] Market character
+ *   → rail: Markets today · Last 10 sessions · Scorecard · Diagnostics · Holdings today · [adv] Market character
  *
  * Every value the v3 Overview rendered is still here; the computations below
  * are unchanged from v3, only the presentation moved.
@@ -23,6 +23,7 @@ import { WellnessSnapshot } from './WellnessSnapshot'
 import { PlainOverviewSummary } from './PlainOverviewSummary'
 import { IncomeSection } from './IncomeSection'
 import { MarketCharacterRail } from './MarketCharacter'
+import { MarketsToday, LastSessions } from './MarketPulse'
 import { fmtMoneyFull, fmtFull, fmtK } from '../../utils/formatters'
 import { WITHDRAWAL_AB_THRESHOLD, WITHDRAWAL_BC_THRESHOLD, VOL_BUDGET_ALERT, VOL_BUDGET_WARN, VOL_BUDGET_WATCH } from '../../utils/constants'
 import type { DashboardData } from '../../types/dashboard'
@@ -366,6 +367,10 @@ export function OverviewTab({ data, onNavigate }: Props) {
             {mode === 'advanced' && <RetirementActionPanel decision={decision} data={data} onNavigate={onNavigate} />}
           </>}
           rail={<>
+            <MarketsToday data={data} />
+
+            <LastSessions data={data} />
+
             <WsSection id="scorecard" value={`${sc.items.filter(i => i.status === 'ok').length} / ${sc.items.length}`}
               status={sc.items.some(i => i.status === 'alert') ? 'alert' : sc.items.some(i => i.status !== 'ok') ? 'warn' : 'ok'}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

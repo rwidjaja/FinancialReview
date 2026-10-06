@@ -511,6 +511,46 @@ def _json(obj) -> bytes:
     return json.dumps(_sanitize(obj)).encode()
 
 
+# ── Market indices (Overview "Markets today") — 5-minute cache ──────────────
+_INDEX_TICKERS = [("S&P 500", "^GSPC"), ("Dow Jones", "^DJI"), ("Nasdaq", "^IXIC"), ("VIX", "^VIX")]
+_indices_cache: dict = {}
+_indices_cache_ts: float = 0.0
+_INDICES_CACHE_TTL = 5 * 60
+
+
+def _fetch_market_indices() -> dict:
+    """Last price, day change and the last 10 daily closes for each index.
+    Indices that fail to download are omitted rather than failing the call."""
+    global _indices_cache, _indices_cache_ts
+    if _indices_cache and (time.time() - _indices_cache_ts) < _INDICES_CACHE_TTL:
+        return _indices_cache
+    out = []
+    try:
+        import yfinance as yf
+        data = yf.download([t for _, t in _INDEX_TICKERS], period="1mo", interval="1d",
+                           progress=False, group_by="ticker", auto_adjust=False)
+        for name, ticker in _INDEX_TICKERS:
+            try:
+                closes = data[ticker]["Close"].dropna()
+                if len(closes) < 2:
+                    continue
+                last, prev = float(closes.iloc[-1]), float(closes.iloc[-2])
+                tail = closes.iloc[-10:]
+                out.append({
+                    "name": name, "ticker": ticker, "price": last,
+                    "change": last - prev, "change_pct": (last / prev - 1) * 100,
+                    "history": [{"date": d.strftime("%Y-%m-%d"), "close": float(v)} for d, v in tail.items()],
+                })
+            except Exception:
+                continue
+    except Exception:
+        traceback.print_exc()
+    result = {"indices": out, "as_of": datetime.now().isoformat()}
+    if out:
+        _indices_cache, _indices_cache_ts = result, time.time()
+    return result
+
+
 # ── Earnings cache (6-hour TTL — dates don't change intraday) ────────────────
 _earnings_cache: dict = {}
 _earnings_cache_ts: float = 0.0
@@ -1785,6 +1825,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(ex)}).encode())
+
+        elif self.path == '/api/market-indices':
+            body = _json(_fetch_market_indices())
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', len(body))
+            self.end_headers()
+            self.wfile.write(body)
 
         elif self.path.startswith('/api/balance-history'):
             # GET /api/balance-history?days=30&start=YYYY-MM-DD&end=YYYY-MM-DD
