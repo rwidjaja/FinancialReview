@@ -1,9 +1,10 @@
 /**
  * IncomeBanner — income panel shown at the top of every tab.
  *
- * Layout (2 columns):
- *   LEFT:  aligned income table (SOURCE | YTD | TARGET | PROGRESS | % DONE | TAX CLASS)
- *   RIGHT: [donut + proj annual] / [tax bracket] / [dynamic notes]
+ * Layout (auto-fit grid — side by side when wide, stacked when narrow):
+ *   income table (SOURCE | YTD | TARGET | PROGRESS | % DONE | TAX CLASS)
+ *   donut + income mix legend
+ *   tax bracket tiles
  */
 import { PieChart, Pie, Cell, Tooltip, Sector } from 'recharts'
 import { TOOLTIP_STYLE } from './chartTooltip'
@@ -44,8 +45,9 @@ const TAX_TAG: Record<string, string> = {
 }
 
 // Grid template — shared by header + every data row for pixel-perfect alignment
-// dot(8) | source(152) | ytd(82) | arrow(10) | target(82) | bar(90) | %(38) | tag(72)
-const COL = '8px 152px 82px 10px 82px 90px 38px 72px'
+// dot | source (flex) | ytd | arrow | target | bar (flex) | % | tag
+const COL = '8px minmax(128px,1.4fr) 84px 14px 84px minmax(48px,1fr) 52px 84px'
+const HEAD: React.CSSProperties = { fontSize: 12, color: M, textTransform: 'uppercase', whiteSpace: 'nowrap' }
 
 function DonutTooltip({ active, payload }: {
   active?: boolean
@@ -165,16 +167,16 @@ export function IncomeBanner({ data }: { data: DashboardData }) {
         )}
       </div>
 
-      {/* Body: responsive columns - changed from fixed widths to flex with wrapping */}
-      <div style={{ 
-        display: 'flex', 
-        flexWrap: 'wrap', // Allow wrapping on smaller screens
-        gap: 0, 
-        alignItems: 'stretch' 
+      {/* Body: auto-fit grid — panels sit side by side when there's room, stack otherwise */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 600px), 1fr))',
+        gap: '24px 48px',
+        alignItems: 'start',
       }}>
 
         {/* ══ LEFT: Income table ══════════════════════════════════════ */}
-        <div style={{ flex: '1 1 560px', padding: '0 24px 0 0', minWidth: 0, overflowX: 'auto' }}>
+        <div style={{ minWidth: 0, overflowX: 'auto' }}>
 
           {/* Column headers */}
           <div style={{
@@ -182,13 +184,13 @@ export function IncomeBanner({ data }: { data: DashboardData }) {
             marginBottom: 6, paddingBottom: 5, borderBottom: '1px solid var(--border2)',
           }}>
             <div />
-            <span style={{ fontSize: 12, fontWeight: 500, color: M, textTransform: 'uppercase', letterSpacing: '0.8px' }}>SOURCE</span>
-            <span style={{ fontSize: 12, color: M, textAlign: 'right' }}>YTD ACTUAL</span>
+            <span style={{ ...HEAD, fontWeight: 500, letterSpacing: '0.8px' }}>SOURCE</span>
+            <span style={{ ...HEAD, textAlign: 'right' }}>YTD</span>
             <div />
-            <span style={{ fontSize: 12, fontWeight: 500, color: M, textAlign: 'right' }}>ANNUAL TARGET</span>
-            <span style={{ fontSize: 12, color: M, textAlign: 'center' }}>PROGRESS</span>
-            <span style={{ fontSize: 12, color: M, textAlign: 'right' }}>% DONE</span>
-            <span style={{ fontSize: 12, color: M, textAlign: 'center' }}>TAX CLASS</span>
+            <span style={{ ...HEAD, fontWeight: 500, textAlign: 'right' }} title="Full-year (annual) target">TARGET</span>
+            <span style={{ ...HEAD, textAlign: 'center' }}>PROGRESS</span>
+            <span style={{ ...HEAD, textAlign: 'right' }}>% DONE</span>
+            <span style={{ ...HEAD, textAlign: 'center' }}>TAX CLASS</span>
           </div>
 
           {/* Data rows */}
@@ -265,7 +267,7 @@ export function IncomeBanner({ data }: { data: DashboardData }) {
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 500, color: 'var(--text)', textAlign: 'right' }}>
               {fmtMoneyFull(annualRowTotal)}
             </span>
-            <div style={{ gridColumn: '6 / -1', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ gridColumn: '6 / -1', display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
               {totalPctDone != null && (
                 <>
                   <div style={{ flex: 1, height: 5, background: 'var(--fd-card)', borderRadius: 0, overflow: 'hidden' }}>
@@ -282,19 +284,8 @@ export function IncomeBanner({ data }: { data: DashboardData }) {
 
         </div>
 
-        {/* ── Divider ── */}
-        <div style={{ width: 1, background: 'var(--border2)', flexShrink: 0, alignSelf: 'stretch' }} />
-
-        {/* ══ CENTER: Donut chart - changed from fixed width to responsive ════════════════════════════ */}
-        <div style={{
-          flex: '1 1 380px', // Changed from fixed 426px to flexible with min width
-          minWidth: 320, // Minimum width before wrapping
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          gap: 20,
-          padding: '10px 24px',
-        }}>
+        {/* ══ Donut chart + legend ════════════════════════════════════ */}
+        <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 24 }}>
           {/* Donut */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <PieChart width={160} height={160}>
@@ -319,12 +310,12 @@ export function IncomeBanner({ data }: { data: DashboardData }) {
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 500, color: 'var(--text)', lineHeight: 1 }}>
                 {fmtMoney(annualRowTotal / 1000).replace('$', '')}K
               </div>
-              <div style={{ fontSize: 12, color: M, marginTop: 2 }}>gross · pre-deduction</div>
+              <div style={{ fontSize: 11, color: M, marginTop: 3, lineHeight: 1.2 }}>gross<br />pre-deduction</div>
             </div>
           </div>
           {/* Legend */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 140 }}>
-            <div style={{ fontSize: 12, fontWeight: 500, color: M, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 2 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 500, color: M, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 2, whiteSpace: 'nowrap' }}>
               INCOME MIX (gross · not taxable)
             </div>
             {pieData.map((d, i) => {
@@ -332,28 +323,18 @@ export function IncomeBanner({ data }: { data: DashboardData }) {
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                   <div style={{ width: 7, height: 7, borderRadius: 3, background: d.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, color: 'var(--text3)', flex: 1, whiteSpace: 'nowrap' }}>{d.name}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text3)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.name}</span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text)', fontWeight: 500, whiteSpace: 'nowrap' }}>{fmtMoneyFull(d.value)}</span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: M, minWidth: 28, textAlign: 'right' }}>({sharePct.toFixed(0)}%)</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: M, minWidth: 40, textAlign: 'right', whiteSpace: 'nowrap' }}>({sharePct.toFixed(0)}%)</span>
                 </div>
               )
             })}
           </div>
         </div>
 
-        {/* ── Divider ── */}
-        <div style={{ width: 1, background: 'var(--border2)', flexShrink: 0, alignSelf: 'stretch' }} />
-
-        {/* ══ RIGHT: Tax Bracket box - changed from fixed width to responsive ═════════════════════════ */}
+        {/* ══ Tax Bracket box ═════════════════════════════════════════ */}
         {(targetBracketRate != null || incomeBracketTarget != null) && (
-          <div style={{
-            flex: '1 1 400px', // Changed from fixed 494px to flexible
-            minWidth: 280, // Minimum width before wrapping
-            display: 'flex', 
-            flexDirection: 'column', 
-            justifyContent: 'center',
-            padding: '14px 28px',
-          }}>
+          <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 12, fontWeight: 500, color: M, textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: 14 }}>
               TAX BRACKET
             </div>
@@ -426,7 +407,7 @@ export function IncomeBanner({ data }: { data: DashboardData }) {
             {(marginalRate != null || projRoom != null) && (
               <div style={{ marginTop: 14, paddingTop: 10, borderTop: '1px solid var(--border2)', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                 {marginalRate != null && (
-                  <span style={{ fontSize: 12, color: M }}>
+                  <span style={{ fontSize: 12, color: M, whiteSpace: 'nowrap' }}>
                     YTD marginal rate:{' '}
                     <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text3)', fontWeight: 500 }}>
                       {(marginalRate * 100).toFixed(0)}%

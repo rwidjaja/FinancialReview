@@ -47,6 +47,20 @@ interface Props { data: DashboardData }
 
 // Sub-nav pills come from the shared ui/SubTabBtn — one implementation for all tabs.
 
+// Label/value row for the narrow ruled columns — the note sits on its own line
+// under the label so it never squeezes the label or pushes the value out.
+function NoteRow({ label, value, color, note }: { label: string; value: string; color: string; note?: string }) {
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--fs2-small)', color: 'var(--text3)', minWidth: 0 }}>{label}</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs2-body)', fontWeight: 500, color, whiteSpace: 'nowrap', flexShrink: 0 }}>{value}</span>
+      </div>
+      {note && <div style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--fs2-small)', color: 'var(--text3)', opacity: 0.8, marginTop: 2 }}>{note}</div>}
+    </div>
+  )
+}
+
 export function TaxTab({ data }: Props) {
   const [mode] = useGlobalViewMode()
   const [subView, setSubView] = useState<SubView>('tax')
@@ -341,13 +355,7 @@ export function TaxTab({ data }: Props) {
                     { label: 'Tax drag', value: drag != null ? `${drag.toFixed(2)}%/yr` : '—', color: dragColor, note: estTax != null ? `${fmtFull(estTax)}/yr est. · typical 0.5–2.0%` : 'typical range 0.5–2.0%' },
                     { label: `Conv opportunity ${new Date().getFullYear()}`, value: `${tx.conv_score}/10`, color: scoreColor, note: 'market/timing conditions · verdict is the operative directive' },
                   ].map(({ label, value, color, note }) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                      <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--fs2-small)', color: 'var(--text3)' }}>{label}</span>
-                      <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexShrink: 0 }}>
-                        {note && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--fs2-small)', color: 'var(--text3)' }}>{note}</span>}
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs2-body)', fontWeight: 500, color }}>{value}</span>
-                      </span>
-                    </div>
+                    <NoteRow key={label} label={label} value={value} color={color} note={note} />
                   ))}
                 </div>
                 {/* Conversion progress */}
@@ -499,13 +507,7 @@ export function TaxTab({ data }: Props) {
                   <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 9 }}>
                     <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--fs2-label)', fontWeight: 500, color: 'var(--text3)' }}>Conversion economics</span>
                     {econRows.map(row => (
-                      <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--fs2-small)', color: 'var(--text3)' }}>{row.label}</span>
-                        <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexShrink: 0 }}>
-                          {row.note && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--fs2-small)', color: 'var(--text3)' }}>{row.note}</span>}
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs2-body)', fontWeight: 500, color: row.color }}>{row.value}</span>
-                        </span>
-                      </div>
+                      <NoteRow key={row.label} label={row.label} value={row.value} color={row.color} note={row.note} />
                     ))}
                   </div>
                 )}
