@@ -2651,10 +2651,21 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 _req  = json.loads(_body) if _body else {}
                 _key  = _req.get("file", "")
                 _content = _req.get("content")
-                if _key not in _ALLOWED and _key != "schwab_cost":
+                if _key not in _ALLOWED and _key not in ("schwab_cost", "price_alerts"):
                     raise ValueError(f"Unknown config file: {_key!r}")
                 if _content is None:
                     raise ValueError("Missing 'content' in request body")
+                # price_alerts is DB-backed (price_alerts table) — no file write
+                if _key == "price_alerts":
+                    import db_manager as _dbm
+                    n = _dbm.alerts_replace_from_dict(_content)
+                    body = json.dumps({"success": True, "alerts_written": n}).encode()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Content-Length', len(body))
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
                 # schwab_cost is DB-backed (lots table) — no file write at all
                 if _key == "schwab_cost":
                     import db_manager as _dbm

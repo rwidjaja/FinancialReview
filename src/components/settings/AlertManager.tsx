@@ -13,7 +13,7 @@ interface AlertItem {
   id: string
   symbol: string
   direction: 'above' | 'below'
-  mode: 'price' | 'percent'
+  mode: 'price' | 'pct'
   threshold: number
   base_price: number
   created_at: string
@@ -75,7 +75,7 @@ export function AlertManager({ data, onSaved }: {
   }
 
   const toggleMode = (i: number) => {
-    setAlert(i, { mode: alerts[i].mode === 'price' ? 'percent' : 'price' })
+    setAlert(i, { mode: alerts[i].mode === 'price' ? 'pct' : 'price' })
   }
 
   return (

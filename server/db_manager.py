@@ -600,6 +600,48 @@ def alert_delete(alert_id: str) -> bool:
     return c.execute("SELECT changes()").fetchone()[0] > 0
 
 
+def alerts_replace_from_dict(data: dict) -> int:
+    """
+    Replace all alerts with `data` ({alerts: [...]}, the Settings editor format).
+    Blank-symbol rows are skipped; 'percent' mode is normalized to 'pct'.
+    Returns number of alerts written.
+    """
+    import uuid
+    from datetime import datetime, timezone
+    rows = []
+    for a in (data or {}).get("alerts", []):
+        sym = str(a.get("symbol") or "").upper().strip()
+        if not sym:
+            continue
+        mode = a.get("mode") or "price"
+        rows.append({
+            "id":              a.get("id") or str(uuid.uuid4()),
+            "symbol":          sym,
+            "direction":       a.get("direction") or "above",
+            "mode":            "pct" if mode == "percent" else mode,
+            "threshold":       float(a.get("threshold") or 0),
+            "base_price":      float(a.get("base_price") or 0),
+            "created_at":      a.get("created_at") or datetime.now(timezone.utc).isoformat(),
+            "active":          int(bool(a.get("active", True))),
+            "triggered":       int(bool(a.get("triggered", False))),
+            "triggered_at":    a.get("triggered_at"),
+            "triggered_price": a.get("triggered_price"),
+            "notes":           a.get("notes") or "",
+        })
+    c = _conn()
+    with c:
+        c.execute("DELETE FROM price_alerts")
+        c.executemany(
+            """INSERT INTO price_alerts
+                   (id, symbol, direction, mode, threshold, base_price,
+                    created_at, active, triggered, triggered_at, triggered_price, notes)
+               VALUES(:id,:symbol,:direction,:mode,:threshold,:base_price,
+                      :created_at,:active,:triggered,:triggered_at,:triggered_price,:notes)""",
+            rows,
+        )
+    return len(rows)
+
+
 def alerts_as_json_dict() -> dict:
     """Return alerts in the legacy {alerts: [...]} format (for settings GET endpoint)."""
     return {"alerts": alerts_get_all()}

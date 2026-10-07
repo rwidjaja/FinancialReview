@@ -42,7 +42,7 @@ interface AlertItem {
   id: string
   symbol: string
   direction: 'above' | 'below'
-  mode: 'price' | 'percent'
+  mode: 'price' | 'pct'
   threshold: number
   base_price: number
   created_at: string
