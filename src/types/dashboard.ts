@@ -1129,6 +1129,14 @@ export interface ServerStatus {
   refreshing: boolean
 }
 
+/** GET /api/schwab/auth — Schwab token state for the re-auth popup. */
+export interface SchwabAuthStatus {
+  needs_auth: boolean
+  reason: string | null
+  in_progress: boolean
+  error: string | null
+}
+
 /** NYSE trading-day status — calendar-aware (holidays, early closes). */
 export interface MarketStatus {
   is_open: boolean

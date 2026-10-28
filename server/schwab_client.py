@@ -247,13 +247,94 @@ def clear_caches() -> None:
     _conv_history_cache_date = None
 
 
+# ── Re-authentication state ──────────────────────────────────────────────────
+# Once the refresh token is dead, every Schwab call fails the same way until the
+# user logs in again. needs_auth short-circuits get_client() so the background
+# loops stop hammering Schwab (and the log) and the frontend can prompt for a
+# browser login via /api/schwab/reauth instead of requiring a server restart.
+_auth_state: Dict[str, Any] = {
+    "needs_auth":  False,
+    "reason":      None,
+    "in_progress": False,
+    "error":       None,
+}
+_auth_state_lock = threading.Lock()
+_REAUTH_TIMEOUT_S = 300   # matches schwab-py's default callback_timeout
+
+
 def _print_auth_instructions(reason: str) -> None:
-    """Print a clear one-time message telling the user to run auth setup manually."""
-    token_file = _token_path()
+    """Flag that re-auth is needed; print instructions only on the first failure."""
+    with _auth_state_lock:
+        already = _auth_state["needs_auth"]
+        _auth_state["needs_auth"] = True
+        _auth_state["reason"] = reason
+    if already:
+        return
     print(f"[schwab] {reason}")
-    print(f"[schwab] Run this in a separate terminal to authenticate:")
+    print(f"[schwab] Click 'Reconnect Schwab' in the dashboard, or run in a separate terminal:")
     print(f"[schwab]   cd {_DIR} && python3 setup_schwab_auth.py")
-    print(f"[schwab] Dashboard will operate in fallback mode (yfinance data only) until then.")
+    print(f"[schwab] Dashboard will operate in fallback mode (cached positions / yfinance) until then.")
+
+
+def auth_status() -> Dict[str, Any]:
+    """Snapshot of the re-auth state for /api/schwab/auth."""
+    with _auth_state_lock:
+        return dict(_auth_state)
+
+
+def start_reauth() -> Dict[str, Any]:
+    """Launch the browser-assisted Schwab login in the background.
+
+    Runs setup_schwab_auth.py --non-interactive as a subprocess: it opens the
+    Schwab login page in the default browser, captures the OAuth callback on
+    the redirect_uri port, and writes a fresh token file. On success the cached
+    client is reloaded from that file. Returns the auth state immediately.
+    """
+    import subprocess
+
+    with _auth_state_lock:
+        if _auth_state["in_progress"]:
+            return dict(_auth_state)
+        _auth_state["in_progress"] = True
+        _auth_state["error"] = None
+
+    def _run():
+        global _client
+        err = None
+        try:
+            proc = subprocess.run(
+                [sys.executable, os.path.join(_DIR, "setup_schwab_auth.py"), "--non-interactive"],
+                cwd=_DIR, capture_output=True, text=True,
+                timeout=_REAUTH_TIMEOUT_S + 30,
+            )
+            if proc.returncode != 0:
+                tail = (proc.stdout + proc.stderr).strip().splitlines()[-3:]
+                err = " ".join(tail) or f"exit code {proc.returncode}"
+        except subprocess.TimeoutExpired:
+            err = "Timed out waiting for Schwab login."
+        except Exception as e:
+            err = str(e)
+
+        if err is None:
+            with _client_lock:
+                _client = None
+            clear_caches()
+            with _auth_state_lock:
+                _auth_state["needs_auth"] = False
+                _auth_state["reason"] = None
+            if get_client() is None:
+                err = "New token could not be loaded."
+            else:
+                print("[schwab] ✓ Re-authenticated — Schwab live data restored.")
+        if err is not None:
+            print(f"[schwab] ✗ Re-authentication failed: {err}")
+
+        with _auth_state_lock:
+            _auth_state["in_progress"] = False
+            _auth_state["error"] = err
+
+    threading.Thread(target=_run, daemon=True, name="schwab-reauth").start()
+    return auth_status()
 
 
 def _patch_token_expiry(token_file: str) -> None:
@@ -296,6 +377,9 @@ def get_client(force_reload: bool = False):
     global _client
     if _client is not None and not force_reload:
         return _client
+    if _auth_state["needs_auth"]:
+        # Dead refresh token — don't retry until a re-auth succeeds.
+        return None
 
     with _client_lock:
         # Re-check now that we hold the lock: another thread may have just
@@ -791,6 +875,8 @@ def get_all_positions() -> Dict[str, Dict]:
             return result   # success — skip per-account fallback
 
     except Exception as e:
+        if _is_refresh_token_error(e):
+            return result   # per-account calls would hit the same dead token
         if _is_5xx(e):
             status = getattr(getattr(e, "response", None), "status_code", 0)
             print(f"[schwab] ⚠ bulk get_accounts HTTP {status} — falling back to per-account calls")
@@ -819,6 +905,8 @@ def get_all_positions() -> Dict[str, Dict]:
                   f"value=${liq_value:,.0f}")
 
         except Exception as e:
+            if _is_refresh_token_error(e):
+                break   # every remaining account would fail the same way
             if _is_5xx(e):
                 cached = _cache_load(f"positions_{acct_key}")
                 if cached:

@@ -8,6 +8,8 @@ save a token file locally so the dashboard can run unattended.
 
 Usage:
     python3 setup_schwab_auth.py
+    python3 setup_schwab_auth.py --non-interactive   # no prompts; used by the
+        dashboard's "Reconnect Schwab" button (server runs it in the background)
 
 After successful auth, the token is valid for 7 days. After that,
 re-run this script to refresh. The dashboard auto-refreshes the token
@@ -22,6 +24,26 @@ import webbrowser
 
 _DIR = os.path.dirname(os.path.abspath(__file__))
 _CRED_PATH = os.path.join(_DIR, "schwab_credentials.json")
+
+
+def _reauth_non_interactive(auth, api_key, app_secret, redirect_uri, token_path) -> int:
+    """Browser login with no prompts. The existing token file is overwritten
+    only once Schwab returns a new token, so an abandoned login leaves it as-is."""
+    try:
+        client = auth.client_from_login_flow(
+            api_key=api_key,
+            app_secret=app_secret,
+            callback_url=redirect_uri,
+            token_path=token_path,
+            interactive=False,
+        )
+        resp = client.get_account_numbers()
+        resp.raise_for_status()
+        print(f"Authentication successful — token saved to {token_path}")
+        return 0
+    except Exception as e:
+        print(f"Authentication failed: {e}")
+        return 1
 
 
 def main():
@@ -48,6 +70,9 @@ def main():
         print("ERROR: schwab-py not installed.")
         print("Run: pip3 install schwab-py --break-system-packages")
         sys.exit(1)
+
+    if "--non-interactive" in sys.argv[1:]:
+        sys.exit(_reauth_non_interactive(auth, api_key, app_secret, redirect_uri, token_path))
 
     # If token already exists, check its age
     if os.path.exists(token_path):

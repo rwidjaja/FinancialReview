@@ -87,6 +87,8 @@ interface Props {
   updatedTitle?: string; schwabLive?: boolean
   onRefresh: () => void; isRefreshing: boolean
   onFind?: () => void
+  /** Set while Schwab needs re-auth — shows a button that reopens the prompt. */
+  onSchwabReconnect?: () => void
 }
 
 export function AppHeader(p: Props) {
@@ -106,7 +108,9 @@ export function AppHeader(p: Props) {
           )}
           <span title={p.updatedTitle} className="fd-hide-narrow">{clock}</span>
           <span style={{ color: 'var(--fd-ink)' }}>{market}</span>
-          {p.schwabLive !== undefined && <span>Schwab {p.schwabLive ? 'live' : 'config'}</span>}
+          {p.onSchwabReconnect
+            ? <HeaderButton onClick={p.onSchwabReconnect}><span style={{ color: 'var(--fd-alert)' }}>Reconnect Schwab</span></HeaderButton>
+            : p.schwabLive !== undefined && <span>Schwab {p.schwabLive ? 'live' : 'config'}</span>}
           <HeaderButton onClick={p.onRefresh} disabled={p.isRefreshing}>{p.isRefreshing ? 'Refreshing…' : 'Refresh'}</HeaderButton>
           <HeaderButton onClick={p.onGround}>{p.ground === 'dark' ? 'Light' : 'Dark'}</HeaderButton>
         </div>

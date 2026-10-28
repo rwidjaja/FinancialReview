@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import type { DashboardData, WellnessData, PerformanceData, ServerStatus, MarketStatus, BalanceSnapshot, MarketIndices } from '../types/dashboard'
+import type { DashboardData, WellnessData, PerformanceData, ServerStatus, MarketStatus, BalanceSnapshot, MarketIndices, SchwabAuthStatus } from '../types/dashboard'
 
 /**
  * Mutable ref that App.tsx writes on every tab change.
@@ -109,6 +109,30 @@ export function useServerStatus(enabled: boolean) {
     staleTime: 0,
     gcTime: 0,
   })
+}
+
+/**
+ * Poll /api/schwab/auth so an expired Schwab token surfaces as a popup while
+ * the app is running. Polls fast while a browser login is in flight.
+ */
+export function useSchwabAuth() {
+  const queryClient = useQueryClient()
+  const query = useQuery<SchwabAuthStatus>({
+    queryKey: ['schwab-auth'],
+    queryFn: async () => {
+      const res = await fetch('/api/schwab/auth')
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      return res.json()
+    },
+    refetchInterval: q => (q.state.data?.in_progress ? 2000 : 60_000),
+    staleTime: 0,
+    retry: 1,
+  })
+  const reconnect = async () => {
+    const res = await fetch('/api/schwab/reauth', { method: 'POST' })
+    if (res.ok) queryClient.setQueryData(['schwab-auth'], await res.json())
+  }
+  return { ...query, reconnect }
 }
 
 /**

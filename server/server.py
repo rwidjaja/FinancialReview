@@ -1057,6 +1057,17 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
 
+        elif self.path == '/api/schwab/auth':
+            # Schwab token state — the frontend polls this to show the
+            # "Reconnect Schwab" popup when the refresh token has expired.
+            import schwab_client
+            body = _json(schwab_client.auth_status())
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', len(body))
+            self.end_headers()
+            self.wfile.write(body)
+
         elif self.path == '/api/market_status':
             # NYSE trading-day status — calendar-aware (holidays, early closes).
             # Safe to poll frequently; schedule lookups are cached per-day.
@@ -2371,6 +2382,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(ex)}).encode())
             return
+        if self.path == '/api/schwab/reauth':
+            # POST /api/schwab/reauth — open the Schwab login in the browser and
+            # capture the OAuth callback in the background. Poll
+            # GET /api/schwab/auth for completion, then POST /api/refresh.
+            import schwab_client
+            body = _json(schwab_client.start_reauth())
+            self.send_response(202)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', len(body))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
         if self.path == '/api/whatif/narrate':
             # POST /api/whatif/narrate — narrate a sandbox/simulation delta.
             # Body is the full sandbox result dict (must include `delta`).
@@ -2519,7 +2543,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
             # schwab:account_hashes entries survive in cache_kv and can be
             # served as stale fallback data, causing multiplied values.
             # Nuking them here forces a clean re-fetch from Schwab.
+            # Skipped while Schwab needs re-auth: those snapshots are the only
+            # positions left to show, and wiping them blanks the portfolio.
+            import schwab_client
             try:
+                if schwab_client.auth_status()["needs_auth"]:
+                    raise RuntimeError("Schwab needs re-auth — keeping cached positions")
                 _dbm.snapshot_clear()
                 n_pos  = _dbm.cache_delete_prefix("schwab:positions_")
                 _dbm.cache_delete("schwab:account_hashes")

@@ -37,7 +37,8 @@ function TabLoadingFallback() {
     </div>
   )
 }
-import { useDashboardData, useRefresh, useServerStatus, usePrefetchPerformance, activeTabRef } from './hooks/useDashboardData'
+import { useDashboardData, useRefresh, useServerStatus, usePrefetchPerformance, useSchwabAuth, activeTabRef } from './hooks/useDashboardData'
+import { SchwabReauthModal } from './components/ui/SchwabReauthModal'
 import { DrawdownPlanProvider } from './context/DrawdownPlanContext'
 import { useAlerts } from './hooks/useAlerts'
 import type { ServerStatus, PriceAlert } from './types/dashboard'
@@ -191,6 +192,9 @@ function Dashboard() {
   usePrefetchPerformance()
   const refresh = useRefresh()
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const { data: schwabAuth, reconnect: schwabReconnect } = useSchwabAuth()
+  const [schwabPromptHidden, setSchwabPromptHidden] = useState(false)
+  const schwabNeedsAuth = !!schwabAuth && (schwabAuth.needs_auth || schwabAuth.in_progress)
 
   // On-demand tabs (research, ai, simulate) must not blank during a background
   // backend refresh, but SHOULD reset when the user manually hits Refresh.
@@ -309,6 +313,12 @@ function Dashboard() {
     try { await refresh() } finally { setIsRefreshing(false) }
   }
 
+  const handleSchwabConnected = useCallback(() => {
+    setSchwabPromptHidden(false)
+    void handleRefresh()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Hard connection error (non-503, non-loading)
   const isHardError = !!error && !data && !serverLoading
 
@@ -324,7 +334,18 @@ function Dashboard() {
         schwabLive={data?.schwab_status ? data.schwab_status === 'live' : undefined}
         onRefresh={handleRefresh} isRefreshing={isRefreshing}
         onFind={() => openFind()}
+        onSchwabReconnect={schwabNeedsAuth ? () => setSchwabPromptHidden(false) : undefined}
       />
+
+      {/* Schwab token expired mid-session — prompt for a browser re-login */}
+      {schwabAuth && schwabNeedsAuth && !schwabPromptHidden && (
+        <SchwabReauthModal
+          status={schwabAuth}
+          onReconnect={schwabReconnect}
+          onLater={() => setSchwabPromptHidden(true)}
+          onConnected={handleSchwabConnected}
+        />
+      )}
 
       {find && (
         <FindPalette initialQuery={find.q} currentTab={activeTab} onPick={handleFindPick} onClose={() => setFind(null)} />

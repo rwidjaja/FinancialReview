@@ -173,6 +173,7 @@ What happens:
 - The access token refreshes automatically every 30 minutes while the server runs.
 - The **refresh token expires after 7 days**, and Schwab requires a fresh login after that.
 - `start.sh` checks the token on every start. If only the access token expired, it refreshes it. If the whole token has expired, it runs `setup_schwab_auth.py` for you interactively.
+- If the token expires while the dashboard is running, a **Schwab session expired** popup appears. Click **Reconnect Schwab**: the Schwab login opens in your browser, and after you sign in (accept the local certificate warning on the `127.0.0.1` redirect) the dashboard reloads live data. No restart needed. If you pick **Later**, the header keeps a **Reconnect Schwab** button.
 - To check the token by hand:
 
 ```bash
@@ -327,7 +328,7 @@ Runtime data (also gitignored, safe to delete to reset caches):
 |---|---|
 | "Unable to connect to backend" | The API server isn't running on :8501. Check `server/dashboard.log`, or run `cd server && python3 server.py` to see the error. |
 | `ModuleNotFoundError` (e.g. `schwab`, `yfinance`) | The venv isn't active. Run `source ~/Development/venv/FinancialReview/bin/activate`, then `pip install -r server/requirements.txt`. |
-| Header shows **Schwab config** instead of **Schwab live** | Token missing or expired. Run `cd server && python3 setup_schwab_auth.py`. |
+| Header shows **Schwab config** instead of **Schwab live** | Token missing or expired. Click **Reconnect Schwab** in the header, or run `cd server && python3 setup_schwab_auth.py`. |
 | Login works but the token step fails | The callback URL in the Schwab app and `redirect_uri` don't match exactly, or the app isn't *Ready For Use* yet. |
 | "Schwab account mapping not found" | No account has a type yet. See [step 5](#5-map-your-schwab-accounts). |
 | An account is missing or has the wrong values | It isn't mapped, or wasn't selected when you approved access. Re-run `setup_schwab_auth.py` and tick every account. |
