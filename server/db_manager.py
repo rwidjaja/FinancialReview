@@ -484,6 +484,27 @@ def eod_load() -> dict:
     return {"_date": trade_date, "_timestamp": updated_at, "by_symbol": by_symbol}
 
 
+def eod_load_before(trade_date: str) -> dict:
+    """Return the most recent EOD snapshot strictly before `trade_date`
+    (YYYY-MM-DD) as {_date, by_symbol} or {}. Used to compare today's share
+    counts with the prior session's (split detection)."""
+    rows = _conn().execute(
+        """SELECT symbol, trade_date, market_value, shares, price
+           FROM eod_values
+           WHERE trade_date = (SELECT MAX(trade_date) FROM eod_values WHERE trade_date < ?)""",
+        (trade_date,),
+    ).fetchall()
+    if not rows:
+        return {}
+    return {
+        "_date": rows[0]["trade_date"],
+        "by_symbol": {
+            r["symbol"]: {"market_value": r["market_value"], "shares": r["shares"], "price": r["price"]}
+            for r in rows
+        },
+    }
+
+
 # ── Positions snapshot ────────────────────────────────────────────────────────
 
 def snapshot_save(ts: float, timestamp: str, accounts: dict) -> None:
@@ -851,6 +872,31 @@ def lots_replace_from_dict(data: dict, source_label: str = "client") -> int:
     c.commit()
     print(f"[db] Imported {len(rows)} lots from {source_label}")
     return len(rows)
+
+
+def lots_apply_split(symbol: str, ratio: float) -> int:
+    """
+    Rescale every open lot of `symbol` for a stock split (ratio = new shares
+    per old share): quantity × ratio, cost_per_share and snapshot_price ÷ ratio.
+    Total cost basis / market value are unchanged by a split, so those columns
+    are left alone. lot_sales is NOT touched — those rows are pre-split sales
+    recorded in pre-split units and stay internally consistent.
+    Returns number of lot rows updated.
+    """
+    if not ratio or ratio <= 0 or ratio == 1.0:
+        return 0
+    c = _conn()
+    with c:
+        cur = c.execute(
+            """UPDATE lots
+                  SET quantity       = quantity * ?,
+                      cost_per_share = cost_per_share / ?,
+                      snapshot_price = CASE WHEN snapshot_price IS NULL THEN NULL
+                                            ELSE snapshot_price / ? END
+                WHERE symbol = ?""",
+            (ratio, ratio, ratio, symbol),
+        )
+    return cur.rowcount
 
 
 def reimport_lots(path: str) -> int:

@@ -31,8 +31,9 @@ from .time_utils import (
     _NYSE_OPEN_MIN, _NYSE_CLOSE_MIN,
 )
 from .eod import _load_eod_values, _validate_target_symbols, _save_eod_values
+from .splits import infer_split_ratio, fix_stale_split_quotes, rebase_eod_baseline
 from .tax_lot import (
-    _load_cost_basis_analysis,
+    _load_cost_basis_analysis, _reconcile_lot_splits,
     _read_prev_confidence, _write_confidence,
     _load_trends_cache, _save_trends_cache,
     _save_positions_snapshot, _load_positions_snapshot,
@@ -425,6 +426,9 @@ def fetch_all_data() -> Dict[str, Any]:
                 sym: {
                     "shares":          pos["shares"],
                     "cost_per_share":  pos["cost_per_share"],
+                    # Schwab's own marketValue / shares — consistent with its
+                    # share count even when the quote feed lags a split.
+                    **({"position_price": pos["current_price"]} if pos.get("current_price") else {}),
                     **({"is_money_market": True} if pos.get("is_money_market") else {}),
                 }
                 for sym, pos in acct_data.get("positions", {}).items()
@@ -709,6 +713,32 @@ def fetch_all_data() -> Dict[str, Any]:
         if _VERBOSE:
             print(f"[portfolio] Overlaid Schwab live data on {len(schwab_snap['quotes'])} symbols.")
 
+    # ── Split guard on live quotes ───────────────────────────────────────────
+    # On a split's effective date Schwab positions can already show post-split
+    # shares while the quote feed (Schwab + yfinance) still prints the pre-split
+    # price — e.g. SOXX 3:1: 9,300 sh × $450 = $4.19M instead of ~$1.4M.
+    # Two independent signals that the quote is stale:
+    #   a) Schwab's position-implied price (marketValue / shares) differs from
+    #      the quote by a split factor;
+    #   b) share count jumped by a split factor vs the prior trading day's EOD
+    #      while the quote did NOT move by that factor.
+    # When either fires, rescale the per-share quote fields to post-split units.
+    try:
+        import db_manager as _dbm_sq
+        _prev_eod = _dbm_sq.eod_load_before(_et_now().isoformat()).get("by_symbol", {})
+    except Exception:
+        _prev_eod = {}
+    _held_sh: dict = {}
+    _pos_px: dict = {}
+    for _acct in portfolio.values():
+        for _hs, _hp in (_acct.get("positions") or {}).items():
+            if _hp.get("is_money_market"):
+                continue
+            _held_sh[_hs] = _held_sh.get(_hs, 0.0) + (_hp.get("shares") or 0.0)
+            if _hp.get("position_price"):
+                _pos_px.setdefault(_hs, _hp["position_price"])
+    _quote_split = fix_stale_split_quotes(snapshots, _held_sh, _pos_px, _prev_eod)
+
     # ── Fetch yield data for money-market funds (excluded from main quote call) ─
     # MMF symbols get a $1.00 price stub but DO earn interest that should appear
     # in the payout calendar (e.g. SWVXX 3.8% ≈ $114/mo on $40K).
@@ -763,6 +793,26 @@ def fetch_all_data() -> Dict[str, Any]:
     _eod_date   = _eod.get("_date", "")          # "YYYY-MM-DD" or ""
     _eod_by_sym = _eod.get("by_symbol", {})      # { sym: {market_value, shares, price} }
     _today_str  = _et_now().isoformat()
+
+    # ── Split guard on the EOD baseline ──────────────────────────────────────
+    # On a split's effective date the saved baseline can be on the pre-split
+    # side (yfinance's pre-market "previous close" often isn't split-adjusted
+    # yet) while Schwab already reports post-split price/shares. E.g. SOXX 3:1:
+    # baseline $450 vs live $150 → a fake −67% day loss on the whole position.
+    # Rescale the stale baseline price to the post-split basis; value-per-
+    # position is unchanged by a split, so mv = stored shares × adjusted price
+    # keeps the per-account (shares-proportional) day-change formula correct
+    # whether the stored share count is pre- or post-split.
+    _split_syms = rebase_eod_baseline(_eod_by_sym, snapshots)
+    _split_syms.update(_quote_split)
+    _eod_fixed = {k: dict(_eod_by_sym[k]) for k in _split_syms if k in _eod_by_sym}
+    if _eod_fixed and _eod_date:
+        try:
+            import db_manager as _dbm_eod
+            _dbm_eod.eod_save(_eod_date, _eod_fixed)   # persist the corrected baseline
+        except Exception as _e:
+            if _VERBOSE:
+                print(f"[eod] Failed to persist split-adjusted baseline: {_e}")
 
     # Determine whether the EOD snapshot needs a fresh yfinance bootstrap.
     # Three stale conditions:
@@ -836,6 +886,15 @@ def fetch_all_data() -> Dict[str, Any]:
                 # accurate when the API is live.  netChange = 0 only pre-market
                 # or when the API returned no data.
                 _api_price_chg = snap_d.get("price_change") or 0.0
+                # On a split day the quote's netChange can be measured against
+                # the unadjusted previous close (implied prev = price − change
+                # ≈ split × price). Never trust it then — fall through to the
+                # split-adjusted EOD baseline instead.
+                if _api_price_chg != 0.0 and (
+                    sym in _split_syms
+                    or infer_split_ratio(price - _api_price_chg, price) is not None
+                ):
+                    _api_price_chg = 0.0
                 if _api_price_chg != 0.0:
                     day_chg = _api_price_chg * shares
                 else:
@@ -1046,6 +1105,18 @@ def fetch_all_data() -> Dict[str, Any]:
                                 _pc = _prev_close_from_col(_yf_hist[_s])
                                 if _pc is not None:
                                     _prev_map[_s] = _pc
+                    # Split guard: yfinance's prev close may still be
+                    # pre-split while live prices are post-split.
+                    _cur_px_map = {
+                        _pos["symbol"]: _pos["current_price"]
+                        for _acct in accounts for _pos in _acct["positions"]
+                    }
+                    for _s, _pc in list(_prev_map.items()):
+                        _r = infer_split_ratio(_pc, _cur_px_map.get(_s) or 0.0)
+                        if _r is not None:
+                            _prev_map[_s] = _pc / _r
+                            print(f"[eod] Split detected for {_s}: ratio {_r:g} — "
+                                  f"prev close {_pc:.2f} rescaled to {_pc / _r:.2f}")
                     if _prev_map:
                         _eod_new = _build_eod_from_positions(_prev_map)
                         if _eod_new:
@@ -2962,14 +3033,28 @@ def fetch_all_data() -> Dict[str, Any]:
         # without also dropping real holdings just because a price quote was missing.
         _live_prices: dict = {}
         _active_taxable_syms: set = set()
+        _live_taxable_pos: dict = {}
         for _ua in accounts:
             if _ua.get("key") == "taxable":
                 for _up in _ua.get("positions", []):
                     _active_taxable_syms.add(_up["symbol"])
+                    _live_taxable_pos[_up["symbol"]] = {
+                        "shares": _up.get("shares", 0),
+                        "cost_per_share": _up.get("cost_per_share", 0),
+                    }
                     _p = _up.get("current_price", 0)
                     if _p > 0:
                         _live_prices[_up["symbol"]] = _p
                 break
+        # Stored lots are imported snapshots — after a split (e.g. SMH) they
+        # keep pre-split qty/cost while Schwab's live position is post-split,
+        # which would value old qty at the new price (fake ~−67% loss).
+        # Rescale them first. Only runs on live Schwab data, never a stale cache.
+        if schwab_status == "live":
+            try:
+                _reconcile_lot_splits(_live_taxable_pos)
+            except Exception as _e:
+                print(f"[lots] Split reconciliation failed: {_e}")
         _cost_basis_analysis = _load_cost_basis_analysis(
             live_prices=_live_prices, active_symbols=_active_taxable_syms)
 

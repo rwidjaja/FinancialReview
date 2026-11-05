@@ -6,6 +6,45 @@ from typing import Any, Dict, Optional
 
 import db_manager as _dbm
 
+def _reconcile_lot_splits(live_positions: dict) -> dict:
+    """
+    Detect stock splits that Schwab has applied to the live taxable position
+    but the stored lots (imported before the split) have not, and rescale the
+    stored lots in place.
+
+    live_positions: {symbol: {"shares": float, "cost_per_share": float}} for the
+    taxable account. A split is recognised only when BOTH the share count and
+    the per-share cost moved by the same split factor — an ordinary buy or sell
+    changes the count but not the average cost, so it never triggers this.
+
+    Idempotent: once lots are rescaled they match the live position and no
+    further adjustment happens. Re-importing post-split lots from Schwab later
+    also matches, so nothing is double-applied.
+    Returns {symbol: ratio} for every symbol adjusted.
+    """
+    from .splits import infer_split_from_quantities
+
+    _raw = _dbm.lots_get_raw()
+    adjusted: dict = {}
+    for _sym, _pos in (live_positions or {}).items():
+        _lots = (_raw.get(_sym) or {}).get("lots") or []
+        _lot_qty = sum(float(l.get("quantity") or 0) for l in _lots)
+        _lot_cost = sum(float(l.get("quantity") or 0) * float(l.get("costPerShare") or 0) for l in _lots)
+        if _lot_qty <= 0 or _lot_cost <= 0:
+            continue
+        _ratio = infer_split_from_quantities(
+            old_qty=_lot_qty, new_qty=_pos.get("shares") or 0,
+            old_cost=_lot_cost / _lot_qty, new_cost=_pos.get("cost_per_share") or 0,
+        )
+        if _ratio is None:
+            continue
+        _n = _dbm.lots_apply_split(_sym, _ratio)
+        adjusted[_sym] = _ratio
+        print(f"[lots] Split detected for {_sym}: ratio {_ratio:g} "
+              f"(lots {_lot_qty:g} sh → live {_pos.get('shares'):g} sh); rescaled {_n} lot(s)")
+    return adjusted
+
+
 def _load_cost_basis_analysis(live_prices: dict = None, active_symbols: set = None) -> dict:
     """
     Read the lots table and compute:
