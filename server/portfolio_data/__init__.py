@@ -31,7 +31,7 @@ from .time_utils import (
     _NYSE_OPEN_MIN, _NYSE_CLOSE_MIN,
 )
 from .eod import _load_eod_values, _validate_target_symbols, _save_eod_values
-from .splits import infer_split_ratio, fix_stale_split_quotes, rebase_eod_baseline
+from .splits import detect_splits, is_pre_split, fix_stale_split_quotes, rebase_eod_baseline
 from .tax_lot import (
     _load_cost_basis_analysis, _reconcile_lot_splits,
     _read_prev_confidence, _write_confidence,
@@ -717,12 +717,11 @@ def fetch_all_data() -> Dict[str, Any]:
     # On a split's effective date Schwab positions can already show post-split
     # shares while the quote feed (Schwab + yfinance) still prints the pre-split
     # price — e.g. SOXX 3:1: 9,300 sh × $450 = $4.19M instead of ~$1.4M.
-    # Two independent signals that the quote is stale:
-    #   a) Schwab's position-implied price (marketValue / shares) differs from
-    #      the quote by a split factor;
-    #   b) share count jumped by a split factor vs the prior trading day's EOD
-    #      while the quote did NOT move by that factor.
-    # When either fires, rescale the per-share quote fields to post-split units.
+    # The split RATIO comes only from share counts (vs the prior session's
+    # EOD) or a same-instant Schwab position-vs-quote mismatch — never from
+    # prices across days, which move (SOXX fell ~10% on its split day).
+    # Prices are then classified pre/post-split by the nearer level, so an
+    # already-adjusted quote is never divided again. See portfolio_data/splits.py.
     try:
         import db_manager as _dbm_sq
         _prev_eod = _dbm_sq.eod_load_before(_et_now().isoformat()).get("by_symbol", {})
@@ -737,7 +736,8 @@ def fetch_all_data() -> Dict[str, Any]:
             _held_sh[_hs] = _held_sh.get(_hs, 0.0) + (_hp.get("shares") or 0.0)
             if _hp.get("position_price"):
                 _pos_px.setdefault(_hs, _hp["position_price"])
-    _quote_split = fix_stale_split_quotes(snapshots, _held_sh, _pos_px, _prev_eod)
+    _split_syms = detect_splits(_held_sh, _prev_eod, _pos_px, snapshots)
+    fix_stale_split_quotes(snapshots, _split_syms, _prev_eod, _pos_px)
 
     # ── Fetch yield data for money-market funds (excluded from main quote call) ─
     # MMF symbols get a $1.00 price stub but DO earn interest that should appear
@@ -803,9 +803,8 @@ def fetch_all_data() -> Dict[str, Any]:
     # position is unchanged by a split, so mv = stored shares × adjusted price
     # keeps the per-account (shares-proportional) day-change formula correct
     # whether the stored share count is pre- or post-split.
-    _split_syms = rebase_eod_baseline(_eod_by_sym, snapshots)
-    _split_syms.update(_quote_split)
-    _eod_fixed = {k: dict(_eod_by_sym[k]) for k in _split_syms if k in _eod_by_sym}
+    _eod_rebased = rebase_eod_baseline(_eod_by_sym, snapshots, _split_syms)
+    _eod_fixed = {k: dict(_eod_by_sym[k]) for k in _eod_rebased}
     if _eod_fixed and _eod_date:
         try:
             import db_manager as _dbm_eod
@@ -886,14 +885,10 @@ def fetch_all_data() -> Dict[str, Any]:
                 # accurate when the API is live.  netChange = 0 only pre-market
                 # or when the API returned no data.
                 _api_price_chg = snap_d.get("price_change") or 0.0
-                # On a split day the quote's netChange can be measured against
-                # the unadjusted previous close (implied prev = price − change
-                # ≈ split × price). Never trust it then — fall through to the
-                # split-adjusted EOD baseline instead.
-                if _api_price_chg != 0.0 and (
-                    sym in _split_syms
-                    or infer_split_ratio(price - _api_price_chg, price) is not None
-                ):
+                # On a split day the quote's netChange may be measured against
+                # the unadjusted previous close. Don't trust it for split
+                # symbols — the split-adjusted EOD baseline is used instead.
+                if sym in _split_syms:
                     _api_price_chg = 0.0
                 if _api_price_chg != 0.0:
                     day_chg = _api_price_chg * shares
@@ -1112,8 +1107,8 @@ def fetch_all_data() -> Dict[str, Any]:
                         for _acct in accounts for _pos in _acct["positions"]
                     }
                     for _s, _pc in list(_prev_map.items()):
-                        _r = infer_split_ratio(_pc, _cur_px_map.get(_s) or 0.0)
-                        if _r is not None:
+                        _r = _split_syms.get(_s)
+                        if _r and is_pre_split(_pc, _cur_px_map.get(_s) or 0.0, _r):
                             _prev_map[_s] = _pc / _r
                             print(f"[eod] Split detected for {_s}: ratio {_r:g} — "
                                   f"prev close {_pc:.2f} rescaled to {_pc / _r:.2f}")
