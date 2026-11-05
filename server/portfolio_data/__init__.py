@@ -31,7 +31,12 @@ from .time_utils import (
     _NYSE_OPEN_MIN, _NYSE_CLOSE_MIN,
 )
 from .eod import _load_eod_values, _validate_target_symbols, _save_eod_values
-from .splits import detect_splits, is_pre_split, fix_stale_split_quotes, rebase_eod_baseline
+from .splits import (
+    detect_splits, is_pre_split, fix_stale_split_quotes, rebase_eod_baseline,
+    record_splits, install_yfinance_split_patch,
+)
+# Make every yfinance history fetch split-consistent (see splits.py).
+install_yfinance_split_patch()
 from .tax_lot import (
     _load_cost_basis_analysis, _reconcile_lot_splits,
     _read_prev_confidence, _write_confidence,
@@ -738,6 +743,17 @@ def fetch_all_data() -> Dict[str, Any]:
                 _pos_px.setdefault(_hs, _hp["position_price"])
     _split_syms = detect_splits(_held_sh, _prev_eod, _pos_px, snapshots)
     fix_stale_split_quotes(snapshots, _split_syms, _prev_eod, _pos_px)
+    if _split_syms:
+        try:
+            _new_split = record_splits(
+                _split_syms, _et_now().isoformat(),
+                {s: (snapshots.get(s) or {}).get("price") for s in _split_syms},
+            )
+            if _new_split:
+                # Today's Returns-tab cache was built from unadjusted history.
+                _dbm.cache_delete(f"perf_{datetime.now().strftime('%Y-%m-%d')}")
+        except Exception as _e:
+            print(f"[split] Failed to record split: {_e}")
 
     # ── Fetch yield data for money-market funds (excluded from main quote call) ─
     # MMF symbols get a $1.00 price stub but DO earn interest that should appear

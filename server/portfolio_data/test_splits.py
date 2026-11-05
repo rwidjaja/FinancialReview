@@ -11,7 +11,9 @@ import db_manager as dbm
 from portfolio_data.splits import (
     infer_split_ratio, infer_split_from_quantities, is_pre_split,
     detect_splits, fix_stale_split_quotes, rebase_eod_baseline,
+    adjust_history, adjust_download,
 )
+import portfolio_data.splits as _splits_mod
 
 
 class InferSplitRatioTests(unittest.TestCase):
@@ -108,6 +110,52 @@ class SoxxSplitDayReplayTests(unittest.TestCase):
         # Even a −50% crash with unchanged shares is not a split
         snaps = {"SMH": {"price": 249.0}}
         self.assertEqual(detect_splits({"SMH": 3409.0}, prev, {"SMH": 249.0}, snaps), {})
+
+
+class HistoryAdjustTests(unittest.TestCase):
+    """yfinance on 2026-11-05: past bars unadjusted (~$450), today post-split."""
+
+    def setUp(self):
+        import time
+        self._memo = dict(_splits_mod._recent_memo)
+        _splits_mod._recent_memo.update(t=time.time() + 3600, v={
+            "SOXX": {"ratio": 3.0, "date": "2026-11-05", "ref_price": 139.38}})
+
+    def tearDown(self):
+        _splits_mod._recent_memo.clear()
+        _splits_mod._recent_memo.update(self._memo)
+
+    def _frame(self, closes, days=("2026-11-03", "2026-11-04", "2026-11-05")):
+        import pandas as pd
+        idx = pd.DatetimeIndex(pd.to_datetime(list(days[:len(closes)]))).tz_localize("America/New_York")
+        return pd.DataFrame({"Open": closes, "High": closes, "Low": closes,
+                             "Close": closes, "Volume": [100.0] * len(closes)}, index=idx)
+
+    def test_cliff_removed(self):
+        out = adjust_history(self._frame([465.0, 450.41, 138.49]), "SOXX")
+        self.assertEqual([round(x, 2) for x in out["Close"]], [155.0, 150.14, 138.49])
+        self.assertEqual(list(out["Volume"]), [300.0, 300.0, 100.0])
+
+    def test_noop_once_yahoo_back_adjusts(self):
+        out = adjust_history(self._frame([155.0, 150.14, 138.49]), "SOXX")
+        self.assertEqual(list(out["Close"]), [155.0, 150.14, 138.49])
+
+    def test_only_pre_split_bars_uses_ref_price(self):
+        out = adjust_history(self._frame([465.0, 450.41]), "SOXX")
+        self.assertEqual([round(x, 2) for x in out["Close"]], [155.0, 150.14])
+
+    def test_other_symbols_untouched(self):
+        out = adjust_history(self._frame([465.0, 450.41, 138.49]), "SMH")
+        self.assertEqual(list(out["Close"]), [465.0, 450.41, 138.49])
+
+    def test_multi_ticker_download(self):
+        import pandas as pd
+        a = self._frame([465.0, 450.41, 138.49])
+        b = self._frame([518.52, 504.27, 468.07])
+        df = pd.concat({"SOXX": a, "SMH": b}, axis=1).swaplevel(0, 1, axis=1)  # (field, sym)
+        out = adjust_download(df, ["SOXX", "SMH"])
+        self.assertEqual([round(x, 2) for x in out[("Close", "SOXX")]], [155.0, 150.14, 138.49])
+        self.assertEqual(list(out[("Close", "SMH")]), [518.52, 504.27, 468.07])
 
 
 class LotSplitReconcileTests(unittest.TestCase):
