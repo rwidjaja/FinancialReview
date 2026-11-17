@@ -413,7 +413,10 @@ def main() -> None:
     # --auto
     today_key, sessions = due_sessions()
     if not sessions:
-        print("No sessions due.")
+        # Polled every few minutes by cron — only chatter when run by hand,
+        # otherwise the log fills with one line per poll.
+        if sys.stdout.isatty():
+            print("No sessions due.")
         return
 
     state = _load_state()
